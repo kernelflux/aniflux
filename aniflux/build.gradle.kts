@@ -38,7 +38,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
-
+    api("com.squareup.okhttp3:okhttp:5.1.0")
     api("com.github.bumptech.glide:glide:4.16.0")
     api("com.github.yyued:svgaplayer-android:2.6.1")
     api("com.tencent.tav:libpag:4.4.35")

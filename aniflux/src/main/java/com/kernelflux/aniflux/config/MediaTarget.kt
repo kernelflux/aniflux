@@ -1,7 +1,9 @@
 package com.kernelflux.aniflux.config
 
-import android.content.Context
+import android.graphics.drawable.Drawable
+import com.kernelflux.aniflux.lifecycle.MediaLifecycleListener
 import com.kernelflux.aniflux.request.MediaRequest
+import com.kernelflux.aniflux.request.target.MediaSizeReadyCallback
 
 /**
  * @author: kerneflux
@@ -9,13 +11,18 @@ import com.kernelflux.aniflux.request.MediaRequest
  * 媒体资源Target接口
  * 用于处理不同类型的媒体资源（动画、静态图片等）
  */
-interface MediaTarget {
-    fun getContext(): Context
-    fun onLoadStarted()
-    fun onLoadSuccess(resource: Any)
-    fun onLoadFail(error: MediaError)
-    fun onLoadCleared()
+interface MediaTarget<R> : MediaLifecycleListener {
 
+    companion object {
+        const val SIZE_ORIGINAL: Int = Int.Companion.MIN_VALUE
+    }
+
+    fun onLoadStarted(placeholder: Drawable?)
+    fun onLoadFailed(errorDrawable: Drawable?)
+    fun onResourceReady(resource: R)
+    fun onLoadCleared(placeholder: Drawable?)
+    fun getSize(cb: MediaSizeReadyCallback)
+    fun removeCallback(cb: MediaSizeReadyCallback)
     fun setRequest(request: MediaRequest?)
     fun getRequest(): MediaRequest?
 

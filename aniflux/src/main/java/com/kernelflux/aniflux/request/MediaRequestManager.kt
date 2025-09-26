@@ -8,7 +8,6 @@ import com.kernelflux.aniflux.config.LoadOptions
 import com.kernelflux.aniflux.config.MediaTarget
 import com.kernelflux.aniflux.lifecycle.MediaLifecycle
 import com.kernelflux.aniflux.lifecycle.MediaLifecycleListener
-import com.kernelflux.aniflux.listener.MediaRequestListener
 import com.kernelflux.aniflux.tracker.MediaRequestTracker
 import com.kernelflux.aniflux.tracker.MediaTargetTracker
 import com.kernelflux.aniflux.utils.Util
@@ -27,7 +26,6 @@ class MediaRequestManager : ComponentCallbacks2, MediaLifecycleListener {
     val antiFlux: AntiFlux
     val context: Context
     val mediaLifecycle: MediaLifecycle
-
     private val requestTracker: MediaRequestTracker
     private val treeNode: MediaRequestManagerTreeNode
     private val targetTracker: MediaTargetTracker = MediaTargetTracker()
@@ -44,8 +42,7 @@ class MediaRequestManager : ComponentCallbacks2, MediaLifecycleListener {
     // 默认请求选项
     private var defaultLoadOptions: LoadOptions = LoadOptions()
 
-    // 默认请求监听器
-    private val defaultRequestListeners = CopyOnWriteArrayList<MediaRequestListener>()
+
 
     // 是否在停止时清除请求
     private var clearOnStop = false
@@ -55,6 +52,9 @@ class MediaRequestManager : ComponentCallbacks2, MediaLifecycleListener {
 
     private val addSelfToLifecycle: Runnable =
         Runnable { mediaLifecycle.addListener(this@MediaRequestManager) }
+
+    // 默认请求监听器
+    private val defaultRequestListeners = CopyOnWriteArrayList<MediaRequestListener<Any>>()
 
     constructor(
         antiFlux: AntiFlux,

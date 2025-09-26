@@ -1,6 +1,5 @@
 package com.kernelflux.aniflux
 
-import android.app.Activity
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.res.Configuration

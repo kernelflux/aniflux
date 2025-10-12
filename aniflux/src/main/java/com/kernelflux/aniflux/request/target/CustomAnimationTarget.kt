@@ -1,0 +1,70 @@
+package com.kernelflux.aniflux.request.target
+
+import android.graphics.drawable.Drawable
+import com.kernelflux.aniflux.request.AnimationRequest
+import com.kernelflux.aniflux.util.Util
+
+/**
+ * @author: kerneflux
+ * @date: 2025/10/13
+ *
+ */
+abstract class CustomAnimationTarget<T>(
+    width: Int = AnimationTarget.SIZE_ORIGINAL,
+    height: Int = AnimationTarget.SIZE_ORIGINAL
+) : AnimationTarget<T> {
+    private val width: Int
+    private val height: Int
+    private var request: AnimationRequest? = null
+
+
+    init {
+        if (!Util.isValidDimensions(width, height)) {
+            throw IllegalArgumentException(
+                ("Width and height must both be > 0 or Target#SIZE_ORIGINAL, but given"
+                        + " width: "
+                        + width
+                        + " and height: "
+                        + height)
+            )
+        }
+        this.width = width
+        this.height = height
+    }
+
+    override fun onStart() {
+        //
+    }
+
+    override fun onStop() {
+        //
+    }
+
+    override fun onDestroy() {
+        //
+    }
+
+    override fun onLoadStarted(placeholder: Drawable?) {
+        //
+    }
+
+    override fun onLoadFailed(errorDrawable: Drawable?) {
+        //
+    }
+
+    override fun getSize(cb: AnimationSizeReadyCallback) {
+        cb.onSizeReady(width, height)
+    }
+
+    override fun removeCallback(cb: AnimationSizeReadyCallback) {
+        //
+    }
+
+    override fun setRequest(request: AnimationRequest?) {
+        this.request = request
+    }
+
+    override fun getRequest(): AnimationRequest? {
+        return this.request
+    }
+}

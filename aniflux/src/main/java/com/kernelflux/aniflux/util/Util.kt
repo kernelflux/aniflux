@@ -2,6 +2,7 @@ package com.kernelflux.aniflux.util
 
 import android.os.Handler
 import android.os.Looper
+import com.kernelflux.aniflux.request.target.AnimationTarget
 
 /**
  * 工具类
@@ -57,5 +58,27 @@ object Util {
     fun postOnUiThread(runnable: Runnable) {
         getUiThreadHandler().post(runnable)
     }
+
+    @JvmStatic
+    fun <T> getSnapshot(other: MutableCollection<T>): MutableList<T> {
+        val result: MutableList<T> = ArrayList<T>(other.size)
+        for (item in other) {
+            if (item != null) {
+                result.add(item)
+            }
+        }
+        return result
+    }
+
+    @JvmStatic
+    fun isValidDimensions(width: Int, height: Int): Boolean {
+        return isValidDimension(width) && isValidDimension(height)
+    }
+
+    @JvmStatic
+    fun isValidDimension(dimen: Int): Boolean {
+        return dimen > 0 || dimen == AnimationTarget.SIZE_ORIGINAL
+    }
+
 
 }

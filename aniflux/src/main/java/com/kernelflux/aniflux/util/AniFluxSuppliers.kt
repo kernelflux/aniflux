@@ -1,12 +1,12 @@
 package com.kernelflux.aniflux.util
 
-object AnifluxSuppliers {
+object AniFluxSuppliers {
 
     /**
      * 类似Java 8的Supplier接口，用于延迟获取对象
      * @param T 数据类型
      */
-    fun interface AnifluxSupplier<T> {
+    fun interface AniFluxSupplier<T> {
         /**
          * 获取对象实例
          * @return 非空的T类型对象
@@ -23,8 +23,8 @@ object AnifluxSuppliers {
      * @return 带缓存的Supplier
      */
     @JvmStatic
-    fun <T> memorize(supplier: AnifluxSupplier<T>): AnifluxSupplier<T> {
-        return object : AnifluxSupplier<T> {
+    fun <T> memorize(supplier: AniFluxSupplier<T>): AniFluxSupplier<T> {
+        return object : AniFluxSupplier<T> {
             @Volatile
             private var instance: T? = null
 

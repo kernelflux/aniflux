@@ -10,7 +10,7 @@ import android.net.Network
 import android.os.AsyncTask
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.kernelflux.aniflux.util.AnifluxSuppliers
+import com.kernelflux.aniflux.util.AniFluxSuppliers
 import com.kernelflux.aniflux.util.Util
 
 /**
@@ -36,8 +36,8 @@ class SingletonConnectivityReceiver(context: Context) {
     }
 
     init {
-        val connectivityManager = AnifluxSuppliers.memorize(object :
-            AnifluxSuppliers.AnifluxSupplier<ConnectivityManager> {
+        val connectivityManager = AniFluxSuppliers.memorize(object :
+            AniFluxSuppliers.AniFluxSupplier<ConnectivityManager> {
             override fun get(): ConnectivityManager {
                 return context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             }
@@ -100,7 +100,7 @@ private interface FrameworkConnectivityMonitor {
 
 @RequiresApi(Build.VERSION_CODES.N)
 private class FrameworkConnectivityMonitorPostApi24(
-    private val connectivityManager: AnifluxSuppliers.AnifluxSupplier<ConnectivityManager>,
+    private val connectivityManager: AniFluxSuppliers.AniFluxSupplier<ConnectivityManager>,
     private val listener: AnimationConnectivityMonitor.AnimationConnectivityListener
 ) : FrameworkConnectivityMonitor {
     var isConnected: Boolean = false
@@ -150,7 +150,7 @@ private class FrameworkConnectivityMonitorPostApi24(
 
 private class FrameworkConnectivityMonitorPreApi24(
     private val context: Context,
-    private val connectivityManager: AnifluxSuppliers.AnifluxSupplier<ConnectivityManager>,
+    private val connectivityManager: AniFluxSuppliers.AniFluxSupplier<ConnectivityManager>,
     private val listener: AnimationConnectivityMonitor.AnimationConnectivityListener
 ) : FrameworkConnectivityMonitor {
     @Volatile

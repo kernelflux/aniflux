@@ -67,4 +67,20 @@ abstract class CustomAnimationTarget<T>(
     override fun getRequest(): AnimationRequest? {
         return this.request
     }
+    
+    /**
+     * 获取目标宽度
+     * 使用width()方法名避免Kotlin的get方法冲突
+     */
+    fun width(): Int {
+        return width
+    }
+    
+    /**
+     * 获取目标高度
+     * 使用height()方法名避免Kotlin的get方法冲突
+     */
+    fun height(): Int {
+        return height
+    }
 }

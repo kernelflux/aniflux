@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.kernelflux.aniflux.engine.AnimationEngine
 import com.kernelflux.aniflux.manager.AnimationConnectivityMonitorFactory
 import com.kernelflux.aniflux.manager.AnimationRequestManagerRetriever
 import com.kernelflux.aniflux.manager.DefaultAnimationConnectivityMonitorFactory
@@ -28,6 +29,9 @@ class AniFlux : ComponentCallbacks2 {
     private val connectivityMonitorFactory: AnimationConnectivityMonitorFactory
     private val defaultRequestListeners: List<AnimationRequestListener<Any>>
     private val logLevel: Int
+    
+    // 添加Engine实例
+    private val engine: AnimationEngine
 
     constructor(
         context: Context,
@@ -41,6 +45,9 @@ class AniFlux : ComponentCallbacks2 {
         this.connectivityMonitorFactory = connectivityMonitorFactory
         this.defaultRequestListeners = defaultRequestListeners
         this.logLevel = logLevel
+        
+        // 初始化Engine
+        this.engine = AnimationEngine()
     }
 
 
@@ -141,6 +148,9 @@ class AniFlux : ComponentCallbacks2 {
     fun getConnectivityMonitorFactory(): AnimationConnectivityMonitorFactory {
         return connectivityMonitorFactory
     }
+    
+    // 提供Engine访问
+    fun getEngine(): AnimationEngine = engine
 
     fun removeFromManagers(target: AnimationTarget<*>): Boolean {
         synchronized(managers) {
@@ -176,7 +186,8 @@ class AniFlux : ComponentCallbacks2 {
 
     fun clearMemory() {
         Util.assertMainThread()
-        //clear memo
+        // 清理Engine缓存
+        engine.clear()
     }
 
     fun trimMemory(level: Int) {
@@ -186,8 +197,9 @@ class AniFlux : ComponentCallbacks2 {
                 manager.onTrimMemory(level)
             }
         }
-
-        //trimMemory
+        
+        // 清理Engine缓存
+        engine.clear()
     }
 
 

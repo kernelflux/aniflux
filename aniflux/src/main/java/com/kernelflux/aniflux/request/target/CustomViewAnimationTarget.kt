@@ -205,7 +205,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
                 cbs.add(cb)
             }
             if (layoutListener == null) {
-                val observer = view.getViewTreeObserver()
+                val observer = view.viewTreeObserver
                 layoutListener = SizeDeterminerLayoutListener(this)
                 observer.addOnPreDrawListener(layoutListener)
             }
@@ -216,7 +216,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
         }
 
         fun clearCallbacksAndListener() {
-            val observer = view.getViewTreeObserver()
+            val observer = view.viewTreeObserver
             if (observer.isAlive) {
                 observer.removeOnPreDrawListener(layoutListener)
             }
@@ -238,7 +238,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
 
         private val targetWidth: Int
             get() {
-                val horizontalPadding = view.getPaddingLeft() + view.getPaddingRight()
+                val horizontalPadding = view.paddingLeft + view.paddingRight
                 val layoutParams = view.layoutParams
                 val layoutParamSize = layoutParams?.width ?: PENDING_SIZE
                 return getTargetDimen(view.width, layoutParamSize, horizontalPadding)

@@ -11,7 +11,7 @@ import com.kernelflux.aniflux.request.target.AnimationTarget
 interface AnimationRequestListener<R> {
 
     fun onLoadFailed(
-        exception: Exception,
+        exception: Throwable,
         model: Any?,
         target: AnimationTarget<R>,
         isFirstResource: Boolean

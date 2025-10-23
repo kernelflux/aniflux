@@ -13,10 +13,13 @@ import com.kernelflux.aniflux.manager.AnimationLifecycleListener
 import com.kernelflux.aniflux.manager.AnimationRequestManagerTreeNode
 import com.kernelflux.aniflux.manager.AnimationRequestTracker
 import com.kernelflux.aniflux.manager.AnimationTargetTracker
+import com.kernelflux.aniflux.engine.AnimationEngine
+import com.kernelflux.aniflux.engine.LoadStatus
 import com.kernelflux.aniflux.request.AnimationRequest
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
+import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.Util
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -150,9 +153,68 @@ class AnimationRequestManager(
     fun <ResourceType> `as`(
         resourceClass: Class<ResourceType>
     ): AnimationRequestBuilder<ResourceType> {
-        return AnimationRequestBuilder<ResourceType>(aniFlux, this, context)
+        return AnimationRequestBuilder<ResourceType>(aniFlux, this, context, resourceClass)
     }
 
+    @CheckResult
+    fun load(path: String): AnimationRequestBuilder<*> {
+        if (path.isEmpty()) {
+            throw IllegalArgumentException("Path cannot be empty")
+        }
+
+        val animationType = com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromPath(path)
+        val resourceClass =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        return `as`(resourceClass).load(path)
+    }
+
+
+    @CheckResult
+    fun load(@androidx.annotation.DrawableRes @androidx.annotation.RawRes resourceId: Int): AnimationRequestBuilder<*> {
+        val animationType = com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromResourceId(
+            context,
+            resourceId
+        )
+        val resourceClass =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        return `as`(resourceClass).load(resourceId)
+    }
+
+    @CheckResult
+    fun load(file: java.io.File): AnimationRequestBuilder<*> {
+        if (!file.exists()) {
+            throw IllegalArgumentException("File does not exist: ${file.absolutePath}")
+        }
+        val animationType =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromPath(file.absolutePath)
+        val resourceClass =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        return `as`(resourceClass).load(file)
+    }
+
+
+    @CheckResult
+    fun load(uri: android.net.Uri): AnimationRequestBuilder<*> {
+        val animationType =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromPath(uri.toString())
+        val resourceClass =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        return `as`(resourceClass).load(uri)
+    }
+
+    @CheckResult
+    fun load(byteArray: ByteArray): AnimationRequestBuilder<*> {
+        if (byteArray.isEmpty()) {
+            throw IllegalArgumentException("ByteArray cannot be empty")
+        }
+        val animationType = com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromBytes(
+            byteArray,
+            byteArray.size
+        )
+        val resourceClass =
+            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        return `as`(resourceClass).load(byteArray)
+    }
 
     //////////////////////////////////////// 基础业务API END  //////////////////////////////////////////////////
 
@@ -224,6 +286,22 @@ class AnimationRequestManager(
     fun track(target: AnimationTarget<*>, request: AnimationRequest) {
         targetTracker.track(target)
         requestTracker.runRequest(request)
+    }
+
+    // 获取Engine实例
+    private fun getEngine(): AnimationEngine {
+        return aniFlux.getEngine()
+    }
+
+    // 通过Engine加载动画
+    fun <T> load(
+        context: Context,
+        model: Any?,
+        target: AnimationTarget<T>,
+        options: AnimationOptions,
+        listener: AnimationRequestListener<T>?
+    ): LoadStatus {
+        return getEngine().load(context, model, target, options, listener)
     }
 
 

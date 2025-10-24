@@ -3,14 +3,14 @@ package com.kernelflux.aniflux.engine
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import AnimationDownloader
-import AnimationExecutor
-import AnimationLoader
-import AnimationLoaderFactory
-import OkHttpAnimationDownloader
+import com.bumptech.glide.request.ResourceCallback
+import com.kernelflux.aniflux.load.AnimationDownloader
+import com.kernelflux.aniflux.load.AnimationExecutor
 import com.kernelflux.aniflux.load.AnimationLoader
+import com.kernelflux.aniflux.load.AnimationLoaderFactory
 import com.kernelflux.aniflux.load.GifAnimationLoader
 import com.kernelflux.aniflux.load.LottieAnimationLoader
+import com.kernelflux.aniflux.load.OkHttpAnimationDownloader
 import com.kernelflux.aniflux.load.PagAnimationLoader
 import com.kernelflux.aniflux.load.SvgaAnimationLoader
 import com.kernelflux.aniflux.request.AnimationRequestListener
@@ -18,8 +18,10 @@ import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.util.AnimationKey
 import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationTypeDetector
+import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicInteger
+
 
 /**
  * 动画任务 - 参考Glide的EngineJob设计
@@ -183,7 +185,7 @@ class AnimationJob<T>(
 
             // 4. 创建AnimationResource
             if (animation != null) {
-                return AnimationResource(animation, this)
+                return AnimationResource(animation, false, "", this)
             } else {
                 throw IllegalStateException("Failed to load animation")
             }
@@ -200,11 +202,7 @@ class AnimationJob<T>(
     private fun detectAnimationType(): AnimationTypeDetector.AnimationType {
         return when (model) {
             is String -> {
-                if (isNetworkUrl(model)) {
-                    AnimationTypeDetector.detectFromPath(model)
-                } else {
-                    AnimationTypeDetector.detectFromPath(model)
-                }
+                AnimationTypeDetector.detectFromPath(model)
             }
 
             is java.io.File -> {
@@ -250,6 +248,7 @@ class AnimationJob<T>(
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
                 val loadFromUrl = (loader as LottieAnimationLoader).loadFromUrl(
+                    context,
                     url,
                     downloader
                 )
@@ -258,6 +257,7 @@ class AnimationJob<T>(
 
             AnimationTypeDetector.AnimationType.PAG -> {
                 (loader as PagAnimationLoader).loadFromUrl(
+                    context,
                     url,
                     downloader
                 )
@@ -266,7 +266,7 @@ class AnimationJob<T>(
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromUrl(url, downloader)
+                }.loadFromUrl(  context,url, downloader)
             }
 
             else -> null
@@ -279,21 +279,21 @@ class AnimationJob<T>(
     private fun loadFromPath(loader: AnimationLoader<*>, path: String): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromPath(path)
+                (loader as GifAnimationLoader).loadFromPath(  context,path)
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromPath(path)
+                (loader as LottieAnimationLoader).loadFromPath(  context,path)
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromPath(path)
+                (loader as PagAnimationLoader).loadFromPath(  context,path)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromPath(path)
+                }.loadFromPath(  context,path)
             }
 
             else -> null
@@ -306,15 +306,15 @@ class AnimationJob<T>(
     private fun loadFromFile(loader: AnimationLoader<*>, file: java.io.File): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromFile(file)
+                (loader as GifAnimationLoader).loadFromFile(  context,file)
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromFile(file)
+                (loader as LottieAnimationLoader).loadFromFile(  context,file)
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromFile(file)
+                (loader as PagAnimationLoader).loadFromFile(  context,file)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
@@ -333,21 +333,21 @@ class AnimationJob<T>(
     private fun loadFromUri(loader: AnimationLoader<*>, uri: android.net.Uri): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromPath(uri.toString())
+                (loader as GifAnimationLoader).loadFromPath(  context,uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromPath(uri.toString())
+                (loader as LottieAnimationLoader).loadFromPath(  context,uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromPath(uri.toString())
+                (loader as PagAnimationLoader).loadFromPath(  context,uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromPath(uri.toString())
+                }.loadFromPath(  context,uri.toString())
             }
 
             else -> null
@@ -655,6 +655,19 @@ class AnimationJob<T>(
         }
     }
 
+
+    @Synchronized
+    fun removeCallback(cb: ResourceCallback?) {
+        cbs.remove(cb)
+        if (cbs.isEmpty()) {
+            cancel()
+            val isFinishedRunning = hasResource || hasLoadFailed
+            if (isFinishedRunning && pendingCallbacks.get() == 0) {
+                release()
+            }
+        }
+    }
+
     /**
      * 取消任务
      */
@@ -690,6 +703,6 @@ class AnimationJob<T>(
     private data class CallbackInfo<T>(
         val target: AnimationTarget<T>,
         val listener: AnimationRequestListener<T>?,
-        val executor: Handler
+        val executor: Executor
     )
 }

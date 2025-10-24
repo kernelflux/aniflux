@@ -153,7 +153,7 @@ class AnimationRequestManager(
     fun <ResourceType> `as`(
         resourceClass: Class<ResourceType>
     ): AnimationRequestBuilder<ResourceType> {
-        return AnimationRequestBuilder<ResourceType>(aniFlux, this, context, resourceClass)
+        return AnimationRequestBuilder(aniFlux, this, context, resourceClass)
     }
 
     @CheckResult
@@ -228,7 +228,7 @@ class AnimationRequestManager(
 
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
-        // Nothing to add conditionally. See Glide#onTrimMemory for unconditional behavior.
+        //
     }
 
     @Synchronized

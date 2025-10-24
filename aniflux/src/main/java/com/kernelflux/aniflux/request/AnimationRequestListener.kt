@@ -19,7 +19,7 @@ interface AnimationRequestListener<R> {
 
     fun onResourceReady(
         resource: R,
-        model: Any,
+        model: Any?,
         target: AnimationTarget<R>,
         dataSource: AnimationDataSource,
         isFirstResource: Boolean

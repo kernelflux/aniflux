@@ -1,14 +1,10 @@
 package com.kernelflux.aniflux
 
 import android.content.Context
-import com.kernelflux.aniflux.engine.LoadStatus
 import com.kernelflux.aniflux.request.AnimationRequest
-import com.kernelflux.aniflux.request.AnimationRequestImpl
+import com.kernelflux.aniflux.request.SingleAnimationRequest
 import com.kernelflux.aniflux.request.AnimationRequestListener
-import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.request.target.CustomAnimationTarget
-import com.kernelflux.aniflux.util.AnimationOptions
-import com.kernelflux.aniflux.util.CacheStrategy
 
 /**
  * @author: kerneflux
@@ -32,7 +28,7 @@ class AnimationRequestBuilder<T>(
     /**
      * 设置要加载的模型对象
      */
-    fun load(model: Any?): AnimationRequestBuilder<T> {
+    private fun loadWithModel(model: Any?): AnimationRequestBuilder<T> {
         this.model = model
         this.isModelSet = true
         return this
@@ -42,38 +38,38 @@ class AnimationRequestBuilder<T>(
      * 从URL字符串加载
      */
     fun load(url: String?): AnimationRequestBuilder<T> {
-        return load(url as Any?)
+        return loadWithModel(url)
     }
 
     /**
      * 从Uri加载
      */
     fun load(uri: android.net.Uri?): AnimationRequestBuilder<T> {
-        return load(uri as Any?)
+        return loadWithModel(uri)
     }
 
     /**
      * 从文件加载
      */
     fun load(file: java.io.File?): AnimationRequestBuilder<T> {
-        return load(file as Any?)
+        return loadWithModel(file)
     }
 
     /**
      * 从资源ID加载
      */
     fun load(@androidx.annotation.DrawableRes @androidx.annotation.RawRes resourceId: Int?): AnimationRequestBuilder<T> {
-        return load(resourceId as Any?)
+        return loadWithModel(resourceId)
     }
 
     /**
      * 从字节数组加载
      */
     fun load(byteArray: ByteArray?): AnimationRequestBuilder<T> {
-        return load(byteArray as Any?)
+        return loadWithModel(byteArray)
     }
 
-    private fun <Y : CustomAnimationTarget<T>> into(
+    fun <Y : CustomAnimationTarget<T>> into(
         target: Y,
         targetListener: AnimationRequestListener<T>?
     ): Y {
@@ -82,7 +78,7 @@ class AnimationRequestBuilder<T>(
             throw IllegalArgumentException("You must call #load() before calling #into()")
         }
 
-        // 构建AnimationRequest - 参考Glide的RequestBuilder.into()设计
+        // 构建AnimationRequest
         val request = buildRequest(target, targetListener)
 
         // 检查是否有之前的请求
@@ -110,13 +106,14 @@ class AnimationRequestBuilder<T>(
         target: CustomAnimationTarget<T>,
         targetListener: AnimationRequestListener<T>?
     ): AnimationRequest {
-        return AnimationRequestImpl(
-            engine = aniFlux.getEngine(),
+        return SingleAnimationRequest(
             context = context,
+            requestLock = Any(),
             model = model,
             target = target,
             targetListener = targetListener,
-            transcodeClass = getTranscodeClass()
+            transcodeClass = getTranscodeClass(),
+            engine = aniFlux.getEngine(),
         )
     }
 

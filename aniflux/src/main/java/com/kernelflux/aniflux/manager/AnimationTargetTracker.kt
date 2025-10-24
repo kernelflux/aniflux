@@ -11,8 +11,7 @@ import java.util.WeakHashMap
  *
  */
 class AnimationTargetTracker : AnimationLifecycleListener {
-    private val targets =
-        Collections.newSetFromMap<AnimationTarget<*>>(WeakHashMap<AnimationTarget<*>, Boolean>())
+    private val targets = Collections.newSetFromMap(WeakHashMap<AnimationTarget<*>, Boolean>())
 
     fun track(target: AnimationTarget<*>) {
         targets.add(target)

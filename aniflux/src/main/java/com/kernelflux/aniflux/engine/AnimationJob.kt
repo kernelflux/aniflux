@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.engine
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import com.bumptech.glide.request.ResourceCallback
+import com.kernelflux.aniflux.load.AnimationDataSource
 import com.kernelflux.aniflux.load.AnimationDownloader
 import com.kernelflux.aniflux.load.AnimationExecutor
 import com.kernelflux.aniflux.load.AnimationLoader
@@ -18,21 +18,20 @@ import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.util.AnimationKey
 import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationTypeDetector
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.atomic.AtomicInteger
-
 
 /**
- * 动画任务 - 参考Glide的EngineJob设计
+ * 动画任务
  * 管理单个动画请求的完整生命周期
  */
 class AnimationJob<T>(
     private val engine: AnimationEngine,
     private val context: Context,
     private val model: Any?,
+    private val target: AnimationTarget<T>,
     private val options: AnimationOptions,
     private val key: AnimationKey,
+    private val listener: AnimationRequestListener<T>?,
     private val callback: AnimationResourceCallback? = null
 ) {
 
@@ -41,13 +40,9 @@ class AnimationJob<T>(
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val pendingCallbacks = AtomicInteger(0)
 
     // 下载器
     private val downloader: AnimationDownloader = OkHttpAnimationDownloader()
-
-    // 回调管理
-    private val callbacks = mutableListOf<CallbackInfo<T>>()
 
     // 状态管理
     @Volatile
@@ -111,6 +106,7 @@ class AnimationJob<T>(
      * 加载动画 - 集成具体的动画加载逻辑
      * 参考各动画库的加载方式，支持GIF、Lottie、SVGA、PAG四种动画类型
      */
+    @Suppress("UNCHECKED_CAST")
     private fun loadAnimation(): AnimationResource<T> {
         try {
             // 1. 检测动画类型
@@ -182,10 +178,16 @@ class AnimationJob<T>(
                     throw IllegalArgumentException("Unsupported model type: ${model?.javaClass}")
                 }
             }
-
             // 4. 创建AnimationResource
-            if (animation != null) {
-                return AnimationResource(animation, false, "", this)
+            val animationResult = animation as? T
+            if (animationResult != null) {
+                // 创建ResourceListener，当资源释放时通知Engine
+                val resourceListener = object : AnimationResource.ResourceListener {
+                    override fun onResourceReleased(key: String, resource: AnimationResource<*>) {
+                        engine.onResourceReleased(this@AnimationJob.key, resource)
+                    }
+                }
+                return AnimationResource<T>(animationResult, true, key.toString(), resourceListener)
             } else {
                 throw IllegalStateException("Failed to load animation")
             }
@@ -241,6 +243,7 @@ class AnimationJob<T>(
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
                 (loader as GifAnimationLoader).loadFromUrl(
+                    context,
                     url,
                     downloader
                 )
@@ -266,7 +269,7 @@ class AnimationJob<T>(
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromUrl(  context,url, downloader)
+                }.loadFromUrl(context, url, downloader)
             }
 
             else -> null
@@ -279,21 +282,21 @@ class AnimationJob<T>(
     private fun loadFromPath(loader: AnimationLoader<*>, path: String): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromPath(  context,path)
+                (loader as GifAnimationLoader).loadFromPath(context, path)
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromPath(  context,path)
+                (loader as LottieAnimationLoader).loadFromPath(context, path)
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromPath(  context,path)
+                (loader as PagAnimationLoader).loadFromPath(context, path)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromPath(  context,path)
+                }.loadFromPath(context, path)
             }
 
             else -> null
@@ -306,21 +309,21 @@ class AnimationJob<T>(
     private fun loadFromFile(loader: AnimationLoader<*>, file: java.io.File): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromFile(  context,file)
+                (loader as GifAnimationLoader).loadFromFile(context, file)
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromFile(  context,file)
+                (loader as LottieAnimationLoader).loadFromFile(context, file)
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromFile(  context,file)
+                (loader as PagAnimationLoader).loadFromFile(context, file)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromFile(file)
+                }.loadFromFile(context, file)
             }
 
             else -> null
@@ -333,21 +336,21 @@ class AnimationJob<T>(
     private fun loadFromUri(loader: AnimationLoader<*>, uri: android.net.Uri): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromPath(  context,uri.toString())
+                (loader as GifAnimationLoader).loadFromPath(context, uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromPath(  context,uri.toString())
+                (loader as LottieAnimationLoader).loadFromPath(context, uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromPath(  context,uri.toString())
+                (loader as PagAnimationLoader).loadFromPath(context, uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromPath(  context,uri.toString())
+                }.loadFromPath(context, uri.toString())
             }
 
             else -> null
@@ -396,21 +399,21 @@ class AnimationJob<T>(
     private fun loadFromBytes(loader: AnimationLoader<*>, bytes: ByteArray): Any? {
         return when (loader.getAnimationType()) {
             AnimationTypeDetector.AnimationType.GIF -> {
-                (loader as GifAnimationLoader).loadFromBytes(bytes)
+                (loader as GifAnimationLoader).loadFromBytes(context, bytes)
             }
 
             AnimationTypeDetector.AnimationType.LOTTIE -> {
-                (loader as LottieAnimationLoader).loadFromBytes(bytes)
+                (loader as LottieAnimationLoader).loadFromBytes(context, bytes)
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromBytes(bytes)
+                (loader as PagAnimationLoader).loadFromBytes(context, bytes)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
                 (loader as SvgaAnimationLoader).apply {
                     setContext(context)
-                }.loadFromBytes(bytes)
+                }.loadFromBytes(context, bytes)
             }
 
             else -> null
@@ -496,8 +499,8 @@ class AnimationJob<T>(
             isComplete = true
         }
 
-        // 通知引擎
-        engine.onJobComplete(this, key, result)
+        // 通知引擎任务完成
+        engine.onJobComplete(key, result)
 
         // 通知回调
         notifyCallbacksOfResult()
@@ -517,8 +520,8 @@ class AnimationJob<T>(
             isComplete = true
         }
 
-        // 通知引擎
-        engine.onJobComplete(this, key, null)
+        // 通知引擎任务完成（失败）
+        engine.onJobComplete<T>(key, null)
 
         // 通知回调
         notifyCallbacksOfException()
@@ -529,13 +532,16 @@ class AnimationJob<T>(
      */
     private fun notifyCallbacksOfResult() {
         val resource = this.resource ?: return
-        val callbacksCopy = synchronized(this) { callbacks.toList() }
 
-        // 如果有callback，优先通知callback
+        // 如果有callback，优先通知callback（这是从SingleAnimationRequest传来的）
         if (callback != null) {
             mainHandler.post {
                 try {
-                    callback.onResourceReady(resource, null, false)
+                    callback.onResourceReady(
+                        resource,
+                        com.kernelflux.aniflux.load.AnimationDataSource.DATA_DISK_CACHE,
+                        false
+                    )
                 } catch (e: Exception) {
                     android.util.Log.e(TAG, "Error in callback onResourceReady", e)
                 }
@@ -543,28 +549,19 @@ class AnimationJob<T>(
             return
         }
 
-        if (callbacksCopy.isEmpty()) return
-
-        // 增加待处理回调计数
-        pendingCallbacks.addAndGet(callbacksCopy.size)
-
-        // 通知每个回调
-        for (callbackInfo in callbacksCopy) {
-            callbackInfo.executor.execute {
-                try {
-                    callbackInfo.target.onResourceReady(resource)
-                    callbackInfo.listener?.onResourceReady(
-                        resource,
-                        null,
-                        callbackInfo.target,
-                        false
-                    )
-                } catch (e: Exception) {
-                    // 回调异常处理
-                    android.util.Log.e(TAG, "Error in success callback", e)
-                } finally {
-                    decrementPendingCallbacks()
-                }
+        // 通知target和listener
+        mainHandler.post {
+            try {
+                target.onResourceReady(resource.get())
+                listener?.onResourceReady(
+                    resource.get(),
+                    model,
+                    target,
+                    com.kernelflux.aniflux.load.AnimationDataSource.DATA_DISK_CACHE,
+                    false
+                )
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error in success callback", e)
             }
         }
     }
@@ -574,9 +571,8 @@ class AnimationJob<T>(
      */
     private fun notifyCallbacksOfException() {
         val exception = this.exception ?: return
-        val callbacksCopy = synchronized(this) { callbacks.toList() }
 
-        // 如果有callback，优先通知callback
+        // 如果有callback，优先通知callback（这是从SingleAnimationRequest传来的）
         if (callback != null) {
             mainHandler.post {
                 try {
@@ -588,84 +584,23 @@ class AnimationJob<T>(
             return
         }
 
-        if (callbacksCopy.isEmpty()) return
-
-        // 增加待处理回调计数
-        pendingCallbacks.addAndGet(callbacksCopy.size)
-
-        // 通知每个回调
-        for (callbackInfo in callbacksCopy) {
-            callbackInfo.executor.execute {
-                try {
-                    callbackInfo.target.onLoadFailed(null)
-                    callbackInfo.listener?.onLoadFailed(null, null, callbackInfo.target, false)
-                } catch (e: Exception) {
-                    // 回调异常处理
-                    android.util.Log.e(TAG, "Error in failure callback", e)
-                } finally {
-                    decrementPendingCallbacks()
-                }
+        // 通知target和listener
+        mainHandler.post {
+            try {
+                target.onLoadFailed(null)
+                listener?.onLoadFailed(exception, model, target, false)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error in failure callback", e)
             }
         }
     }
 
     /**
-     * 减少待处理回调计数
+     * 移除回调（简化实现）
      */
-    private fun decrementPendingCallbacks() {
-        val remaining = pendingCallbacks.decrementAndGet()
-        if (remaining == 0) {
-            // 所有回调都处理完了，可以清理资源
-            cleanup()
-        }
-    }
-
-    /**
-     * 添加回调
-     */
-    fun addCallback(target: AnimationTarget<T>, listener: AnimationRequestListener<T>?) {
-        synchronized(this) {
-            if (isCancelled) return
-
-            val callbackInfo = CallbackInfo(target, listener, mainHandler)
-            callbacks.add(callbackInfo)
-
-            if (hasResource) {
-                // 如果已经有资源了，立即通知
-                val resource = this.resource ?: return
-                mainHandler.post {
-                    try {
-                        target.onResourceReady(resource)
-                        listener?.onResourceReady(resource, null, target, false)
-                    } catch (e: Exception) {
-                        android.util.Log.e(TAG, "Error in immediate callback", e)
-                    }
-                }
-            } else if (hasLoadFailed) {
-                // 如果已经失败了，立即通知
-                mainHandler.post {
-                    try {
-                        target.onLoadFailed(null)
-                        listener?.onLoadFailed(null, null, target, false)
-                    } catch (e: Exception) {
-                        android.util.Log.e(TAG, "Error in immediate failure callback", e)
-                    }
-                }
-            }
-        }
-    }
-
-
     @Synchronized
-    fun removeCallback(cb: ResourceCallback?) {
-        cbs.remove(cb)
-        if (cbs.isEmpty()) {
-            cancel()
-            val isFinishedRunning = hasResource || hasLoadFailed
-            if (isFinishedRunning && pendingCallbacks.get() == 0) {
-                release()
-            }
-        }
+    fun removeCallback(cb: AnimationResourceCallback?) {
+        // 简化实现，暂时不需要复杂的回调管理
     }
 
     /**
@@ -676,33 +611,8 @@ class AnimationJob<T>(
 
         isCancelled = true
 
-        // 清理回调
-        synchronized(this) {
-            callbacks.clear()
-        }
-
-        // 清理资源
-        cleanup()
-    }
-
-    /**
-     * 清理资源
-     */
-    private fun cleanup() {
         // 清理资源
         resource = null
         exception = null
-
-        // 通知引擎资源释放
-        resource?.let { engine.onResourceReleased(key, it) }
     }
-
-    /**
-     * 回调信息
-     */
-    private data class CallbackInfo<T>(
-        val target: AnimationTarget<T>,
-        val listener: AnimationRequestListener<T>?,
-        val executor: Executor
-    )
 }

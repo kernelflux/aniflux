@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.util
 import android.widget.ImageView
 
 /**
- * 动画选项 - 参考Glide的RequestOptions设计
+ * 动画选项
  * 配置动画加载的各种参数
  */
 class AnimationOptions {
@@ -19,6 +19,54 @@ class AnimationOptions {
     
     companion object {
         fun create(): AnimationOptions = AnimationOptions()
+        
+        /**
+         * 创建默认配置
+         */
+        fun defaultOptions(): AnimationOptions {
+            return create()
+                .cacheStrategy(CacheStrategy.ALL)
+                .useDiskCache(true)
+                .isAnimation(true)
+                .priority(Priority.NORMAL)
+                .timeout(30000L)
+        }
+        
+        /**
+         * 创建高性能配置（无缓存）
+         */
+        fun highPerformanceOptions(): AnimationOptions {
+            return create()
+                .cacheStrategy(CacheStrategy.NONE)
+                .useDiskCache(false)
+                .isAnimation(true)
+                .priority(Priority.HIGH)
+                .timeout(15000L)
+        }
+        
+        /**
+         * 创建低内存配置
+         */
+        fun lowMemoryOptions(): AnimationOptions {
+            return create()
+                .cacheStrategy(CacheStrategy.SOURCE)
+                .useDiskCache(true)
+                .isAnimation(true)
+                .priority(Priority.LOW)
+                .timeout(60000L)
+        }
+        
+        /**
+         * 创建仅内存缓存配置
+         */
+        fun memoryOnlyOptions(): AnimationOptions {
+            return create()
+                .cacheStrategy(CacheStrategy.RESULT)
+                .useDiskCache(false)
+                .isAnimation(true)
+                .priority(Priority.NORMAL)
+                .timeout(30000L)
+        }
     }
     
     fun size(width: Int, height: Int): AnimationOptions {

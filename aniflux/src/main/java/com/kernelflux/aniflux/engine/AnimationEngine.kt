@@ -1,7 +1,6 @@
 package com.kernelflux.aniflux.engine
 
 import android.content.Context
-import com.bumptech.glide.request.ResourceCallback
 import com.kernelflux.aniflux.cache.AnimationCache
 import com.kernelflux.aniflux.cache.MemoryAnimationCache
 import com.kernelflux.aniflux.load.AnimationDataSource
@@ -13,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 /**
- * 动画引擎 - 参考Glide的Engine设计
+ * 动画引擎
  * 负责管理动画请求的生命周期、缓存策略、线程池调度等
  */
 class AnimationEngine(
@@ -27,6 +26,7 @@ class AnimationEngine(
 
     /**
      * 启动动画加载请求
+     * 这是从SingleAnimationRequest调用的核心方法
      */
     fun <T> load(
         context: Context,
@@ -34,69 +34,79 @@ class AnimationEngine(
         target: AnimationTarget<T>,
         options: AnimationOptions,
         listener: AnimationRequestListener<T>?,
-        callback: AnimationResourceCallback? = null
-    ): LoadStatus {
-        // 1. 构建缓存键
+        cb: AnimationResourceCallback? = null
+    ): LoadStatus? {
         val key = buildAnimationKey(model, options)
 
-        // 2. 检查活跃资源（正在使用的资源）
-        val activeResource = loadFromActiveResources(key)
-        if (activeResource != null) {
-            if (callback != null) {
-                // 如果有callback，通过callback通知
-                callback.onResourceReady(activeResource, AnimationDataSource.MEMORY_CACHE, false)
-            } else {
-                // 否则直接通知target
-                @Suppress("UNCHECKED_CAST")
-                val activeRes = activeResource as T
-                target.onResourceReady(activeRes)
-                listener?.onResourceReady(
-                    activeRes,
-                    key.model,
-                    target,
-                    AnimationDataSource.MEMORY_CACHE,
-                    false
-                )
+        // 1. 首先尝试从内存中获取资源
+        var memoryResource: AnimationResource<*>?
+        synchronized(this) {
+            memoryResource = loadFromMemory(key)
+            if (memoryResource != null) {
+                // 找到内存资源，直接返回
+                cb?.onResourceReady(memoryResource, AnimationDataSource.MEMORY_CACHE, false)
+                return null
             }
-            // 返回一个已完成的LoadStatus，表示从活跃资源加载
-            return LoadStatus(target, null, LoadStatus.Status.COMPLETED_FROM_ACTIVE)
         }
 
-        // 3. 检查内存缓存
-        val cachedResource = loadFromMemoryCache(key)
-        if (cachedResource != null) {
-            // 从缓存移到活跃资源
-            activeResources[key] = cachedResource
-            if (callback != null) {
-                // 如果有callback，通过callback通知
-                callback.onResourceReady(cachedResource, AnimationDataSource.MEMORY_CACHE, false)
-            } else {
-                // 否则直接通知target
-                @Suppress("UNCHECKED_CAST")
-                val cachedRes = activeResource as T
-                target.onResourceReady(cachedRes)
-                listener?.onResourceReady(
-                    cachedRes,
-                    key.model,
-                    target,
-                    AnimationDataSource.MEMORY_CACHE,
-                    false
-                )
-            }
-            // 返回一个已完成的LoadStatus，表示从内存缓存加载
-            return LoadStatus(target, null, LoadStatus.Status.COMPLETED_FROM_CACHE)
-        }
-
-        // 4. 检查是否有正在执行的任务
+        // 2. 内存中没有，检查是否有正在执行的任务
         val existingJob = activeJobs[key]
         if (existingJob != null) {
-            existingJob?.addCallback(target, listener)
-            return LoadStatus(target, existingJob, LoadStatus.Status.RUNNING)
+            // 有正在执行的任务，等待它完成
+            return LoadStatus(cb, existingJob)
         }
 
-        // 5. 启动新任务
-        return startNewJob(context, model, target, options, listener, key)
+        // 3. 启动新的加载任务
+        return startNewJob(context, model, target, options, listener, cb, key)
     }
+
+    /**
+     * 启动新的加载任务
+     */
+    private fun <T> startNewJob(
+        context: Context,
+        model: Any?,
+        target: AnimationTarget<T>,
+        options: AnimationOptions,
+        listener: AnimationRequestListener<T>?,
+        cb: AnimationResourceCallback?,
+        key: AnimationKey
+    ): LoadStatus {
+        // 创建AnimationJob，参考Glide的EngineJob设计
+        val job = AnimationJob<T>(
+            engine = this,
+            context = context,
+            model = model,
+            target = target,
+            options = options,
+            key = key,
+            listener = listener,
+            callback = cb
+        )
+
+        // 将任务添加到活跃任务列表
+        activeJobs[key] = job
+
+        // 启动任务，参考Glide: engineJob.start(decodeJob)
+        job.start()
+
+        return LoadStatus(cb, job)
+    }
+
+    private fun loadFromMemory(key: AnimationKey): AnimationResource<*>? {
+        // 检查活跃资源（正在使用的资源）
+        val activeResource = loadFromActiveResources(key)
+        if (activeResource != null) {
+            return activeResource
+        }
+        // 检查内存缓存
+        val cachedResource = loadFromMemoryCache(key)
+        if (cachedResource != null) {
+            return cachedResource
+        }
+        return null
+    }
+
 
     /**
      * 从活跃资源中加载
@@ -110,33 +120,6 @@ class AnimationEngine(
      */
     private fun loadFromMemoryCache(key: AnimationKey): AnimationResource<*>? {
         return memoryCache.get(key.toString())
-    }
-
-    /**
-     * 启动新的加载任务
-     */
-    private fun <T> startNewJob(
-        context: Context,
-        model: Any?,
-        target: AnimationTarget<T>,
-        options: AnimationOptions,
-        listener: AnimationRequestListener<T>?,
-        key: AnimationKey
-    ): LoadStatus {
-        val job = AnimationJob(
-            engine = this,
-            context = context,
-            model = model,
-            options = options,
-            listener = listener,
-            key = key,
-            callback = callback
-        )
-
-        activeJobs[key] = job
-        job.start()
-
-        return LoadStatus(target, job, LoadStatus.Status.RUNNING)
     }
 
     /**
@@ -154,30 +137,45 @@ class AnimationEngine(
 
     /**
      * 任务完成回调
+     * 当AnimationJob完成时调用
      */
     internal fun <T> onJobComplete(
-        job: AnimationJob<T>,
         key: AnimationKey,
         resource: AnimationResource<T>?
     ) {
+        // 从活跃任务中移除
         activeJobs.remove(key)
 
         if (resource != null) {
             // 成功：将资源加入活跃资源
             activeResources[key] = resource
         }
+
+        // 处理等待该资源的其他任务
+        handleWaitingJobs(key, resource)
     }
 
     /**
      * 资源释放回调
+     * 当AnimationResource引用计数为0时调用
      */
     internal fun onResourceReleased(key: AnimationKey, resource: AnimationResource<*>) {
+        // 从活跃资源中移除
         activeResources.remove(key)
 
         // 如果资源可缓存，加入内存缓存
         if (resource.isCacheable()) {
             memoryCache.put(key.toString(), resource)
         }
+    }
+
+    /**
+     * 处理等待该资源的其他任务
+     * 暂时简化实现，后续可以扩展
+     */
+    private fun handleWaitingJobs(key: AnimationKey, resource: AnimationResource<*>?) {
+        // 简化实现：暂时不需要复杂的等待队列管理
+        // 后续可以根据需要实现等待相同资源的任务队列
     }
 
     /**
@@ -190,8 +188,10 @@ class AnimationEngine(
     }
 
 
-    inner class LoadStatus internal constructor(private val cb: ResourceCallback?,
-                                                private val engineJob: AnimationJob<*>) {
+    inner class LoadStatus internal constructor(
+        private val cb: AnimationResourceCallback?,
+        private val engineJob: AnimationJob<*>
+    ) {
 
         fun cancel() {
             synchronized(this@AnimationEngine) {
@@ -199,5 +199,6 @@ class AnimationEngine(
             }
         }
     }
+
 
 }

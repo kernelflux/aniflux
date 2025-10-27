@@ -29,6 +29,7 @@ class SingleAnimationRequest<T>(
     private val overrideWidth: Int,
     private val overrideHeight: Int,
     private val engine: AnimationEngine,
+    private val options: AnimationOptions,
     private val callbackExecutor: Executor = AnimationExecutors.MAIN_THREAD_EXECUTOR
 ) : AnimationRequest, AnimationSizeReadyCallback, AnimationResourceCallback {
 
@@ -110,7 +111,7 @@ class SingleAnimationRequest<T>(
                 return
             }
 
-            // 检查是否正在运行 - 参考Glide抛出异常的方式
+            // 检查是否正在运行
             if (status == Status.RUNNING) {
                 throw IllegalArgumentException("Cannot restart a running request")
             }
@@ -178,9 +179,9 @@ class SingleAnimationRequest<T>(
                 context = context,
                 model = model,
                 target = target,
-                options = createOptions(width, height),
+                options = options,
                 listener = targetListener,
-                callback = this
+                cb = this
             )
 
 
@@ -213,13 +214,6 @@ class SingleAnimationRequest<T>(
                 clear()
             }
         }
-    }
-
-    private fun createOptions(width: Int, height: Int): AnimationOptions {
-        return AnimationOptions.create()
-            .size(width, height)
-            .cacheStrategy(CacheStrategy.ALL)
-            .isAnimation(true)
     }
 
     override fun onResourceReady(
@@ -340,7 +334,7 @@ class SingleAnimationRequest<T>(
     }
 
     /**
-     * 内部加载失败回调 - 参考Glide的设计
+     * 内部加载失败回调
      */
     private fun onLoadFailedInternal(exception: Throwable) {
         synchronized(requestLock) {

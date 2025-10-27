@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.engine
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 动画资源包装器 - 参考Glide的EngineResource设计
+ * 动画资源包装器
  * 管理资源的生命周期和引用计数
  */
 class AnimationResource<T>(

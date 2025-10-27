@@ -14,12 +14,13 @@ import com.kernelflux.aniflux.manager.AnimationRequestManagerTreeNode
 import com.kernelflux.aniflux.manager.AnimationRequestTracker
 import com.kernelflux.aniflux.manager.AnimationTargetTracker
 import com.kernelflux.aniflux.engine.AnimationEngine
-import com.kernelflux.aniflux.engine.LoadStatus
+import com.kernelflux.aniflux.engine.AnimationEngine.LoadStatus
 import com.kernelflux.aniflux.request.AnimationRequest
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.aniflux.util.AnimationOptions
+import com.kernelflux.aniflux.util.AnimationTypeDetector
 import com.kernelflux.aniflux.util.Util
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -161,22 +162,19 @@ class AnimationRequestManager(
         if (path.isEmpty()) {
             throw IllegalArgumentException("Path cannot be empty")
         }
-
-        val animationType = com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromPath(path)
-        val resourceClass =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        val animationType = AnimationTypeDetector.detectFromPath(path)
+        val resourceClass = AnimationTypeDetector.getClassForAnimationType(animationType)
         return `as`(resourceClass).load(path)
     }
 
 
     @CheckResult
     fun load(@androidx.annotation.DrawableRes @androidx.annotation.RawRes resourceId: Int): AnimationRequestBuilder<*> {
-        val animationType = com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromResourceId(
+        val animationType = AnimationTypeDetector.detectFromResourceId(
             context,
             resourceId
         )
-        val resourceClass =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+        val resourceClass = AnimationTypeDetector.getClassForAnimationType(animationType)
         return `as`(resourceClass).load(resourceId)
     }
 
@@ -186,9 +184,9 @@ class AnimationRequestManager(
             throw IllegalArgumentException("File does not exist: ${file.absolutePath}")
         }
         val animationType =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromPath(file.absolutePath)
+            AnimationTypeDetector.detectFromPath(file.absolutePath)
         val resourceClass =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+            AnimationTypeDetector.getClassForAnimationType(animationType)
         return `as`(resourceClass).load(file)
     }
 
@@ -196,9 +194,9 @@ class AnimationRequestManager(
     @CheckResult
     fun load(uri: android.net.Uri): AnimationRequestBuilder<*> {
         val animationType =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromPath(uri.toString())
+            AnimationTypeDetector.detectFromPath(uri.toString())
         val resourceClass =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+            AnimationTypeDetector.getClassForAnimationType(animationType)
         return `as`(resourceClass).load(uri)
     }
 
@@ -207,12 +205,12 @@ class AnimationRequestManager(
         if (byteArray.isEmpty()) {
             throw IllegalArgumentException("ByteArray cannot be empty")
         }
-        val animationType = com.kernelflux.aniflux.util.AnimationTypeDetector.detectFromBytes(
+        val animationType = AnimationTypeDetector.detectFromBytes(
             byteArray,
             byteArray.size
         )
         val resourceClass =
-            com.kernelflux.aniflux.util.AnimationTypeDetector.getClassForAnimationType(animationType)
+            AnimationTypeDetector.getClassForAnimationType(animationType)
         return `as`(resourceClass).load(byteArray)
     }
 
@@ -300,7 +298,7 @@ class AnimationRequestManager(
         target: AnimationTarget<T>,
         options: AnimationOptions,
         listener: AnimationRequestListener<T>?
-    ): LoadStatus {
+    ): LoadStatus? {
         return getEngine().load(context, model, target, options, listener)
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import com.kernelflux.aniflux.AniFlux
+import com.kernelflux.aniflux.AnimationRequestManager
 import com.kernelflux.aniflux.util.Util
 import java.util.concurrent.ConcurrentHashMap
 

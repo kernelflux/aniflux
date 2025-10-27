@@ -11,6 +11,7 @@ import androidx.collection.ArrayMap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.kernelflux.aniflux.AniFlux
+import com.kernelflux.aniflux.AnimationRequestManager
 import com.kernelflux.aniflux.util.Util
 
 /**

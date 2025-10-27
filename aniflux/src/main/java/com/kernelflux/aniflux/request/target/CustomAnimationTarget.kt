@@ -13,8 +13,8 @@ abstract class CustomAnimationTarget<T>(
     width: Int = AnimationTarget.SIZE_ORIGINAL,
     height: Int = AnimationTarget.SIZE_ORIGINAL
 ) : AnimationTarget<T> {
-    private val width: Int
-    private val height: Int
+    protected val width: Int
+    protected val height: Int
     private var request: AnimationRequest? = null
 
 

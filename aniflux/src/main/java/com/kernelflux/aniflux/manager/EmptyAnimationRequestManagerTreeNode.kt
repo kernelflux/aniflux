@@ -1,5 +1,6 @@
 package com.kernelflux.aniflux.manager
 
+import com.kernelflux.aniflux.AnimationRequestManager
 import java.util.Collections
 
 /**

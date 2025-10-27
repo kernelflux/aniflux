@@ -2,7 +2,7 @@ package com.kernelflux.anifluxsample
 
 import android.app.Application
 import android.content.Context
-import com.kernelflux.aniflux.AntiFlux
+import com.kernelflux.aniflux.AniFlux
 
 class AntiFluxSampleApp : Application() {
 
@@ -12,7 +12,7 @@ class AntiFluxSampleApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        AntiFlux.init(this)
+        AniFlux.init(this)
 
 
     }

@@ -166,7 +166,7 @@ class AnimationRequestBuilder<T>(
         return this
     }
 
-    fun <Y : CustomAnimationTarget<T>> into(
+    fun <Y : CustomAnimationTarget<*>> into(
         target: Y,
         targetListener: AnimationRequestListener<T>? = null
     ): Y {
@@ -199,15 +199,16 @@ class AnimationRequestBuilder<T>(
         return target
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun buildRequest(
-        target: CustomAnimationTarget<T>,
+        target: CustomAnimationTarget<*>,
         targetListener: AnimationRequestListener<T>?
     ): AnimationRequest {
         return SingleAnimationRequest(
             context = context,
             requestLock = Any(),
             model = model,
-            target = target,
+            target = target as CustomAnimationTarget<T>,
             targetListener = targetListener,
             transcodeClass = getTranscodeClass(),
             overrideWidth = options.width,

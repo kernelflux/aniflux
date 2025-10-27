@@ -183,14 +183,35 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
         val latch = CountDownLatch(1)
         var result: LottieComposition? = null
 
-        ZipInputStream(FileInputStream(file)).use { zis ->
+        // 先读取文件内容到字节数组，避免流关闭问题
+        val bytes = file.readBytes()
+        
+        // 根据文件扩展名判断是 JSON 还是 ZIP 格式
+        val fileName = file.name.lowercase()
+        if (fileName.endsWith(".zip") || fileName.endsWith(".lottie")) {
+            // ZIP 格式的 Lottie 文件
+            val zis = ZipInputStream(bytes.inputStream())
             LottieCompositionFactory.fromZipStream(zis, null)
                 .addListener { comp ->
-//                    lottieView.repeatCount = LottieDrawable.INFINITE
-//                    lottieView.setComposition(comp)
-//                    lottieView.playAnimation()
+                    result = comp
+                    latch.countDown()
                 }
-                .addFailureListener { e -> e.printStackTrace() }
+                .addFailureListener { e -> 
+                    e.printStackTrace()
+                    latch.countDown()
+                }
+        } else {
+            // JSON 格式的 Lottie 文件
+            val jsonString = String(bytes)
+            LottieCompositionFactory.fromJsonString(jsonString, null)
+                .addListener { comp ->
+                    result = comp
+                    latch.countDown()
+                }
+                .addFailureListener { e -> 
+                    e.printStackTrace()
+                    latch.countDown()
+                }
         }
 
         return try {
@@ -245,14 +266,14 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
         val latch = CountDownLatch(1)
         var result: LottieComposition? = null
 
-//        LottieCompositionFactory.fromAsset(String(bytes))
-//            .addListener { composition ->
-//                result = composition
-//                latch.countDown()
-//            }
-//            .addFailureListener {
-//                latch.countDown()
-//            }
+        LottieCompositionFactory.fromJsonString(String(bytes), null)
+            .addListener { composition ->
+                result = composition
+                latch.countDown()
+            }
+            .addFailureListener {
+                latch.countDown()
+            }
 
         return try {
             latch.await(10, TimeUnit.SECONDS)
@@ -274,7 +295,11 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
         val latch = CountDownLatch(1)
         var result: LottieComposition? = null
 
-        LottieCompositionFactory.fromJsonInputStream(inputStream, null)
+        // 先读取输入流内容到字节数组，避免流关闭问题
+        val bytes = inputStream.readBytes()
+        val jsonInputStream = bytes.inputStream()
+
+        LottieCompositionFactory.fromJsonInputStream(jsonInputStream, null)
             .addListener { composition ->
                 result = composition
                 latch.countDown()

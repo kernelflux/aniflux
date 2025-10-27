@@ -19,6 +19,7 @@ import com.kernelflux.aniflux.util.AnimationKey
 import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import java.util.concurrent.ExecutorService
+import androidx.core.net.toUri
 
 /**
  * 动画任务
@@ -470,7 +471,7 @@ class AnimationJob<T>(
      */
     private fun loadFromContentUri(loader: AnimationLoader<*>, contentUri: String): Any? {
         return try {
-            val uri = android.net.Uri.parse(contentUri)
+            val uri = contentUri.toUri()
             val inputStream = context.contentResolver.openInputStream(uri)
             if (inputStream != null) {
                 val bytes = inputStream.readBytes()
@@ -557,7 +558,7 @@ class AnimationJob<T>(
                     resource.get(),
                     model,
                     target,
-                    com.kernelflux.aniflux.load.AnimationDataSource.DATA_DISK_CACHE,
+                    AnimationDataSource.DATA_DISK_CACHE,
                     false
                 )
             } catch (e: Exception) {

@@ -13,7 +13,6 @@ import com.kernelflux.aniflux.util.AnimationExecutors
 import com.kernelflux.aniflux.util.AnimationLogTime
 import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationStateVerifier
-import com.kernelflux.aniflux.util.CacheStrategy
 import java.util.concurrent.Executor
 
 /**

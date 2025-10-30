@@ -10,7 +10,7 @@ import java.io.InputStream
  * PAG动画加载器 - 参考libpag库的加载方式
  * 支持从文件路径、文件、资源ID、字节数组、输入流、网络URL加载PAG
  */
-class PagAnimationLoader : AnimationLoader<PAGFile> {
+class PAGAnimationLoader : AnimationLoader<PAGFile> {
 
     override fun loadFromPath(context: Context,path: String): PAGFile? {
         return try {

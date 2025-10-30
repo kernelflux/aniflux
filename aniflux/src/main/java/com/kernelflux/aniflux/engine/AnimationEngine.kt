@@ -18,10 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 class AnimationEngine(
     private val memoryCache: AnimationCache = MemoryAnimationCache()
 ) {
-    // 活跃任务管理 - 正在执行的请求
     private val activeJobs = ConcurrentHashMap<AnimationKey, AnimationJob<*>>()
-
-    // 活跃资源管理 - 正在使用的资源
     private val activeResources = ConcurrentHashMap<AnimationKey, AnimationResource<*>>()
 
     /**

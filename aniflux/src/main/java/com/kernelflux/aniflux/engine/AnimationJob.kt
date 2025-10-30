@@ -7,12 +7,11 @@ import com.kernelflux.aniflux.load.AnimationDataSource
 import com.kernelflux.aniflux.load.AnimationDownloader
 import com.kernelflux.aniflux.load.AnimationExecutor
 import com.kernelflux.aniflux.load.AnimationLoader
-import com.kernelflux.aniflux.load.AnimationLoaderFactory
 import com.kernelflux.aniflux.load.GifAnimationLoader
 import com.kernelflux.aniflux.load.LottieAnimationLoader
 import com.kernelflux.aniflux.load.OkHttpAnimationDownloader
-import com.kernelflux.aniflux.load.PagAnimationLoader
-import com.kernelflux.aniflux.load.SvgaAnimationLoader
+import com.kernelflux.aniflux.load.PAGAnimationLoader
+import com.kernelflux.aniflux.load.SVGAAnimationLoader
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.util.AnimationKey
@@ -104,6 +103,19 @@ class AnimationJob<T>(
     }
 
     /**
+     * 根据动画类型创建对应的加载器
+     */
+    private fun createLoader(animationType: AnimationTypeDetector.AnimationType): AnimationLoader<*>? {
+        return when (animationType) {
+            AnimationTypeDetector.AnimationType.GIF -> GifAnimationLoader()
+            AnimationTypeDetector.AnimationType.LOTTIE -> LottieAnimationLoader()
+            AnimationTypeDetector.AnimationType.PAG -> PAGAnimationLoader()
+            AnimationTypeDetector.AnimationType.SVGA -> SVGAAnimationLoader()
+            AnimationTypeDetector.AnimationType.UNKNOWN -> null
+        }
+    }
+
+    /**
      * 加载动画 - 集成具体的动画加载逻辑
      * 参考各动画库的加载方式，支持GIF、Lottie、SVGA、PAG四种动画类型
      */
@@ -114,8 +126,7 @@ class AnimationJob<T>(
             val animationType = detectAnimationType()
 
             // 2. 创建对应的加载器
-            val loader = AnimationLoaderFactory.createLoader(animationType)
-                ?: throw IllegalArgumentException("Unsupported animation type: $animationType")
+            val loader = createLoader(animationType) ?: throw IllegalArgumentException("Unsupported animation type: $animationType")
 
             // 3. 根据model类型加载动画
             val animation = when (model) {
@@ -260,7 +271,7 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromUrl(
+                (loader as PAGAnimationLoader).loadFromUrl(
                     context,
                     url,
                     downloader
@@ -268,7 +279,7 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromUrl(context, url, downloader)
             }
@@ -291,11 +302,11 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromPath(context, path)
+                (loader as PAGAnimationLoader).loadFromPath(context, path)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromPath(context, path)
             }
@@ -318,11 +329,11 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromFile(context, file)
+                (loader as PAGAnimationLoader).loadFromFile(context, file)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromFile(context, file)
             }
@@ -345,11 +356,11 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromPath(context, uri.toString())
+                (loader as PAGAnimationLoader).loadFromPath(context, uri.toString())
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromPath(context, uri.toString())
             }
@@ -378,14 +389,14 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromResource(
+                (loader as PAGAnimationLoader).loadFromResource(
                     context,
                     resourceId
                 )
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromResource(context, resourceId)
             }
@@ -408,11 +419,11 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromBytes(context, bytes)
+                (loader as PAGAnimationLoader).loadFromBytes(context, bytes)
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromBytes(context, bytes)
             }
@@ -441,14 +452,14 @@ class AnimationJob<T>(
             }
 
             AnimationTypeDetector.AnimationType.PAG -> {
-                (loader as PagAnimationLoader).loadFromAssetPath(
+                (loader as PAGAnimationLoader).loadFromAssetPath(
                     context,
                     assetPath
                 )
             }
 
             AnimationTypeDetector.AnimationType.SVGA -> {
-                (loader as SvgaAnimationLoader).apply {
+                (loader as SVGAAnimationLoader).apply {
                     setContext(context)
                 }.loadFromAssetPath(context, assetPath)
             }
@@ -534,7 +545,7 @@ class AnimationJob<T>(
     private fun notifyCallbacksOfResult() {
         val resource = this.resource ?: return
 
-        // 如果有callback，优先通知callback（这是从SingleAnimationRequest传来的）
+        // 如果有callback，优先通知callback
         if (callback != null) {
             mainHandler.post {
                 try {

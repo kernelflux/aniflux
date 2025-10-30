@@ -7,7 +7,6 @@ import com.opensource.svgaplayer.SVGAParser
 import com.opensource.svgaplayer.SVGAVideoEntity
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit
  * SVGA动画加载器 - 参考SVGAPlayer-Android库的加载方式
  * 支持从文件路径、文件、资源ID、字节数组、输入流、网络URL加载SVGA
  */
-class SvgaAnimationLoader : AnimationLoader<SVGADrawable> {
+class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
 
     private var context: Context? = null
 

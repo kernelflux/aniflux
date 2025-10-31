@@ -2,6 +2,8 @@ package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
 import com.kernelflux.aniflux.request.AnimationRequest
+import com.kernelflux.aniflux.request.listener.AnimationPlayListener
+import com.kernelflux.aniflux.request.listener.AnimationPlayListenerSetupHelper
 import com.kernelflux.aniflux.util.Util
 
 /**
@@ -16,7 +18,16 @@ abstract class CustomAnimationTarget<T>(
     protected val width: Int
     protected val height: Int
     private var request: AnimationRequest? = null
-
+    
+    // 动画播放监听器（直接持有，无需Manager包装）
+    @Volatile
+    var playListener: AnimationPlayListener? = null
+        private set
+    
+    // 动画配置选项（用于播放设置）
+    @Volatile
+    var animationOptions: com.kernelflux.aniflux.util.AnimationOptions? = null
+        internal set
 
     init {
         if (!Util.isValidDimensions(width, height)) {
@@ -41,7 +52,8 @@ abstract class CustomAnimationTarget<T>(
     }
 
     override fun onDestroy() {
-        //
+        // 清理监听器
+        cleanupPlayListeners()
     }
 
     override fun onLoadStarted(placeholder: Drawable?) {
@@ -50,6 +62,11 @@ abstract class CustomAnimationTarget<T>(
 
     override fun onLoadFailed(errorDrawable: Drawable?) {
         //
+    }
+
+    override fun onLoadCleared(placeholder: Drawable?) {
+        // 清理监听器设置
+        cleanupPlayListeners()
     }
 
     override fun getSize(cb: AnimationSizeReadyCallback) {
@@ -82,5 +99,28 @@ abstract class CustomAnimationTarget<T>(
      */
     fun height(): Int {
         return height
+    }
+
+
+    fun setPlayListener(listener: AnimationPlayListener?): Boolean {
+        if (listener == null) return false
+        playListener = listener
+        return true
+    }
+
+    /**
+     * 清除监听器
+     */
+    fun clearPlayListener() {
+        playListener = null
+    }
+
+    /**
+     * 清理监听器设置
+     * 在onLoadCleared时自动调用，也会在onDestroy时调用
+     */
+    internal fun cleanupPlayListeners() {
+        AnimationPlayListenerSetupHelper.cleanup(this)
+        playListener = null
     }
 }

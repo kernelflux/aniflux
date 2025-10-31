@@ -31,10 +31,23 @@
         app:layout_constraintTop_toBottomOf="@id/title_view" />
 
 
+    <Button
+        android:id="@+id/btn_load_pag"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:text="加载PAG"
+        android:textColor="#333333"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="@id/pag_view"
+        app:layout_constraintEnd_toStartOf="@id/pag_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/pag_view" />
+
     <com.opensource.svgaplayer.SVGAImageView
         android:id="@+id/svga_view"
         android:layout_width="160dp"
         android:layout_height="160dp"
+        android:visibility="gone"
         android:layout_marginTop="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,6 +57,7 @@
         android:id="@+id/gif_view"
         android:layout_width="160dp"
         android:layout_height="160dp"
+        android:visibility="gone"
         android:layout_marginTop="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -52,6 +66,7 @@
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottie_view"
+        android:visibility="gone"
         android:layout_width="160dp"
         android:layout_height="160dp"
         android:layout_marginTop="20dp"

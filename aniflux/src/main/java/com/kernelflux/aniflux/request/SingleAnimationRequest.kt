@@ -7,13 +7,16 @@ import com.kernelflux.aniflux.engine.AnimationEngine
 import com.kernelflux.aniflux.engine.AnimationResource
 import com.kernelflux.aniflux.engine.AnimationResourceCallback
 import com.kernelflux.aniflux.load.AnimationDataSource
+import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.aniflux.request.target.AnimationSizeReadyCallback
+import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.request.target.CustomAnimationTarget
+import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.aniflux.util.AnimationExecutors
-import com.kernelflux.aniflux.util.AnimationLogTime
 import com.kernelflux.aniflux.util.AnimationOptions
-import com.kernelflux.aniflux.util.AnimationStateVerifier
 import java.util.concurrent.Executor
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 
 /**
  * 动画请求的具体实现
@@ -22,8 +25,9 @@ class SingleAnimationRequest<T>(
     private val context: Context,
     private val requestLock: Any,
     private val model: Any?,
-    private val target: CustomAnimationTarget<T>,
-    private val targetListener: AnimationRequestListener<T>?,
+    private val target: AnimationTarget<T>,
+    private val requestListener: AnimationRequestListener<T>?,
+    private val playListener: AnimationPlayListener?,
     private val transcodeClass: Class<T>,
     private val overrideWidth: Int,
     private val overrideHeight: Int,
@@ -34,12 +38,8 @@ class SingleAnimationRequest<T>(
 
     companion object {
         private const val TAG = "AnimationRequest"
-        private const val GLIDE_TAG = "AniFlux"
         private val IS_VERBOSE_LOGGABLE = Log.isLoggable(TAG, Log.VERBOSE)
     }
-
-    // 状态验证器
-    private val stateVerifier = AnimationStateVerifier.newInstance()
 
     // 保存LoadStatus用于取消操作
     private var loadStatus: AnimationEngine.LoadStatus? = null
@@ -52,9 +52,6 @@ class SingleAnimationRequest<T>(
 
     private var width = 0
     private var height = 0
-
-    // 请求开始时间，用于性能监控
-    private var startTime = 0L
 
     // 是否正在调用回调，防止重复调用
     private var isCallingCallbacks = false
@@ -93,10 +90,6 @@ class SingleAnimationRequest<T>(
         synchronized(requestLock) {
             // 状态验证
             assertNotCallingCallbacks()
-            stateVerifier.throwIfRecycled()
-
-            // 记录开始时间
-            startTime = AnimationLogTime.getLogTime()
 
             if (model == null) {
                 if (Util.isValidDimensions(overrideWidth, overrideHeight)) {
@@ -120,6 +113,20 @@ class SingleAnimationRequest<T>(
                 callbackExecutor.execute {
                     onResourceReady(resource, AnimationDataSource.MEMORY_CACHE, false)
                 }
+                return
+            }
+
+            // 如果target有View且不可见，延迟加载
+            val view = when (target) {
+                is CustomViewAnimationTarget<*, *> -> (target as CustomViewAnimationTarget<*, *>).getViewForVisibilityCheck()
+                else -> null
+            }
+
+            if (view != null && (view.isGone || view.isInvisible)) {
+                // View不可见，延迟加载（等待View变为可见）
+                // 通过getSize来等待，getSize会检查visibility
+                status = Status.WAITING_FOR_SIZE
+                target.getSize(this)
                 return
             }
 
@@ -147,12 +154,7 @@ class SingleAnimationRequest<T>(
 
 
     override fun onSizeReady(width: Int, height: Int) {
-        stateVerifier.throwIfRecycled()
         synchronized(requestLock) {
-            if (IS_VERBOSE_LOGGABLE) {
-                logV("Got onSizeReady in ${AnimationLogTime.getElapsedMillis(startTime)}ms")
-            }
-
             // 检查状态，如果已清除或失败，直接返回
             if (status != Status.WAITING_FOR_SIZE) {
                 return
@@ -163,15 +165,6 @@ class SingleAnimationRequest<T>(
             this.width = width
             this.height = height
 
-            if (IS_VERBOSE_LOGGABLE) {
-                logV(
-                    "finished setup for calling load in ${
-                        AnimationLogTime.getElapsedMillis(
-                            startTime
-                        )
-                    }ms"
-                )
-            }
 
             // 通过Engine加载
             loadStatus = engine.load(
@@ -179,16 +172,13 @@ class SingleAnimationRequest<T>(
                 model = model,
                 target = target,
                 options = options,
-                listener = targetListener,
+                listener = requestListener,
                 cb = this
             )
 
 
             if (status != Status.RUNNING) {
                 loadStatus = null
-            }
-            if (IS_VERBOSE_LOGGABLE) {
-                logV("finished onSizeReady in ${AnimationLogTime.getElapsedMillis(startTime)}ms")
             }
         }
     }
@@ -220,7 +210,6 @@ class SingleAnimationRequest<T>(
         dataSource: AnimationDataSource,
         isLoadedFromAlternateCacheKey: Boolean
     ) {
-        stateVerifier.throwIfRecycled()
         synchronized(requestLock) {
             loadStatus = null
 
@@ -250,18 +239,6 @@ class SingleAnimationRequest<T>(
             status = Status.COMPLETE
             @Suppress("UNCHECKED_CAST")
             this.resource = resource as AnimationResource<T>
-
-            if (Log.isLoggable(GLIDE_TAG, Log.DEBUG)) {
-                Log.d(
-                    GLIDE_TAG,
-                    "Finished loading ${received.javaClass.simpleName} from $dataSource for $model " +
-                            "with size [${width}x${height}] in ${
-                                AnimationLogTime.getElapsedMillis(
-                                    startTime
-                                )
-                            }ms"
-                )
-            }
             callbackExecutor.execute {
                 @Suppress("UNCHECKED_CAST")
                 onResourceReadyInternal(received as T, dataSource)
@@ -283,7 +260,7 @@ class SingleAnimationRequest<T>(
 
             isCallingCallbacks = true
             try {
-                val listenerHandled = targetListener?.onResourceReady(
+                val listenerHandled = requestListener?.onResourceReady(
                     result,
                     model,
                     target,
@@ -293,6 +270,15 @@ class SingleAnimationRequest<T>(
 
                 // 如果listener没有处理，则调用target回调
                 if (!listenerHandled) {
+                    // 在调用 onResourceReady 之前，设置 options 到 target
+                    when (target) {
+                        is CustomViewAnimationTarget<*, *> -> {
+                            target.animationOptions = options
+                        }
+                        is CustomAnimationTarget<*> -> {
+                            target.animationOptions = options
+                        }
+                    }
                     target.onResourceReady(result)
                 }
             } catch (e: Exception) {
@@ -309,22 +295,12 @@ class SingleAnimationRequest<T>(
     }
 
     private fun onLoadFailed(exception: Throwable, maxLogLevel: Int) {
-        stateVerifier.throwIfRecycled()
         synchronized(requestLock) {
             if (status == Status.CLEARED) {
                 return
             }
             loadStatus = null
             status = Status.FAILED
-
-            if (Log.isLoggable(GLIDE_TAG, maxLogLevel)) {
-                Log.w(
-                    GLIDE_TAG,
-                    "Load failed for [$model] with dimensions [${width}x${height}]",
-                    exception
-                )
-            }
-
             // 使用回调执行器处理回调
             callbackExecutor.execute {
                 onLoadFailedInternal(exception)
@@ -344,7 +320,7 @@ class SingleAnimationRequest<T>(
             isCallingCallbacks = true
             try {
                 // 通知listener
-                val listenerHandled = targetListener?.onLoadFailed(
+                val listenerHandled = requestListener?.onLoadFailed(
                     exception,
                     model,
                     target,

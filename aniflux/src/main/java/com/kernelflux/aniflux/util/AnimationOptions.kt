@@ -17,6 +17,10 @@ class AnimationOptions {
     var priority: Priority = Priority.NORMAL
     var timeout: Long = 30000L // 30秒超时
     
+    // 动画播放配置
+    var repeatCount: Int = -1 // -1表示无限循环，0表示不循环，>0表示循环次数
+    var autoPlay: Boolean = true // 是否自动播放
+    
     companion object {
         fun create(): AnimationOptions = AnimationOptions()
         
@@ -102,6 +106,23 @@ class AnimationOptions {
     
     fun timeout(timeout: Long): AnimationOptions {
         this.timeout = timeout
+        return this
+    }
+    
+    /**
+     * 设置动画循环次数
+     * @param count -1表示无限循环，0表示不循环，>0表示循环次数
+     */
+    fun repeatCount(count: Int): AnimationOptions {
+        this.repeatCount = count
+        return this
+    }
+    
+    /**
+     * 设置是否自动播放
+     */
+    fun autoPlay(auto: Boolean): AnimationOptions {
+        this.autoPlay = auto
         return this
     }
 }

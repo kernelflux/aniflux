@@ -16,6 +16,9 @@ import com.bumptech.glide.util.Preconditions
 import com.bumptech.glide.util.Synthetic
 import com.kernelflux.aniflux.R
 import com.kernelflux.aniflux.request.AnimationRequest
+import com.kernelflux.aniflux.request.listener.AnimationPlayListener
+import com.kernelflux.aniflux.request.listener.AnimationPlayListenerSetupHelper
+import com.kernelflux.aniflux.util.AnimationOptions
 import java.lang.ref.WeakReference
 import kotlin.math.max
 
@@ -25,10 +28,24 @@ import kotlin.math.max
  *
  */
 abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : AnimationTarget<Z> {
+    /**
+     * 获取关联的View（返回View类型，用于可见性检查）
+     */
+    fun getViewForVisibilityCheck(): View = view
     private val sizeDeterminer: SizeDeterminer = SizeDeterminer(view)
     private var attachStateListener: OnAttachStateChangeListener? = null
     private var isClearedByUs = false
     private var isAttachStateListenerAdded = false
+    
+    // 动画播放监听器（直接持有，无需Manager包装）
+    @Volatile
+    var playListener: AnimationPlayListener? = null
+        private set
+    
+    // 动画配置选项（用于播放设置）
+    @Volatile
+    var animationOptions: AnimationOptions? = null
+        internal set
 
 
     companion object {
@@ -53,7 +70,72 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
 
     override fun onDestroy() {
-        //
+        // 清理监听器
+        cleanupPlayListeners()
+    }
+    
+    override fun onLoadCleared(placeholder: Drawable?) {
+        sizeDeterminer.clearCallbacksAndListener()
+        onResourceCleared(placeholder)
+        // 清理监听器设置
+        cleanupPlayListeners()
+        if (!isClearedByUs) {
+            maybeRemoveAttachStateListener()
+        }
+    }
+    
+    /**
+     * 添加动画播放监听器（替换旧的）
+     * 
+     * @param listener 监听器实例
+     * @return 是否添加成功
+     */
+    fun addPlayListener(listener: AnimationPlayListener?): Boolean {
+        if (listener == null) return false
+        playListener = listener
+        return true
+    }
+    
+    /**
+     * 移除动画播放监听器
+     * 
+     * @param listener 监听器实例（用于验证是否为当前监听器）
+     * @return 是否移除成功
+     */
+    fun removePlayListener(listener: AnimationPlayListener?): Boolean {
+        if (listener == null) return false
+        if (playListener === listener) {
+            playListener = null
+            return true
+        }
+        return false
+    }
+    
+    /**
+     * 清除监听器
+     */
+    fun clearPlayListener() {
+        playListener = null
+    }
+    
+    /**
+     * 设置动画播放监听器到资源
+     * 在onResourceReady中设置资源后调用此方法，会自动将监听器设置到对应的动画对象
+     * 
+     * @param resource 动画资源（PAGFile, LottieDrawable, SVGADrawable, GifDrawable等）
+     * @param view 显示动画的View（可选，用于PAG/Lottie等需要View的动画类型）
+     */
+    fun setupPlayListeners(resource: Any, view: View? = null) {
+        AnimationPlayListenerSetupHelper.setupListeners(this, resource, view)
+    }
+    
+    /**
+     * 清理监听器设置
+     * 在onLoadCleared时自动调用，也会在onDestroy时调用
+     */
+    internal fun cleanupPlayListeners() {
+        AnimationPlayListenerSetupHelper.cleanup(this)
+        playListener = null
     }
 
     fun waitForLayout(): CustomViewAnimationTarget<T, Z> {
@@ -130,13 +212,6 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
         onResourceLoading(placeholder)
     }
 
-    override fun onLoadCleared(placeholder: Drawable?) {
-        sizeDeterminer.clearCallbacksAndListener()
-        onResourceCleared(placeholder)
-        if (!isClearedByUs) {
-            maybeRemoveAttachStateListener()
-        }
-    }
 
     override fun setRequest(request: AnimationRequest?) {
         setTag(request)
@@ -182,6 +257,12 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
             if (cbs.isEmpty()) {
                 return
             }
+            
+            // 参考Glide：如果View不可见，等待其变为可见
+            if (view.visibility == View.GONE || view.visibility == View.INVISIBLE) {
+                return
+            }
+            
             val currentWidth = this.targetWidth
             val currentHeight = this.targetHeight
             if (!isViewStateAndSizeValid(currentWidth, currentHeight)) {
@@ -193,6 +274,20 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
         }
 
         fun getSize(cb: AnimationSizeReadyCallback) {
+            // 参考Glide：如果View不可见，等待其变为可见后再获取尺寸
+            if (view.visibility == View.GONE || view.visibility == View.INVISIBLE) {
+                // View不可见，添加到回调列表，等待View变为可见
+                if (!cbs.contains(cb)) {
+                    cbs.add(cb)
+                }
+                if (layoutListener == null) {
+                    val observer = view.viewTreeObserver
+                    layoutListener = SizeDeterminerLayoutListener(this)
+                    observer.addOnPreDrawListener(layoutListener)
+                }
+                return
+            }
+            
             val currentWidth = this.targetWidth
             val currentHeight = this.targetHeight
             if (isViewStateAndSizeValid(currentWidth, currentHeight)) {

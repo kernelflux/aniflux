@@ -4,14 +4,24 @@ import android.content.Context
 import com.kernelflux.aniflux.request.AnimationRequest
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.SingleAnimationRequest
-import com.kernelflux.aniflux.request.target.CustomAnimationTarget
+import com.kernelflux.aniflux.request.listener.AnimationPlayListener
+import com.kernelflux.aniflux.request.target.*
 import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.Priority
+import org.libpag.PAGFile
+import org.libpag.PAGImageView
+import org.libpag.PAGView
+import com.airbnb.lottie.LottieDrawable
+import com.airbnb.lottie.LottieAnimationView
+import com.opensource.svgaplayer.SVGADrawable
+import com.opensource.svgaplayer.SVGAImageView
+import pl.droidsonroids.gif.GifDrawable
+import pl.droidsonroids.gif.GifImageView
 
 /**
  * 动画请求构建器
  * 提供链式API来构建动画加载请求
- * 
+ *
  * @author: kerneflux
  * @date: 2025/10/13
  */
@@ -24,48 +34,9 @@ class AnimationRequestBuilder<T>(
 
     private var model: Any? = null
     private var isModelSet = false
-    
-    // 动画配置选项
     private var options: AnimationOptions = AnimationOptions.create()
-
-    companion object {
-
-        /**
-         * 创建默认的动画配置选项
-         */
-        fun createDefaultOptions(): AnimationOptions {
-            return AnimationOptions.create()
-                .cacheStrategy(com.kernelflux.aniflux.util.CacheStrategy.ALL)
-                .useDiskCache(true)
-                .isAnimation(true)
-                .priority(Priority.NORMAL)
-                .timeout(30000L)
-        }
-        
-        /**
-         * 创建高性能配置选项（无缓存）
-         */
-        fun createHighPerformanceOptions(): AnimationOptions {
-            return AnimationOptions.create()
-                .cacheStrategy(com.kernelflux.aniflux.util.CacheStrategy.NONE)
-                .useDiskCache(false)
-                .isAnimation(true)
-                .priority(Priority.HIGH)
-                .timeout(15000L)
-        }
-        
-        /**
-         * 创建低内存配置选项
-         */
-        fun createLowMemoryOptions(): AnimationOptions {
-            return AnimationOptions.create()
-                .cacheStrategy(com.kernelflux.aniflux.util.CacheStrategy.SOURCE)
-                .useDiskCache(true)
-                .isAnimation(true)
-                .priority(Priority.LOW)
-                .timeout(60000L)
-        }
-    }
+    private var playListener: AnimationPlayListener? = null
+    private var requestListener: AnimationRequestListener<T>? = null
 
     private fun isSkipMemoryCacheWithCompletePreviousRequest(previous: AnimationRequest): Boolean {
         return previous.isComplete()
@@ -156,6 +127,23 @@ class AnimationRequestBuilder<T>(
         options.timeout(timeout)
         return this
     }
+    
+    /**
+     * 设置动画循环次数
+     * @param count -1表示无限循环，0表示不循环，>0表示循环次数
+     */
+    fun repeatCount(count: Int): AnimationRequestBuilder<T> {
+        options.repeatCount(count)
+        return this
+    }
+    
+    /**
+     * 设置是否自动播放
+     */
+    fun autoPlay(auto: Boolean): AnimationRequestBuilder<T> {
+        options.autoPlay(auto)
+        return this
+    }
 
     /**
      * 应用自定义配置选项
@@ -166,9 +154,25 @@ class AnimationRequestBuilder<T>(
         return this
     }
 
-    fun <Y : CustomAnimationTarget<*>> into(
+    fun playListener(listener: AnimationPlayListener?): AnimationRequestBuilder<T> {
+        playListener = listener
+        return this
+    }
+
+    fun requestListener(listener: AnimationRequestListener<T>?): AnimationRequestBuilder<T> {
+        requestListener = listener
+        return this
+    }
+    
+    fun <Y : AnimationTarget<T>> into(target: Y): Y {
+        return into(target, requestListener, playListener)
+    }
+
+
+    fun <Y : AnimationTarget<T>> into(
         target: Y,
-        targetListener: AnimationRequestListener<T>? = null
+        requestListener: AnimationRequestListener<T>? = null,
+        playListener: AnimationPlayListener? = null
     ): Y {
         // 检查是否已经设置了model
         if (!isModelSet) {
@@ -176,7 +180,7 @@ class AnimationRequestBuilder<T>(
         }
 
         // 构建AnimationRequest
-        val request = buildRequest(target, targetListener)
+        val request = buildRequest(target, requestListener, playListener)
 
         // 检查是否有之前的请求
         val previousRequest = target.getRequest()
@@ -192,7 +196,28 @@ class AnimationRequestBuilder<T>(
         }
 
         // 清理之前的请求并设置新请求
+        // 关键：针对同一个target的新请求，应该清除之前的监听器，避免重复回调
         requestManager.clear(target)
+
+        // 清除target上之前的播放监听器（避免多次回调）
+        // CustomAnimationTarget 和 CustomViewAnimationTarget 都支持播放监听器管理
+        when (target) {
+            is CustomAnimationTarget<*> -> {
+                target.clearPlayListener()
+                // 添加新的监听器（如果有）
+                playListener?.let { listener ->
+                    target.setPlayListener(listener)
+                }
+            }
+            is CustomViewAnimationTarget<*, *> -> {
+                target.clearPlayListener()
+                // 添加新的监听器（如果有）
+                playListener?.let { listener ->
+                    target.addPlayListener(listener)
+                }
+            }
+        }
+
         target.setRequest(request)
         requestManager.track(target, request)
 
@@ -201,15 +226,17 @@ class AnimationRequestBuilder<T>(
 
     @Suppress("UNCHECKED_CAST")
     private fun buildRequest(
-        target: CustomAnimationTarget<*>,
-        targetListener: AnimationRequestListener<T>?
+        target: AnimationTarget<*>,
+        requestListener: AnimationRequestListener<T>? = null,
+        playListener: AnimationPlayListener? = null
     ): AnimationRequest {
         return SingleAnimationRequest(
             context = context,
             requestLock = Any(),
             model = model,
-            target = target as CustomAnimationTarget<T>,
-            targetListener = targetListener,
+            target = target as AnimationTarget<T>,
+            requestListener = requestListener,
+            playListener = playListener,
             transcodeClass = getTranscodeClass(),
             overrideWidth = options.width,
             overrideHeight = options.height,
@@ -225,4 +252,277 @@ class AnimationRequestBuilder<T>(
         return transcodeClass
     }
 
+    /**
+     * 获取 transcodeClass（用于类型推断）
+     * 暴露给扩展函数使用
+     */
+    internal fun getResourceClass(): Class<*> {
+        return transcodeClass
+    }
+
+
+}
+
+// ========== 扩展函数：提供更简洁的 API ==========
+
+/**
+ * 加载 PAGFile 到 PAGImageView
+ */
+@JvmName("intoPAGImageView")
+fun AnimationRequestBuilder<PAGFile>.into(view: PAGImageView): PAGViewTarget {
+    val target = PAGViewTarget(view)
+    into(target as AnimationTarget<PAGFile>)
+    return target
+}
+
+/**
+ * 加载 PAGFile 到 PAGView
+ */
+@JvmName("intoPAGView")
+fun AnimationRequestBuilder<PAGFile>.into(view: PAGView): PAGViewTargetForPAGView {
+    val target = PAGViewTargetForPAGView(view)
+    into(target as AnimationTarget<PAGFile>)
+    return target
+}
+
+/**
+ * 加载 LottieDrawable 到 LottieAnimationView
+ */
+@JvmName("intoLottieView")
+fun AnimationRequestBuilder<LottieDrawable>.into(view: LottieAnimationView): LottieViewTarget {
+    val target = LottieViewTarget(view)
+    into(target as AnimationTarget<LottieDrawable>)
+    return target
+}
+
+/**
+ * 加载 SVGADrawable 到 SVGAImageView
+ */
+@JvmName("intoSVGAView")
+fun AnimationRequestBuilder<SVGADrawable>.into(view: SVGAImageView): SVGAViewTarget {
+    val target = SVGAViewTarget(view)
+    into(target as AnimationTarget<SVGADrawable>)
+    return target
+}
+
+/**
+ * 加载 GifDrawable 到 GifImageView
+ */
+@JvmName("intoGifView")
+fun AnimationRequestBuilder<GifDrawable>.into(view: GifImageView): GifViewTarget {
+    val target = GifViewTarget(view)
+    into(target as AnimationTarget<GifDrawable>)
+    return target
+}
+
+/**
+ * 加载到通用的 AutoAnimationFrameLayout
+ * 自动根据动画类型创建并显示对应的动画 View
+ */
+fun AnimationRequestBuilder<*>.into(container: android.widget.FrameLayout): AutoAnimationFrameLayoutTarget {
+    val target = AutoAnimationFrameLayoutTarget(container)
+    @Suppress("UNCHECKED_CAST")
+    (this as AnimationRequestBuilder<Any>).into(target)
+    return target
+}
+
+// ========== AnimationRequestBuilder<*> 的类型推断扩展 ==========
+// 当 load() 无法检测类型时，根据 View 类型推断资源类型
+
+/**
+ * 加载到 PAGImageView（类型推断版本）
+ * 如果 Builder 类型未知，根据 View 类型推断为 PAGFile
+ */
+fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGViewTarget {
+    val builderClass = getBuilderTranscodeClass(this)
+
+    return when (builderClass) {
+        PAGFile::class.java -> {
+            // 类型匹配，直接使用
+            @Suppress("UNCHECKED_CAST")
+            (this as AnimationRequestBuilder<PAGFile>).into(view)
+        }
+        Any::class.java -> {
+            // 类型未知，根据 View 类型推断为 PAG
+            val requestManager = getRequestManagerFromBuilder(this)
+            val newBuilder = requestManager.asPAG()
+            copyBuilderOptions(newBuilder, this)
+            newBuilder.into(view)
+        }
+        else -> {
+            throw IllegalArgumentException(
+                "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 PAGImageView（需要 PAGFile）\n" +
+                        "请使用 asPAG().load(...) 显式指定类型"
+            )
+        }
+    }
+}
+
+/**
+ * 加载到 PAGView（类型推断版本）
+ */
+fun AnimationRequestBuilder<*>.into(view: PAGView): PAGViewTargetForPAGView {
+    val builderClass = getBuilderTranscodeClass(this)
+
+    return when (builderClass) {
+        PAGFile::class.java -> {
+            @Suppress("UNCHECKED_CAST")
+            (this as AnimationRequestBuilder<PAGFile>).into(view)
+        }
+        Any::class.java -> {
+            val requestManager = getRequestManagerFromBuilder(this)
+            val newBuilder = requestManager.asPAG()
+            copyBuilderOptions(newBuilder, this)
+            newBuilder.into(view)
+        }
+        else -> {
+            throw IllegalArgumentException(
+                "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 PAGView（需要 PAGFile）\n" +
+                        "请使用 asPAG().load(...) 显式指定类型"
+            )
+        }
+    }
+}
+
+/**
+ * 加载到 LottieAnimationView（类型推断版本）
+ */
+fun AnimationRequestBuilder<*>.into(view: LottieAnimationView): LottieViewTarget {
+    val builderClass = getBuilderTranscodeClass(this)
+    return when (builderClass) {
+        LottieDrawable::class.java -> {
+            @Suppress("UNCHECKED_CAST")
+            (this as AnimationRequestBuilder<LottieDrawable>).into(view)
+        }
+
+        Any::class.java -> {
+            val requestManager = getRequestManagerFromBuilder(this)
+            val newBuilder = requestManager.asLottie()
+            copyBuilderOptions(newBuilder, this)
+            newBuilder.into(view)
+        }
+
+        else -> {
+            throw IllegalArgumentException(
+                "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 LottieAnimationView（需要 LottieDrawable）\n" +
+                        "请使用 asLottie().load(...) 显式指定类型"
+            )
+        }
+    }
+}
+
+/**
+ * 加载到 SVGAImageView（类型推断版本）
+ */
+fun AnimationRequestBuilder<*>.into(view: SVGAImageView): SVGAViewTarget {
+    val builderClass = getBuilderTranscodeClass(this)
+
+    return when (builderClass) {
+        SVGADrawable::class.java -> {
+            @Suppress("UNCHECKED_CAST")
+            (this as AnimationRequestBuilder<SVGADrawable>).into(view)
+        }
+        Any::class.java -> {
+            val requestManager = getRequestManagerFromBuilder(this)
+            val newBuilder = requestManager.asSVGA()
+            copyBuilderOptions(newBuilder, this)
+            newBuilder.into(view)
+        }
+        else -> {
+            throw IllegalArgumentException(
+                "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 SVGAImageView（需要 SVGADrawable）\n" +
+                        "请使用 asSVGA().load(...) 显式指定类型"
+            )
+        }
+    }
+}
+
+/**
+ * 加载到 GifImageView（类型推断版本）
+ */
+fun AnimationRequestBuilder<*>.into(view: GifImageView): GifViewTarget {
+    val builderClass = getBuilderTranscodeClass(this)
+
+    return when (builderClass) {
+        GifDrawable::class.java -> {
+            @Suppress("UNCHECKED_CAST")
+            (this as AnimationRequestBuilder<GifDrawable>).into(view)
+        }
+        Any::class.java -> {
+            val requestManager = getRequestManagerFromBuilder(this)
+            val newBuilder = requestManager.asGif()
+            copyBuilderOptions(newBuilder, this)
+            newBuilder.into(view)
+        }
+        else -> {
+            throw IllegalArgumentException(
+                "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 GifImageView（需要 GifDrawable）\n" +
+                        "请使用 asGif().load(...) 显式指定类型"
+            )
+        }
+    }
+}
+
+/**
+ * 获取 Builder 的 transcodeClass
+ */
+private fun getBuilderTranscodeClass(builder: AnimationRequestBuilder<*>): Class<*> {
+    return builder.getResourceClass()
+}
+
+/**
+ * 从 Builder 获取 AnimationRequestManager（通过反射）
+ */
+private fun getRequestManagerFromBuilder(builder: AnimationRequestBuilder<*>): AnimationRequestManager {
+    return try {
+        val field = AnimationRequestBuilder::class.java.getDeclaredField("requestManager")
+        field.isAccessible = true
+        field.get(builder) as AnimationRequestManager
+    } catch (e: Exception) {
+        throw IllegalStateException("无法获取 AnimationRequestManager", e)
+    }
+}
+
+/**
+ * 复制 Builder 的配置选项（options, listeners 等）
+ */
+private fun copyBuilderOptions(
+    target: AnimationRequestBuilder<*>,
+    source: AnimationRequestBuilder<*>
+) {
+    try {
+        // 复制 options
+        val optionsField = AnimationRequestBuilder::class.java.getDeclaredField("options")
+        optionsField.isAccessible = true
+        val sourceOptions = optionsField.get(source) as AnimationOptions
+        optionsField.set(target, sourceOptions)
+
+        // 复制 playListener
+        val playListenerField = AnimationRequestBuilder::class.java.getDeclaredField("playListener")
+        playListenerField.isAccessible = true
+        val playListener = playListenerField.get(source)
+        playListenerField.set(target, playListener)
+
+        // 复制 requestListener
+        val requestListenerField =
+            AnimationRequestBuilder::class.java.getDeclaredField("requestListener")
+        requestListenerField.isAccessible = true
+        val requestListener = requestListenerField.get(source)
+        requestListenerField.set(target, requestListener)
+
+        // 复制 model
+        val modelField = AnimationRequestBuilder::class.java.getDeclaredField("model")
+        modelField.isAccessible = true
+        val model = modelField.get(source)
+        modelField.set(target, model)
+
+        // 复制 isModelSet
+        val isModelSetField = AnimationRequestBuilder::class.java.getDeclaredField("isModelSet")
+        isModelSetField.isAccessible = true
+        val isModelSet = isModelSetField.get(source)
+        isModelSetField.set(target, isModelSet)
+    } catch (e: Exception) {
+        android.util.Log.w("AnimationRequestBuilder", "Failed to copy builder options", e)
+        // 继续执行，即使复制失败
+    }
 }

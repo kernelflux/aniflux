@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.kernelflux.aniflux.AniFlux
+import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-import com.kernelflux.aniflux.util.CacheStrategy
 import com.kernelflux.gif.GifImageView
 
 /**
@@ -96,7 +96,7 @@ class GIFTestFragment : Fragment() {
             .asGif()
             .load(gifUrl)
             .repeatCount(3)
-            .cacheStrategy(CacheStrategy.ALL)
+            .cacheStrategy(AnimationCacheStrategy.BOTH)
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {
                     AniFluxLogger.i("[$tabName] GIF动画开始播放")

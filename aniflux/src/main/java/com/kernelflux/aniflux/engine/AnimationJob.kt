@@ -33,7 +33,9 @@ class AnimationJob<T>(
     private val options: AnimationOptions,
     private val key: AnimationKey,
     private val listener: AnimationRequestListener<T>?,
-    private val callback: AnimationResourceCallback? = null
+    private val callback: AnimationResourceCallback? = null,
+    private val animationDiskCache: com.kernelflux.aniflux.cache.AnimationDiskCache? = null,
+    private val diskCachedFile: java.io.File? = null
 ) {
 
     companion object {
@@ -44,6 +46,9 @@ class AnimationJob<T>(
 
     // 下载器
     private val downloader: AnimationDownloader = OkHttpAnimationDownloader()
+    
+    // 下载和缓存辅助类
+    private val downloadHelper = AnimationJobDownloadHelper(context, key, animationDiskCache, downloader)
 
     // 状态管理
     @Volatile
@@ -60,6 +65,7 @@ class AnimationJob<T>(
 
     private var resource: AnimationResource<T>? = null
     private var exception: Throwable? = null
+    private var dataSource: AnimationDataSource = AnimationDataSource.LOCAL
 
     /**
      * 启动任务
@@ -120,6 +126,11 @@ class AnimationJob<T>(
     /**
      * 加载动画 - 集成具体的动画加载逻辑
      * 参考各动画库的加载方式，支持GIF、Lottie、SVGA、PAG、VAP等动画类型
+     * 
+     * 缓存流程：
+     * 1. 如果 diskCachedFile 存在，从磁盘缓存加载
+     * 2. 否则，根据 model 类型加载（网络/本地）
+     * 3. 如果是网络资源且需要磁盘缓存，保存到磁盘缓存
      */
     @Suppress("UNCHECKED_CAST")
     private fun loadAnimation(): AnimationResource<T> {
@@ -131,24 +142,41 @@ class AnimationJob<T>(
             val loader = createLoader(animationType)
                 ?: throw IllegalArgumentException("Unsupported animation type: $animationType")
 
-            // 3. 根据model类型加载动画
-            val animation = when (model) {
-                is String -> {
-                    val pathType =
-                        AnimationTypeDetector.detectPathType(model)
+            // 3. 根据 diskCachedFile 或 model 类型加载动画
+            val animation = when {
+                // 优先使用磁盘缓存文件
+                diskCachedFile != null -> {
+                    dataSource = AnimationDataSource.DISK_CACHE
+                    loadFromFile(loader, diskCachedFile)
+                }
+                model is String -> {
+                    val pathType = AnimationTypeDetector.detectPathType(model)
                     when (pathType) {
                         AnimationTypeDetector.PathType.NETWORK_URL -> {
-                            // 网络URL
-                            loadFromUrl(loader, model)
+                            // 网络URL：下载并保存到磁盘缓存
+                            val (downloadedFile, isFromCache) = downloadHelper.downloadAndCache(model)
+                            if (downloadedFile != null) {
+                                // 判断数据来源：如果是从缓存获取，则是 DISK_CACHE，否则是 REMOTE
+                                dataSource = if (isFromCache) {
+                                    AnimationDataSource.DISK_CACHE
+                                } else {
+                                    AnimationDataSource.REMOTE
+                                }
+                                loadFromFile(loader, downloadedFile)
+                            } else {
+                                null
+                            }
                         }
 
                         AnimationTypeDetector.PathType.LOCAL_FILE -> {
                             // 本地文件路径
+                            dataSource = AnimationDataSource.LOCAL
                             loadFromPath(loader, model)
                         }
 
                         AnimationTypeDetector.PathType.ASSET_PATH -> {
                             // Asset路径
+                            dataSource = AnimationDataSource.LOCAL
                             val assetPath = model.replace("file:///android_asset/", "")
                                 .replace("asset://", "")
                             loadFromAssetPath(loader, assetPath)
@@ -156,41 +184,43 @@ class AnimationJob<T>(
 
                         AnimationTypeDetector.PathType.ASSET_URI -> {
                             // Asset URI
+                            dataSource = AnimationDataSource.LOCAL
                             loadFromAssetUri(loader, model)
                         }
 
                         AnimationTypeDetector.PathType.CONTENT_URI -> {
                             // Content URI
+                            dataSource = AnimationDataSource.LOCAL
                             loadFromContentUri(loader, model)
                         }
 
                         else -> {
                             // 默认按文件路径处理
+                            dataSource = AnimationDataSource.LOCAL
                             loadFromPath(loader, model)
                         }
                     }
                 }
-
-                is java.io.File -> {
+                model is java.io.File -> {
                     // 文件
+                    dataSource = AnimationDataSource.LOCAL
                     loadFromFile(loader, model)
                 }
-
-                is android.net.Uri -> {
+                model is android.net.Uri -> {
                     // URI
+                    dataSource = AnimationDataSource.LOCAL
                     loadFromUri(loader, model)
                 }
-
-                is Int -> {
+                model is Int -> {
                     // 资源ID
+                    dataSource = AnimationDataSource.LOCAL
                     loadFromResource(loader, model)
                 }
-
-                is ByteArray -> {
+                model is ByteArray -> {
                     // 字节数组
+                    dataSource = AnimationDataSource.LOCAL
                     loadFromBytes(loader, model)
                 }
-
                 else -> {
                     throw IllegalArgumentException("Unsupported model type: ${model?.javaClass}")
                 }
@@ -521,7 +551,7 @@ class AnimationJob<T>(
             isComplete = true
         }
 
-        // 通知引擎任务完成
+        // ✅ 通知引擎任务完成（Engine 会在 onJobComplete 中调用 acquire）
         engine.onJobComplete(key, result)
 
         // 通知回调
@@ -561,7 +591,7 @@ class AnimationJob<T>(
                 try {
                     callback.onResourceReady(
                         resource,
-                        com.kernelflux.aniflux.load.AnimationDataSource.DATA_DISK_CACHE,
+                        dataSource,
                         false
                     )
                 } catch (e: Exception) {
@@ -579,7 +609,7 @@ class AnimationJob<T>(
                     resource.get(),
                     model,
                     target,
-                    AnimationDataSource.DATA_DISK_CACHE,
+                    dataSource,
                     false
                 )
             } catch (e: Exception) {
@@ -633,8 +663,11 @@ class AnimationJob<T>(
 
         isCancelled = true
 
-        // 清理资源
+        // ✅ 取消任务时，如果有资源则 release（Job 释放资源）
+        val currentResource = resource
         resource = null
+        currentResource?.release()
+
         exception = null
     }
 }

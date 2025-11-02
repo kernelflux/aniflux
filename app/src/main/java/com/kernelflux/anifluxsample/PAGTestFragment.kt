@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.kernelflux.aniflux.AniFlux
+import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-import com.kernelflux.aniflux.util.CacheStrategy
 import org.libpag.PAGView
 
 /**
@@ -96,7 +96,7 @@ class PAGTestFragment : Fragment() {
             .asPAG()
             .load(pagUrl)
             .repeatCount(3)
-            .cacheStrategy(CacheStrategy.ALL)
+            .cacheStrategy(AnimationCacheStrategy.BOTH)
             .retainLastFrame(false)
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {

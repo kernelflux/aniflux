@@ -1,6 +1,7 @@
 package com.kernelflux.aniflux.util
 
 import android.widget.ImageView
+import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 
 /**
  * 动画选项
@@ -8,10 +9,11 @@ import android.widget.ImageView
  */
 class AnimationOptions {
     
+    // 尺寸配置（保留用于特殊情况，如 GIF 的尺寸缩放，但不影响缓存键）
     var width: Int = 0
     var height: Int = 0
     var scaleType: ImageView.ScaleType? = null
-    var cacheStrategy: CacheStrategy = CacheStrategy.ALL
+    var cacheStrategy: AnimationCacheStrategy = AnimationCacheStrategy.BOTH
     var useDiskCache: Boolean = true
     var isAnimation: Boolean = false
     var priority: Priority = Priority.NORMAL
@@ -30,7 +32,7 @@ class AnimationOptions {
          */
         fun defaultOptions(): AnimationOptions {
             return create()
-                .cacheStrategy(CacheStrategy.ALL)
+                .cacheStrategy(AnimationCacheStrategy.BOTH)
                 .useDiskCache(true)
                 .isAnimation(true)
                 .priority(Priority.NORMAL)
@@ -42,7 +44,7 @@ class AnimationOptions {
          */
         fun highPerformanceOptions(): AnimationOptions {
             return create()
-                .cacheStrategy(CacheStrategy.NONE)
+                .cacheStrategy(AnimationCacheStrategy.NONE)
                 .useDiskCache(false)
                 .isAnimation(true)
                 .priority(Priority.HIGH)
@@ -50,11 +52,11 @@ class AnimationOptions {
         }
         
         /**
-         * 创建低内存配置
+         * 创建低内存配置（仅磁盘缓存）
          */
         fun lowMemoryOptions(): AnimationOptions {
             return create()
-                .cacheStrategy(CacheStrategy.SOURCE)
+                .cacheStrategy(AnimationCacheStrategy.DISK_ONLY)
                 .useDiskCache(true)
                 .isAnimation(true)
                 .priority(Priority.LOW)
@@ -66,7 +68,7 @@ class AnimationOptions {
          */
         fun memoryOnlyOptions(): AnimationOptions {
             return create()
-                .cacheStrategy(CacheStrategy.RESULT)
+                .cacheStrategy(AnimationCacheStrategy.MEMORY_ONLY)
                 .useDiskCache(false)
                 .isAnimation(true)
                 .priority(Priority.NORMAL)
@@ -85,7 +87,7 @@ class AnimationOptions {
         return this
     }
     
-    fun cacheStrategy(strategy: CacheStrategy): AnimationOptions {
+    fun cacheStrategy(strategy: AnimationCacheStrategy): AnimationOptions {
         this.cacheStrategy = strategy
         return this
     }

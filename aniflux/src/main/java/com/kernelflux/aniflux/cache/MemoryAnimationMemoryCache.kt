@@ -6,9 +6,9 @@ import com.kernelflux.aniflux.engine.AnimationResource
 /**
  * 内存动画缓存 - 基于LruCache实现
  */
-class MemoryAnimationCache(
+class MemoryAnimationMemoryCache(
     maxSize: Int = calculateDefaultMaxSize()
-) : AnimationCache {
+) : AnimationMemoryCache {
     
     private val cache = object : LruCache<String, AnimationResource<*>>(maxSize) {
         override fun sizeOf(key: String, value: AnimationResource<*>): Int {

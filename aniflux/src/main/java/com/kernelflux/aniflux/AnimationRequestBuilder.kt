@@ -13,6 +13,7 @@ import org.libpag.PAGImageView
 import org.libpag.PAGView
 import com.airbnb.lottie.LottieDrawable
 import com.airbnb.lottie.LottieAnimationView
+import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
 import com.kernelflux.svgaplayer.SVGADrawable
@@ -101,7 +102,7 @@ class AnimationRequestBuilder<T>(
     /**
      * 设置缓存策略
      */
-    fun cacheStrategy(strategy: com.kernelflux.aniflux.util.CacheStrategy): AnimationRequestBuilder<T> {
+    fun cacheStrategy(strategy: AnimationCacheStrategy): AnimationRequestBuilder<T> {
         options.cacheStrategy(strategy)
         return this
     }
@@ -150,7 +151,7 @@ class AnimationRequestBuilder<T>(
     /**
      * 设置是否保留动画停止时的帧（动画结束时）
      * @param retain true 表示保留当前停止位置的帧（停在当前帧），false 表示清空显示（默认 true）
-     * 
+     *
      * 支持的格式：
      * - GIF: 保留当前停止位置的帧（动画结束时会自动停留在当前帧）
      * - Lottie: 保留当前停止位置的帧（动画结束时会自动停留在当前帧）

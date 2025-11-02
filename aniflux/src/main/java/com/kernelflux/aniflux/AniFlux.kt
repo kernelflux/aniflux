@@ -9,7 +9,9 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.kernelflux.aniflux.cache.LruAnimationDiskCache
 import com.kernelflux.aniflux.engine.AnimationEngine
+import java.io.File
 import com.kernelflux.aniflux.manager.AnimationConnectivityMonitorFactory
 import com.kernelflux.aniflux.manager.AnimationRequestManagerRetriever
 import com.kernelflux.aniflux.manager.DefaultAnimationConnectivityMonitorFactory
@@ -46,8 +48,12 @@ class AniFlux : ComponentCallbacks2 {
         this.defaultRequestListeners = defaultRequestListeners
         this.logLevel = logLevel
         
-        // 初始化Engine
-        this.engine = AnimationEngine()
+        // 初始化磁盘缓存
+        val diskCacheDir = File(context.cacheDir, "aniflux_disk_cache")
+        val diskCache = LruAnimationDiskCache(diskCacheDir, 100 * 1024 * 1024) // 100MB
+        
+        // 初始化Engine（传入磁盘缓存）
+        this.engine = AnimationEngine(animationDiskCache = diskCache)
     }
 
 

@@ -108,7 +108,9 @@ class SingleAnimationRequest<T>(
             }
 
             // 如果已完成，重用结果
-            if (status == Status.COMPLETE) {
+            if (status == Status.COMPLETE && resource != null) {
+                // ✅ 重用资源时需要 acquire（Target 重新持有资源）
+                resource?.acquire()
                 callbackExecutor.execute {
                     onResourceReady(resource, AnimationDataSource.MEMORY_CACHE, false)
                 }
@@ -191,8 +193,10 @@ class SingleAnimationRequest<T>(
             loadStatus?.cancel()
             loadStatus = null
 
-            // 清理资源
+            // ✅ 清除资源时 release（Target 释放资源）
+            val currentResource = resource
             resource = null
+            currentResource?.release()
         }
     }
 
@@ -237,7 +241,10 @@ class SingleAnimationRequest<T>(
 
             status = Status.COMPLETE
             @Suppress("UNCHECKED_CAST")
-            this.resource = resource as AnimationResource<T>
+            val typedResource = resource as AnimationResource<T>
+            this.resource = typedResource
+            // ✅ 设置资源到 Target 时 acquire（Target 持有资源）
+            typedResource.acquire()
             callbackExecutor.execute {
                 @Suppress("UNCHECKED_CAST")
                 onResourceReadyInternal(received as T, dataSource)

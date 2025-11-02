@@ -39,11 +39,11 @@ class OkHttpAnimationDownloader(
             .build()
 
 
-        // 准备缓存目录
-        val downloadCacheDirName = getDownloadCacheDir()
-        val dir = File(context.cacheDir, downloadCacheDirName)
+        // 准备临时文件目录（下载到临时目录，由调用者决定是否保存到磁盘缓存）
+        val tempDirName = "aniflux_temp"
+        val dir = File(context.cacheDir, tempDirName)
         if (!dir.exists() && !dir.mkdirs()) {
-            throw IOException("Failed to create cache dir: ${dir.absolutePath}")
+            throw IOException("Failed to create temp dir: ${dir.absolutePath}")
         }
 
         // 解析 URL，决定文件名与扩展名

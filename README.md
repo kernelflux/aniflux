@@ -40,20 +40,34 @@
 
 ### Add Dependencies / 添加依赖
 
-**Current Version / 当前版本** (All animation formats integrated / 所有动画格式已集成):
+> **⚠️ Important / 重要提示**: AniFlux is currently in development and has not been released to Maven Central yet.  
+> Please use source code dependency for now. We will update this section once it's published.  
+> **⚠️ 重要提示**: AniFlux 目前仍在开发中，尚未发布到 Maven Central。  
+> 请先使用源码依赖，发布后会更新此部分。
 
-```gradle
-dependencies {
-    implementation 'com.kernelflux:aniflux:1.0.0'
-}
-```
+**Source Code Dependency / 源码依赖** (Current development version / 当前开发版本):
+
+Since AniFlux is not yet published, you need to include it as a source module / 由于 AniFlux 尚未发布，需要将其作为源码模块引入:
+
+1. Clone or download the AniFlux repository / 克隆或下载 AniFlux 仓库
+2. Add the `aniflux` module to your project's `settings.gradle` / 将 `aniflux` 模块添加到项目的 `settings.gradle`:
+   ```gradle
+   include ':aniflux'
+   project(':aniflux').projectDir = new File('/path/to/aniflux/aniflux')
+   ```
+3. Add dependency in your app's `build.gradle` / 在应用的 `build.gradle` 中添加依赖:
+   ```gradle
+   dependencies {
+       implementation project(':aniflux')
+   }
+   ```
 
 > **Note / 注意**: The current version packages all animation formats (GIF, Lottie, SVGA, PAG, VAP) in one module. Simply add `aniflux` to use all formats.  
 > If you need on-demand loading to reduce package size, modular refactoring is required (see below).  
 > 当前版本将所有动画格式（GIF、Lottie、SVGA、PAG、VAP）打包在一个模块中，引入 `aniflux` 即可使用所有格式。  
 > 如果需要按需引入以减少包体积，需要模块化改造（见下方说明）。
 
-**Future Version / 未来版本** (Planned on-demand loading support / 计划支持按需引入):
+**Future Version / 未来版本** (Planned on-demand loading support after publishing / 发布后计划支持按需引入):
 
 ```gradle
 dependencies {
@@ -126,12 +140,13 @@ AniFlux provides a concise chain API with the same calling method for all animat
 AniFlux.with(context)
     .asGif()                          // Specify animation format / 指定动画格式
     .load(url)                        // Load resource / 加载资源
-    .size(200, 200)                   // Set size / 设置尺寸
-    .cacheStrategy(CacheStrategy.ALL) // Cache strategy / 缓存策略
-    .repeatCount(3)                   // Loop count / 循环次数
-    .autoPlay(true)                   // Auto play / 自动播放
-    .playListener(playListener)       // Play listener / 播放监听
-    .into(imageView)                  // Load into View / 加载到 View
+    .size(200, 200)                              // Set size / 设置尺寸
+    .cacheStrategy(AnimationCacheStrategy.BOTH)   // Cache strategy / 缓存策略
+    .repeatCount(3)                              // Loop count / 循环次数
+    .retainLastFrame(true)                        // Retain last frame / 保留最后一帧
+    .autoPlay(true)                               // Auto play / 自动播放
+    .playListener(playListener)                  // Play listener / 播放监听
+    .into(imageView)                              // Load into View / 加载到 View
 ```
 
 ### 2. Multiple Data Source Support / 多种数据源支持
@@ -155,17 +170,40 @@ AniFlux.with(context)
 
 ### 3. Smart Caching Strategy / 智能缓存策略
 
+AniFlux provides flexible caching strategies for different scenarios / AniFlux 为不同场景提供灵活的缓存策略:
+
 ```kotlin
-enum class CacheStrategy {
-    ALL,        // Cache all (memory + disk) / 缓存所有（内存 + 磁盘）
-    NONE,       // No cache / 不缓存
-    SOURCE,     // Cache source data only / 只缓存源数据
-    RESULT      // Cache processed result only / 只缓存处理后的结果
+enum class AnimationCacheStrategy {
+    NONE,           // No cache (memory and disk) / 不缓存（内存和磁盘都不缓存）
+    MEMORY_ONLY,    // Memory cache only / 仅内存缓存
+    DISK_ONLY,      // Disk cache only (memory not cached) / 仅磁盘缓存（内存不缓存）
+    BOTH            // Memory + disk cache (default) / 内存 + 磁盘缓存（默认）
 }
 
 // Usage example / 使用示例
-.cacheStrategy(CacheStrategy.ALL)
-.useDiskCache(true)  // Use disk cache? / 是否使用磁盘缓存
+.cacheStrategy(AnimationCacheStrategy.BOTH)  // Default / 默认
+.useDiskCache(true)  // Enable disk cache? / 是否启用磁盘缓存
+```
+
+**Caching Flow / 缓存流程**:
+1. **Memory Cache Check / 内存缓存检查**: Check `activeResources` and `memoryCache` / 检查活跃资源和内存缓存
+2. **Disk Cache Check / 磁盘缓存检查**: If enabled, check disk cache / 如果启用，检查磁盘缓存
+3. **Network Download / 网络下载**: If cache miss, download and cache / 缓存未命中时，下载并缓存
+
+**Cache Strategy Scenarios / 缓存策略场景**:
+
+```kotlin
+// High performance scenario (no caching) / 高性能场景（不缓存）
+.cacheStrategy(AnimationCacheStrategy.NONE)
+
+// Low memory scenario (disk only) / 低内存场景（仅磁盘）
+.cacheStrategy(AnimationCacheStrategy.DISK_ONLY)
+
+// Frequent access scenario (memory only) / 频繁访问场景（仅内存）
+.cacheStrategy(AnimationCacheStrategy.MEMORY_ONLY)
+
+// Default scenario (both) / 默认场景（两者都缓存）
+.cacheStrategy(AnimationCacheStrategy.BOTH)
 ```
 
 ### 4. Unified Playback Listener / 统一的播放监听器
@@ -240,7 +278,34 @@ svgaImageView.setFragmentVisible(false)  // Pause / 暂停
 svgaImageView.setFragmentVisible(true)    // Resume / 恢复
 ```
 
-### 7. Unified Repeat Count Semantics / 统一的循环次数语义
+### 7. Retain Last Frame Configuration / 保留最后一帧配置
+
+AniFlux supports controlling whether to retain the last frame after animation completes / AniFlux 支持控制动画结束后是否保留最后一帧:
+
+```kotlin
+AniFlux.with(context)
+    .asGif()
+    .load(url)
+    .retainLastFrame(true)   // Retain the frame where animation stopped (default: true) / 保留动画停止时的帧（默认：true）
+    .into(gifImageView)
+
+// Or set to false to clear the frame / 或设置为 false 清空帧
+.retainLastFrame(false)  // Clear frame after animation ends / 动画结束后清空帧
+```
+
+**Supported Formats / 支持的格式**:
+- ✅ **GIF**: Retains current stopped frame / 保留当前停止位置的帧
+- ✅ **Lottie**: Retains current stopped frame / 保留当前停止位置的帧
+- ✅ **SVGA**: Controlled via `fillMode` (Forward = retain, Clear = clear) / 通过 `fillMode` 控制（Forward = 保留，Clear = 清空）
+- ✅ **PAG**: Retains current stopped frame / 保留当前停止位置的帧
+- ✅ **VAP**: Controlled via `retainLastFrame` property / 通过 `retainLastFrame` 属性控制
+
+> **Note / 注意**: `retainLastFrame(true)` retains the **current stopped frame**, not necessarily the last frame of the animation.  
+> If the animation is paused or stopped in the middle, it will retain that frame.  
+> `retainLastFrame(true)` 保留的是**当前停止位置的帧**，不一定是动画的最后一帧。  
+> 如果动画在中间暂停或停止，将保留该帧。
+
+### 8. Unified Repeat Count Semantics / 统一的循环次数语义
 
 AniFlux unifies repeat count semantics for all animation formats / AniFlux 统一了所有动画格式的循环次数语义:
 
@@ -254,7 +319,7 @@ AniFlux unifies repeat count semantics for all animation formats / AniFlux 统�
 > **Note / 注意**: Different animation libraries have different underlying implementations. AniFlux automatically handles conversions to ensure consistent behavior.  
 > 不同动画库的底层实现不同，AniFlux 会自动处理转换，确保行为一致。
 
-### 8. Request Priority and Timeout Control / 请求优先级和超时控制
+### 9. Request Priority and Timeout Control / 请求优先级和超时控制
 
 ```kotlin
 .priority(Priority.HIGH)  // High priority / 高优先级
@@ -270,7 +335,9 @@ AniFlux (Singleton / 单例)
   ├── AnimationRequestManager (Request Manager / 请求管理器)
   │   ├── AnimationEngine (Loading Engine / 加载引擎)
   │   │   ├── AnimationJob (Loading Task / 加载任务)
-  │   │   └── MemoryAnimationCache (Memory Cache / 内存缓存)
+  │   │   ├── AnimationResource (Resource Wrapper with Reference Counting / 资源包装器，带引用计数)
+  │   │   ├── AnimationMemoryCache (Memory Cache / 内存缓存)
+  │   │   └── AnimationDiskCache (Disk Cache / 磁盘缓存)
   │   ├── AnimationRequestTracker (Request Tracker / 请求跟踪器)
   │   └── AnimationLifecycle (Lifecycle Management / 生命周期管理)
   │
@@ -299,8 +366,9 @@ User calls into() / 用户调用 into()
 AnimationRequestBuilder builds request / AnimationRequestBuilder 构建请求
     ↓
 AnimationEngine checks cache / AnimationEngine 检查缓存
-    ├── Memory cache hit / 内存缓存命中 → Direct return / 直接返回
-    ├── Disk cache hit / 磁盘缓存命中 → Load and return / 加载并返回
+    ├── Active resources hit / 活跃资源命中 → Acquire and return / 获取并返回
+    ├── Memory cache hit / 内存缓存命中 → Acquire, move to active, return / 获取，转移到活跃资源，返回
+    ├── Disk cache hit / 磁盘缓存命中 → Load, parse, cache, return / 加载，解析，缓存，返回
     └── Cache miss / 缓存未命中 → Create AnimationJob / 创建 AnimationJob
         ↓
     AnimationJob executes loading / AnimationJob 执行加载
@@ -331,9 +399,10 @@ AnimationEngine checks cache / AnimationEngine 检查缓存
 
 ```kotlin
 val options = AnimationOptions.create()
-    .cacheStrategy(CacheStrategy.ALL)
+    .cacheStrategy(AnimationCacheStrategy.BOTH)
     .useDiskCache(true)
     .repeatCount(3)
+    .retainLastFrame(true)
     .autoPlay(true)
     .priority(Priority.HIGH)
     .timeout(30000L)
@@ -435,7 +504,24 @@ AniFlux automatically handles repeat count semantic differences across animation
 - **PAG**: `repeatCount = 0` (infinite) or `N` (play N times) / `repeatCount = 0`（无限）或 `N`（播放 N 次）
 - **VAP**: `playLoop = Int.MAX_VALUE` (infinite) or `N` (play N times) / `playLoop = Int.MAX_VALUE`（无限）或 `N`（播放 N 次）
 
-### 4. Frame Calculation / 帧数计算
+### 4. Retain Last Frame Support / 保留最后一帧支持
+
+AniFlux provides unified `retainLastFrame` configuration for all animation formats / AniFlux 为所有动画格式提供统一的 `retainLastFrame` 配置:
+
+```kotlin
+.retainLastFrame(true)   // Retain the frame where animation stopped (default) / 保留动画停止时的帧（默认）
+.retainLastFrame(false)  // Clear frame after animation ends / 动画结束后清空帧
+```
+
+**Behavior / 行为**:
+- ✅ **GIF/Lottie/PAG**: Naturally retain current frame, `retainLastFrame(false)` requires manual clearing / 自然保留当前帧，`retainLastFrame(false)` 需要手动清空
+- ✅ **SVGA**: Controlled via `fillMode` property (`Forward` = retain, `Clear` = clear) / 通过 `fillMode` 属性控制（`Forward` = 保留，`Clear` = 清空）
+- ✅ **VAP**: Controlled via `retainLastFrame` property in source code / 通过源码中的 `retainLastFrame` 属性控制
+
+> **Semantic / 语义**: `retainLastFrame(true)` retains the **current stopped frame**, which may be the last frame of the animation or a frame where the animation was paused.  
+> `retainLastFrame(true)` 保留的是**当前停止位置的帧**，可能是动画的最后一帧，也可能是动画暂停时的帧。
+
+### 5. Frame Calculation / 帧数计算
 
 AniFlux provides unified frame number access / AniFlux 提供了统一的帧数获取方式:
 

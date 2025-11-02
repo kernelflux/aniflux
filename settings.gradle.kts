@@ -26,3 +26,6 @@ dependencyResolutionManagement {
 rootProject.name = "aniflux"
 include(":app")
 include(":aniflux")
+include(":animLibs:svgaplayer")
+include(":animLibs:android-gif-drawable")
+include(":animLibs:vap")

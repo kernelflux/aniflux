@@ -12,6 +12,7 @@ import com.kernelflux.aniflux.load.LottieAnimationLoader
 import com.kernelflux.aniflux.load.OkHttpAnimationDownloader
 import com.kernelflux.aniflux.load.PAGAnimationLoader
 import com.kernelflux.aniflux.load.SVGAAnimationLoader
+import com.kernelflux.aniflux.load.VAPAnimationLoader
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.util.AnimationKey
@@ -111,13 +112,14 @@ class AnimationJob<T>(
             AnimationTypeDetector.AnimationType.LOTTIE -> LottieAnimationLoader()
             AnimationTypeDetector.AnimationType.PAG -> PAGAnimationLoader()
             AnimationTypeDetector.AnimationType.SVGA -> SVGAAnimationLoader()
+            AnimationTypeDetector.AnimationType.VAP -> VAPAnimationLoader()
             AnimationTypeDetector.AnimationType.UNKNOWN -> null
         }
     }
 
     /**
      * 加载动画 - 集成具体的动画加载逻辑
-     * 参考各动画库的加载方式，支持GIF、Lottie、SVGA、PAG四种动画类型
+     * 参考各动画库的加载方式，支持GIF、Lottie、SVGA、PAG、VAP等动画类型
      */
     @Suppress("UNCHECKED_CAST")
     private fun loadAnimation(): AnimationResource<T> {
@@ -126,7 +128,8 @@ class AnimationJob<T>(
             val animationType = detectAnimationType()
 
             // 2. 创建对应的加载器
-            val loader = createLoader(animationType) ?: throw IllegalArgumentException("Unsupported animation type: $animationType")
+            val loader = createLoader(animationType)
+                ?: throw IllegalArgumentException("Unsupported animation type: $animationType")
 
             // 3. 根据model类型加载动画
             val animation = when (model) {
@@ -146,7 +149,9 @@ class AnimationJob<T>(
 
                         AnimationTypeDetector.PathType.ASSET_PATH -> {
                             // Asset路径
-                            loadFromAssetPath(loader, model)
+                            val assetPath = model.replace("file:///android_asset/", "")
+                                .replace("asset://", "")
+                            loadFromAssetPath(loader, assetPath)
                         }
 
                         AnimationTypeDetector.PathType.ASSET_URI -> {
@@ -464,6 +469,10 @@ class AnimationJob<T>(
                 }.loadFromAssetPath(context, assetPath)
             }
 
+            AnimationTypeDetector.AnimationType.VAP -> {
+                (loader as VAPAnimationLoader).loadFromAssetPath(context, assetPath)
+            }
+
             else -> null
         }
     }
@@ -474,6 +483,7 @@ class AnimationJob<T>(
     private fun loadFromAssetUri(loader: AnimationLoader<*>, assetUri: String): Any? {
         // 将 file:///android_asset/animations/loading.gif 转换为 animations/loading.gif
         val assetPath = assetUri.replace("file:///android_asset/", "")
+            .replace("asset://","")
         return loadFromAssetPath(loader, assetPath)
     }
 

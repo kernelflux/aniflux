@@ -2,6 +2,9 @@ package com.kernelflux.aniflux.util
 
 import android.content.Context
 import android.content.res.AssetManager
+import com.kernelflux.gif.GifDrawable
+import com.kernelflux.svgaplayer.SVGADrawable
+import java.io.File
 import java.io.InputStream
 
 /**
@@ -18,6 +21,7 @@ object AnimationTypeDetector {
         LOTTIE,     // Lottie动画 (.json)
         SVGA,       // SVGA动画 (.svga)
         PAG,        // PAG动画 (.pag)
+        VAP,        // VAP动画 (.mp4)
         UNKNOWN     // 未知类型
     }
 
@@ -32,7 +36,7 @@ object AnimationTypeDetector {
         CONTENT_URI,        // Content URI: content://media/external/images/media/123
         UNKNOWN             // 未知类型
     }
-    
+
     /**
      * 检测路径类型
      * @param path 路径字符串
@@ -40,16 +44,16 @@ object AnimationTypeDetector {
      */
     fun detectPathType(path: String?): PathType {
         if (path.isNullOrEmpty()) return PathType.UNKNOWN
-        
+
         return when {
             path.startsWith("http://") || path.startsWith("https://") -> PathType.NETWORK_URL
-            path.startsWith("file:///android_asset/") -> PathType.ASSET_URI
+            path.startsWith("file:///android_asset/") || path.startsWith("asset://") -> PathType.ASSET_URI
             path.startsWith("content://") -> PathType.CONTENT_URI
             path.startsWith("/") -> PathType.LOCAL_FILE
             else -> PathType.ASSET_PATH
         }
     }
-    
+
     /**
      * 根据文件路径检测动画类型
      * @param path 文件路径（支持网络URL、本地文件路径、Asset路径、Uri字符串）
@@ -57,13 +61,14 @@ object AnimationTypeDetector {
      */
     fun detectFromPath(path: String?): AnimationType {
         if (path.isNullOrEmpty()) return AnimationType.UNKNOWN
-        
+
         val lowerPath = path.lowercase()
         return when {
             lowerPath.endsWith(".gif") -> AnimationType.GIF
             lowerPath.endsWith(".json") -> AnimationType.LOTTIE
             lowerPath.endsWith(".svga") -> AnimationType.SVGA
             lowerPath.endsWith(".pag") -> AnimationType.PAG
+            lowerPath.endsWith(".mp4") -> AnimationType.VAP
             else -> AnimationType.UNKNOWN
         }
     }
@@ -112,23 +117,26 @@ object AnimationTypeDetector {
         if (length < 4) return AnimationType.UNKNOWN
 
         // 检测GIF文件头
-        if (bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() && 
-            bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte()) {
+        if (bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() &&
+            bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte()
+        ) {
             return AnimationType.GIF
         }
 
         // 检测JSON文件（Lottie）
         val content = String(bytes, 0, minOf(length, 1024))
-        if (content.trimStart().startsWith("{") && 
-            (content.contains("\"v\":") || content.contains("\"assets\":") || content.contains("\"layers\":"))) {
+        if (content.trimStart().startsWith("{") &&
+            (content.contains("\"v\":") || content.contains("\"assets\":") || content.contains("\"layers\":"))
+        ) {
             return AnimationType.LOTTIE
         }
 
         // 检测SVGA文件头（SVGA文件通常以特定字节序列开始）
         if (length >= 8) {
             // SVGA文件通常以特定的魔数开始
-            if (bytes[0] == 0x53.toByte() && bytes[1] == 0x56.toByte() && 
-                bytes[2] == 0x47.toByte() && bytes[3] == 0x41.toByte()) {
+            if (bytes[0] == 0x53.toByte() && bytes[1] == 0x56.toByte() &&
+                bytes[2] == 0x47.toByte() && bytes[3] == 0x41.toByte()
+            ) {
                 return AnimationType.SVGA
             }
         }
@@ -136,8 +144,9 @@ object AnimationTypeDetector {
         // 检测PAG文件头（PAG文件通常以特定字节序列开始）
         if (length >= 8) {
             // PAG文件通常以特定的魔数开始
-            if (bytes[0] == 0x50.toByte() && bytes[1] == 0x41.toByte() && 
-                bytes[2] == 0x47.toByte() && bytes[3] == 0x00.toByte()) {
+            if (bytes[0] == 0x50.toByte() && bytes[1] == 0x41.toByte() &&
+                bytes[2] == 0x47.toByte() && bytes[3] == 0x00.toByte()
+            ) {
                 return AnimationType.PAG
             }
         }
@@ -145,18 +154,4 @@ object AnimationTypeDetector {
         return AnimationType.UNKNOWN
     }
 
-    /**
-     * 根据动画类型获取对应的Class
-     * @param animationType 动画类型
-     * @return 对应的Class
-     */
-    fun getClassForAnimationType(animationType: AnimationType): Class<*> {
-        return when (animationType) {
-            AnimationType.GIF -> pl.droidsonroids.gif.GifDrawable::class.java
-            AnimationType.LOTTIE -> com.airbnb.lottie.LottieDrawable::class.java
-            AnimationType.SVGA -> com.opensource.svgaplayer.SVGADrawable::class.java
-            AnimationType.PAG -> org.libpag.PAGFile::class.java
-            AnimationType.UNKNOWN -> android.graphics.drawable.Drawable::class.java
-        }
-    }
 }

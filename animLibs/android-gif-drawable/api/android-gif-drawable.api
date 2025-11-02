@@ -1,0 +1,357 @@
+public abstract interface class com/kernelflux/gif/AnimationListener {
+	public abstract fun onAnimationCompleted (I)V
+}
+
+public class com/kernelflux/gif/GifAnimationMetaData : android/os/Parcelable, java/io/Serializable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Landroid/content/ContentResolver;Landroid/net/Uri;)V
+	public fun <init> (Landroid/content/res/AssetFileDescriptor;)V
+	public fun <init> (Landroid/content/res/AssetManager;Ljava/lang/String;)V
+	public fun <init> (Landroid/content/res/Resources;I)V
+	public fun <init> (Ljava/io/File;)V
+	public fun <init> (Ljava/io/FileDescriptor;)V
+	public fun <init> (Ljava/io/InputStream;)V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/nio/ByteBuffer;)V
+	public fun <init> ([B)V
+	public fun describeContents ()I
+	public fun getAllocationByteCount ()J
+	public fun getDrawableAllocationByteCount (Lcom/kernelflux/gif/GifDrawable;I)J
+	public fun getDuration ()I
+	public fun getHeight ()I
+	public fun getLoopCount ()I
+	public fun getMetadataAllocationByteCount ()J
+	public fun getNumberOfFrames ()I
+	public fun getWidth ()I
+	public fun isAnimated ()Z
+	public fun toString ()Ljava/lang/String;
+	public fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public class com/kernelflux/gif/GifDecoder {
+	public fun <init> (Lcom/kernelflux/gif/InputSource;)V
+	public fun <init> (Lcom/kernelflux/gif/InputSource;Lcom/kernelflux/gif/GifOptions;)V
+	public fun getAllocationByteCount ()J
+	public fun getComment ()Ljava/lang/String;
+	public fun getDuration ()I
+	public fun getFrameDuration (I)I
+	public fun getHeight ()I
+	public fun getLoopCount ()I
+	public fun getNumberOfFrames ()I
+	public fun getSourceLength ()J
+	public fun getWidth ()I
+	public fun isAnimated ()Z
+	public fun recycle ()V
+	public fun seekToFrame (ILandroid/graphics/Bitmap;)V
+	public fun seekToTime (ILandroid/graphics/Bitmap;)V
+}
+
+public class com/kernelflux/gif/GifDrawable : android/graphics/drawable/Drawable, android/graphics/drawable/Animatable, android/widget/MediaController$MediaPlayerControl {
+	protected final field mPaint Landroid/graphics/Paint;
+	public fun <init> (Landroid/content/ContentResolver;Landroid/net/Uri;)V
+	public fun <init> (Landroid/content/res/AssetFileDescriptor;)V
+	public fun <init> (Landroid/content/res/AssetManager;Ljava/lang/String;)V
+	public fun <init> (Landroid/content/res/Resources;I)V
+	public fun <init> (Ljava/io/File;)V
+	public fun <init> (Ljava/io/FileDescriptor;)V
+	public fun <init> (Ljava/io/InputStream;)V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/nio/ByteBuffer;)V
+	protected fun <init> (Lcom/kernelflux/gif/InputSource;Lcom/kernelflux/gif/GifDrawable;Ljava/util/concurrent/ScheduledThreadPoolExecutor;ZLcom/kernelflux/gif/GifOptions;)V
+	public fun <init> ([B)V
+	public fun addAnimationListener (Lcom/kernelflux/gif/AnimationListener;)V
+	public fun canPause ()Z
+	public fun canSeekBackward ()Z
+	public fun canSeekForward ()Z
+	public static fun createFromResource (Landroid/content/res/Resources;I)Lcom/kernelflux/gif/GifDrawable;
+	public fun draw (Landroid/graphics/Canvas;)V
+	public fun getAllocationByteCount ()J
+	public fun getAlpha ()I
+	public fun getAudioSessionId ()I
+	public fun getBufferPercentage ()I
+	public fun getColorFilter ()Landroid/graphics/ColorFilter;
+	public fun getComment ()Ljava/lang/String;
+	public fun getCornerRadius ()F
+	public fun getCurrentFrame ()Landroid/graphics/Bitmap;
+	public fun getCurrentFrameIndex ()I
+	public fun getCurrentLoop ()I
+	public fun getCurrentPosition ()I
+	public fun getDuration ()I
+	public fun getError ()Lcom/kernelflux/gif/GifError;
+	public fun getFrameByteCount ()I
+	public fun getFrameDuration (I)I
+	public fun getInputSourceByteCount ()J
+	public fun getIntrinsicHeight ()I
+	public fun getIntrinsicWidth ()I
+	public fun getLoopCount ()I
+	public fun getMetadataAllocationByteCount ()J
+	public fun getNumberOfFrames ()I
+	public fun getOpacity ()I
+	public final fun getPaint ()Landroid/graphics/Paint;
+	public fun getPixel (II)I
+	public fun getPixels ([I)V
+	public fun getTransform ()Lcom/kernelflux/gif/transforms/Transform;
+	public fun invalidateSelf ()V
+	public fun isAnimationCompleted ()Z
+	public fun isPlaying ()Z
+	public fun isRecycled ()Z
+	public fun isRunning ()Z
+	public fun isStateful ()Z
+	protected fun onBoundsChange (Landroid/graphics/Rect;)V
+	protected fun onStateChange ([I)Z
+	public fun pause ()V
+	public fun recycle ()V
+	public fun removeAnimationListener (Lcom/kernelflux/gif/AnimationListener;)Z
+	public fun reset ()V
+	public fun seekTo (I)V
+	public fun seekToBlocking (I)V
+	public fun seekToFrame (I)V
+	public fun seekToFrameAndGet (I)Landroid/graphics/Bitmap;
+	public fun seekToPositionAndGet (I)Landroid/graphics/Bitmap;
+	public fun setAlpha (I)V
+	public fun setColorFilter (Landroid/graphics/ColorFilter;)V
+	public fun setCornerRadius (F)V
+	public fun setDither (Z)V
+	public fun setFilterBitmap (Z)V
+	public fun setLoopCount (I)V
+	public fun setSpeed (F)V
+	public fun setTintList (Landroid/content/res/ColorStateList;)V
+	public fun setTintMode (Landroid/graphics/PorterDuff$Mode;)V
+	public fun setTransform (Lcom/kernelflux/gif/transforms/Transform;)V
+	public fun setVisible (ZZ)Z
+	public fun start ()V
+	public fun stop ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public class com/kernelflux/gif/GifDrawableBuilder : com/kernelflux/gif/GifDrawableInit {
+	public fun <init> ()V
+	protected fun self ()Lcom/kernelflux/gif/GifDrawableBuilder;
+	protected synthetic fun self ()Lcom/kernelflux/gif/GifDrawableInit;
+}
+
+public abstract class com/kernelflux/gif/GifDrawableInit {
+	public fun <init> ()V
+	public fun build ()Lcom/kernelflux/gif/GifDrawable;
+	public fun from (Landroid/content/ContentResolver;Landroid/net/Uri;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Landroid/content/res/AssetFileDescriptor;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Landroid/content/res/AssetManager;Ljava/lang/String;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Landroid/content/res/Resources;I)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Ljava/io/File;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Ljava/io/FileDescriptor;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Ljava/io/InputStream;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Ljava/lang/String;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from (Ljava/nio/ByteBuffer;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun from ([B)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun getExecutor ()Ljava/util/concurrent/ScheduledThreadPoolExecutor;
+	public fun getInputSource ()Lcom/kernelflux/gif/InputSource;
+	public fun getOldDrawable ()Lcom/kernelflux/gif/GifDrawable;
+	public fun getOptions ()Lcom/kernelflux/gif/GifOptions;
+	public fun isRenderingTriggeredOnDraw ()Z
+	public fun options (Lcom/kernelflux/gif/GifOptions;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun renderingTriggeredOnDraw (Z)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun sampleSize (I)Lcom/kernelflux/gif/GifDrawableInit;
+	protected abstract fun self ()Lcom/kernelflux/gif/GifDrawableInit;
+	public fun setRenderingTriggeredOnDraw (Z)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun taskExecutor (Ljava/util/concurrent/ScheduledThreadPoolExecutor;)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun threadPoolSize (I)Lcom/kernelflux/gif/GifDrawableInit;
+	public fun with (Lcom/kernelflux/gif/GifDrawable;)Lcom/kernelflux/gif/GifDrawableInit;
+}
+
+public final class com/kernelflux/gif/GifError : java/lang/Enum {
+	public static final field CLOSE_FAILED Lcom/kernelflux/gif/GifError;
+	public static final field DATA_TOO_BIG Lcom/kernelflux/gif/GifError;
+	public static final field EOF_TOO_SOON Lcom/kernelflux/gif/GifError;
+	public static final field IMAGE_DEFECT Lcom/kernelflux/gif/GifError;
+	public static final field IMG_NOT_CONFINED Lcom/kernelflux/gif/GifError;
+	public static final field INVALID_BYTE_BUFFER Lcom/kernelflux/gif/GifError;
+	public static final field INVALID_IMG_DIMS Lcom/kernelflux/gif/GifError;
+	public static final field INVALID_SCR_DIMS Lcom/kernelflux/gif/GifError;
+	public static final field NOT_ENOUGH_MEM Lcom/kernelflux/gif/GifError;
+	public static final field NOT_GIF_FILE Lcom/kernelflux/gif/GifError;
+	public static final field NOT_READABLE Lcom/kernelflux/gif/GifError;
+	public static final field NO_COLOR_MAP Lcom/kernelflux/gif/GifError;
+	public static final field NO_ERROR Lcom/kernelflux/gif/GifError;
+	public static final field NO_FRAMES Lcom/kernelflux/gif/GifError;
+	public static final field NO_IMAG_DSCR Lcom/kernelflux/gif/GifError;
+	public static final field NO_SCRN_DSCR Lcom/kernelflux/gif/GifError;
+	public static final field OPEN_FAILED Lcom/kernelflux/gif/GifError;
+	public static final field READ_FAILED Lcom/kernelflux/gif/GifError;
+	public static final field REWIND_FAILED Lcom/kernelflux/gif/GifError;
+	public static final field UNKNOWN Lcom/kernelflux/gif/GifError;
+	public static final field WRONG_RECORD Lcom/kernelflux/gif/GifError;
+	public final field description Ljava/lang/String;
+	public fun getErrorCode ()I
+	public static fun valueOf (Ljava/lang/String;)Lcom/kernelflux/gif/GifError;
+	public static fun values ()[Lcom/kernelflux/gif/GifError;
+}
+
+public class com/kernelflux/gif/GifIOException : java/io/IOException {
+	public final field reason Lcom/kernelflux/gif/GifError;
+	public fun getMessage ()Ljava/lang/String;
+}
+
+public class com/kernelflux/gif/GifImageButton : android/widget/ImageButton {
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;II)V
+	public fun onRestoreInstanceState (Landroid/os/Parcelable;)V
+	public fun onSaveInstanceState ()Landroid/os/Parcelable;
+	public fun setBackgroundResource (I)V
+	public fun setFreezesAnimation (Z)V
+	public fun setImageResource (I)V
+	public fun setImageURI (Landroid/net/Uri;)V
+}
+
+public class com/kernelflux/gif/GifImageView : android/widget/ImageView {
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;II)V
+	public fun onRestoreInstanceState (Landroid/os/Parcelable;)V
+	public fun onSaveInstanceState ()Landroid/os/Parcelable;
+	public fun setBackgroundResource (I)V
+	public fun setFreezesAnimation (Z)V
+	public fun setImageResource (I)V
+	public fun setImageURI (Landroid/net/Uri;)V
+}
+
+public class com/kernelflux/gif/GifOptions {
+	public fun <init> ()V
+	public fun setInIsOpaque (Z)V
+	public fun setInSampleSize (I)V
+}
+
+public class com/kernelflux/gif/GifTexImage2D {
+	public fun <init> (Lcom/kernelflux/gif/InputSource;Lcom/kernelflux/gif/GifOptions;)V
+	protected final fun finalize ()V
+	public fun getCurrentFrameIndex ()I
+	public fun getDuration ()I
+	public fun getFrameDuration (I)I
+	public fun getHeight ()I
+	public fun getNumberOfFrames ()I
+	public fun getWidth ()I
+	public fun glTexImage2D (II)V
+	public fun glTexSubImage2D (II)V
+	public fun recycle ()V
+	public fun seekToFrame (I)V
+	public fun setSpeed (F)V
+	public fun startDecoderThread ()V
+	public fun stopDecoderThread ()V
+}
+
+public class com/kernelflux/gif/GifTextView : android/widget/TextView {
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;II)V
+	protected fun onAttachedToWindow ()V
+	protected fun onDetachedFromWindow ()V
+	public fun onRestoreInstanceState (Landroid/os/Parcelable;)V
+	public fun onSaveInstanceState ()Landroid/os/Parcelable;
+	public fun setBackgroundResource (I)V
+	public fun setCompoundDrawablesRelativeWithIntrinsicBounds (IIII)V
+	public fun setCompoundDrawablesWithIntrinsicBounds (IIII)V
+	public fun setFreezesAnimation (Z)V
+}
+
+public class com/kernelflux/gif/GifTextureView : android/view/TextureView {
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;II)V
+	public fun getIOException ()Ljava/io/IOException;
+	public fun getScaleType ()Landroid/widget/ImageView$ScaleType;
+	public fun getSurfaceTextureListener ()Landroid/view/TextureView$SurfaceTextureListener;
+	public fun getTransform (Landroid/graphics/Matrix;)Landroid/graphics/Matrix;
+	protected fun onDetachedFromWindow ()V
+	public fun onRestoreInstanceState (Landroid/os/Parcelable;)V
+	public fun onSaveInstanceState ()Landroid/os/Parcelable;
+	public fun setFreezesAnimation (Z)V
+	public fun setImageMatrix (Landroid/graphics/Matrix;)V
+	public fun setInputSource (Lcom/kernelflux/gif/InputSource;)V
+	public fun setInputSource (Lcom/kernelflux/gif/InputSource;Lcom/kernelflux/gif/GifTextureView$PlaceholderDrawListener;)V
+	public fun setOpaque (Z)V
+	public fun setScaleType (Landroid/widget/ImageView$ScaleType;)V
+	public fun setSpeed (F)V
+	public fun setSurfaceTexture (Landroid/graphics/SurfaceTexture;)V
+	public fun setSurfaceTextureListener (Landroid/view/TextureView$SurfaceTextureListener;)V
+	public fun setTransform (Landroid/graphics/Matrix;)V
+}
+
+public abstract interface class com/kernelflux/gif/GifTextureView$PlaceholderDrawListener {
+	public abstract fun onDrawPlaceholder (Landroid/graphics/Canvas;)V
+}
+
+public abstract class com/kernelflux/gif/InputSource {
+}
+
+public class com/kernelflux/gif/InputSource$AssetFileDescriptorSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Landroid/content/res/AssetFileDescriptor;)V
+}
+
+public final class com/kernelflux/gif/InputSource$AssetSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Landroid/content/res/AssetManager;Ljava/lang/String;)V
+}
+
+public final class com/kernelflux/gif/InputSource$ByteArraySource : com/kernelflux/gif/InputSource {
+	public fun <init> ([B)V
+}
+
+public final class com/kernelflux/gif/InputSource$DirectByteBufferSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Ljava/nio/ByteBuffer;)V
+}
+
+public final class com/kernelflux/gif/InputSource$FileDescriptorSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Ljava/io/FileDescriptor;)V
+}
+
+public final class com/kernelflux/gif/InputSource$FileSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Ljava/io/File;)V
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/kernelflux/gif/InputSource$InputStreamSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Ljava/io/InputStream;)V
+}
+
+public class com/kernelflux/gif/InputSource$ResourcesSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Landroid/content/res/Resources;I)V
+}
+
+public final class com/kernelflux/gif/InputSource$UriSource : com/kernelflux/gif/InputSource {
+	public fun <init> (Landroid/content/ContentResolver;Landroid/net/Uri;)V
+}
+
+public class com/kernelflux/gif/LibraryLoader {
+	public static fun initialize (Landroid/content/Context;)V
+}
+
+public class com/kernelflux/gif/MultiCallback : android/graphics/drawable/Drawable$Callback {
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public fun addView (Landroid/graphics/drawable/Drawable$Callback;)V
+	public fun invalidateDrawable (Landroid/graphics/drawable/Drawable;)V
+	public fun removeView (Landroid/graphics/drawable/Drawable$Callback;)V
+	public fun scheduleDrawable (Landroid/graphics/drawable/Drawable;Ljava/lang/Runnable;J)V
+	public fun unscheduleDrawable (Landroid/graphics/drawable/Drawable;Ljava/lang/Runnable;)V
+}
+
+public abstract interface annotation class com/kernelflux/gif/annotations/Beta : java/lang/annotation/Annotation {
+}
+
+public class com/kernelflux/gif/transforms/CornerRadiusTransform : com/kernelflux/gif/transforms/Transform {
+	public fun <init> (F)V
+	public fun getBounds ()Landroid/graphics/RectF;
+	public fun getCornerRadius ()F
+	public fun onBoundsChange (Landroid/graphics/Rect;)V
+	public fun onDraw (Landroid/graphics/Canvas;Landroid/graphics/Paint;Landroid/graphics/Bitmap;)V
+	public fun setCornerRadius (F)V
+}
+
+public abstract interface class com/kernelflux/gif/transforms/Transform {
+	public abstract fun onBoundsChange (Landroid/graphics/Rect;)V
+	public abstract fun onDraw (Landroid/graphics/Canvas;Landroid/graphics/Paint;Landroid/graphics/Bitmap;)V
+}
+

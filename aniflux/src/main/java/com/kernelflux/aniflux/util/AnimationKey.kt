@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.util
 import android.widget.ImageView
 
 /**
- * 动画缓存键 - 参考Glide的EngineKey设计
+ * 动画缓存键
  * 用于唯一标识一个动画请求
  */
 data class AnimationKey(

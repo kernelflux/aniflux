@@ -6,14 +6,15 @@ import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieDrawable
 import com.kernelflux.aniflux.request.target.CustomAnimationTarget
 import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
-import com.kernelflux.aniflux.util.AnimationTypeDetector
-import com.opensource.svgaplayer.SVGADrawable
-import com.opensource.svgaplayer.SVGAImageView
+import com.kernelflux.gif.AnimationListener
+import com.kernelflux.gif.GifDrawable
+import com.kernelflux.svgaplayer.SVGADrawable
+import com.kernelflux.svgaplayer.SVGAImageView
+import com.kernelflux.vapplayer.AnimView
 import org.libpag.PAGFile
 import org.libpag.PAGImageView
 import org.libpag.PAGView
-import pl.droidsonroids.gif.GifDrawable
-import java.lang.ref.WeakReference
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -21,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
  * 负责将统一的监听器设置到具体的动画对象上
  *
  * @author: kerneflux
- * @date: 2025/01/XX
+ * @date: 2025/11/02
  */
 object AnimationPlayListenerSetupHelper {
     private const val TAG = "AnimationPlayListenerSetupHelper"
@@ -104,6 +105,12 @@ object AnimationPlayListenerSetupHelper {
             is GifDrawable -> {
                 setupGifListeners(targetKey, resource, listener)
             }
+
+            is File -> {
+                if (view is AnimView) {
+                    setupVAPListeners(targetKey, view, listener)
+                }
+            }
         }
     }
 
@@ -126,16 +133,16 @@ object AnimationPlayListenerSetupHelper {
 
         when (view) {
             is PAGView -> {
-                val adapter = PAGPlayListenerAdapter(listener)
-                val pagListener = adapter.createPAGViewListener()
+                val adapter = PAGViewPlayListenerAdapter(listener)
+                val pagListener = adapter.createAnimatorListener()
                 view.addListener(pagListener)
                 adapterCache[targetKey] = Pair(view, listOf(pagListener))
                 android.util.Log.d(TAG, "PAGView listener set")
             }
 
             is PAGImageView -> {
-                val adapter = PAGPlayListenerAdapter(listener)
-                val pagListener = adapter.createPAGImageViewListener()
+                val adapter = PAGImageViewPlayListenerAdapter(listener)
+                val pagListener = adapter.createAnimatorListener()
                 view.addListener(pagListener)
                 adapterCache[targetKey] = Pair(view, listOf(pagListener))
                 android.util.Log.d(TAG, "PAGImageView listener set")
@@ -270,92 +277,39 @@ object AnimationPlayListenerSetupHelper {
         view: View?,
         listener: AnimationPlayListener
     ) {
-        // 移除旧的适配器（如果存在）
-        removeOldSVGAAdapter(targetKey, view)
-
         if (view !is SVGAImageView) {
             return
         }
-
-        try {
-            // 通过反射获取SVGAImageView内部的mAnimator字段
-            val animatorField = SVGAImageView::class.java.getDeclaredField("mAnimator")
-            animatorField.isAccessible = true
-
-            // 创建监听器并添加到Animator
-            val adapter = SVGAPlayListenerAdapter(listener)
-            val animatorListener = adapter.createAnimatorListener()
-
-            // 注意：SVGA的Animator在startAnimation()时创建
-            // 如果此时Animator为null，我们保存适配器，稍后重试设置
-            val animator = animatorField.get(view) as? android.animation.ValueAnimator
-            if (animator != null) {
-                animator.addListener(animatorListener)
-            } else {
-                // Animator还未创建，保存适配器以便后续设置
-                android.util.Log.d(TAG, "SVGA Animator not created yet, adapter saved for later")
-            }
-
-            // 保存适配器引用和view以便后续清理和重试设置
-            adapterCache[targetKey] = Pair(view, listOf(animatorListener))
-
-            // 尝试延迟设置：如果Animator还未创建，提供一个方法在动画开始后重试
-            if (animator == null) {
-                // 提供延迟设置：在view的post中尝试设置
-                view.post {
-                    try {
-                        val delayedAnimator =
-                            animatorField.get(view) as? android.animation.ValueAnimator
-                        if (delayedAnimator != null) {
-                            delayedAnimator.addListener(animatorListener)
-                            android.util.Log.d(
-                                TAG,
-                                "SVGA listeners set successfully after animation started"
-                            )
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.w(TAG, "Failed to set SVGA listeners in post", e)
-                    }
-                }
-            }
-
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "Failed to setup SVGA listeners via reflection", e)
-        }
-    }
-
-    /**
-     * 移除旧的SVGA监听器
-     */
-    @SuppressLint("LongLogTag")
-    private fun removeOldSVGAAdapter(targetKey: String, currentView: View?) {
         val cached = adapterCache.remove(targetKey)
         if (cached != null) {
-            val (oldView, listeners) = cached
-            if (oldView is SVGAImageView) {
-                try {
-                    val animatorField = SVGAImageView::class.java.getDeclaredField("mAnimator")
-                    animatorField.isAccessible = true
-                    val animator = animatorField.get(oldView) as? android.animation.ValueAnimator
-                    listeners.forEach { listener ->
-                        if (listener is android.animation.Animator.AnimatorListener && animator != null) {
-                            animator.removeListener(listener)
-                            android.util.Log.d(TAG, "Removed SVGA listener from old view")
-                        }
-                        // 如果新旧View相同，也需要从当前View中移除
-                        if (currentView is SVGAImageView && oldView == currentView && animator != null) {
-                            animator.removeListener(
-                                listener as? android.animation.Animator.AnimatorListener
-                                    ?: return@forEach
-                            )
-                        }
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.w(TAG, "Failed to remove SVGA listeners", e)
-                }
-            }
+            view.callback = null
         }
+        val adapter = SVGAPlayListenerAdapter(listener)
+        val animationListener = adapter.createAnimatorListener()
+        view.callback = animationListener
+        adapterCache[targetKey] = Pair(null, listOf(animationListener))
     }
+
+
+    /**
+     * 设置VAP动画监听器
+     */
+    private fun setupVAPListeners(
+        targetKey: String,
+        view: AnimView,
+        listener: AnimationPlayListener
+    ) {
+        // 移除旧的适配器（如果存在）
+        val cached = adapterCache.remove(targetKey)
+        if (cached != null) {
+            view.setAnimListener(null)
+        }
+        val adapter = VapPlayListenerAdapter(listener)
+        val animationListener = adapter.createAnimatorListener()
+        view.setAnimListener(animationListener)
+        adapterCache[targetKey] = Pair(null, listOf(animationListener))
+    }
+
 
     /**
      * 设置GIF动画监听器
@@ -369,7 +323,7 @@ object AnimationPlayListenerSetupHelper {
         removeOldGifAdapter(targetKey, gifDrawable)
 
         val adapter = GifPlayListenerAdapter(listener)
-        val animationListener = adapter.createAnimationListener()
+        val animationListener = adapter.createAnimatorListener(gifDrawable.loopCount)
         gifDrawable.addAnimationListener(animationListener)
 
         adapterCache[targetKey] = Pair(null, listOf(animationListener))
@@ -383,7 +337,7 @@ object AnimationPlayListenerSetupHelper {
         if (cached != null) {
             val (_, listeners) = cached
             listeners.forEach { listener ->
-                if (listener is pl.droidsonroids.gif.AnimationListener) {
+                if (listener is AnimationListener) {
                     try {
                         currentDrawable.removeAnimationListener(listener)
                     } catch (e: Exception) {

@@ -1,0 +1,55 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace = "com.kernelflux.vapplayer"
+
+    compileSdkVersion libs.versions.compileSdk.get().toInteger()
+
+    defaultConfig {
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
+        versionCode 1
+        versionName "1.0"
+    }
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+
+dependencies {
+    implementation(libs.kotlin.stdlib.jdk7){
+        exclude module: 'annotations'
+    }
+}
+
+// jcenter 上传(这个要在底部)
+// 上传需要执行此任务 IDE -> gradle-> Tasks/publishing/bintrayUpload
+// apply from: file("publish.gradle")
+
+
+// maven central
+// 上传指令./gradlew uploadArchives
+// https://s01.oss.sonatype.org/
+// Staging Repositories -> close -> release
+// apply from: "../publish-mavencentral.gradle"

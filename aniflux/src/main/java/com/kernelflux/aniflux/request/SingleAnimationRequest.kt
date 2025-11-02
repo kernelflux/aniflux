@@ -2,7 +2,6 @@ package com.kernelflux.aniflux.request
 
 import android.content.Context
 import android.util.Log
-import com.bumptech.glide.util.Util
 import com.kernelflux.aniflux.engine.AnimationEngine
 import com.kernelflux.aniflux.engine.AnimationResource
 import com.kernelflux.aniflux.engine.AnimationResourceCallback
@@ -17,6 +16,7 @@ import com.kernelflux.aniflux.util.AnimationOptions
 import java.util.concurrent.Executor
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
+import com.kernelflux.aniflux.util.Util
 
 /**
  * 动画请求的具体实现
@@ -27,7 +27,6 @@ class SingleAnimationRequest<T>(
     private val model: Any?,
     private val target: AnimationTarget<T>,
     private val requestListener: AnimationRequestListener<T>?,
-    private val playListener: AnimationPlayListener?,
     private val transcodeClass: Class<T>,
     private val overrideWidth: Int,
     private val overrideHeight: Int,
@@ -144,7 +143,7 @@ class SingleAnimationRequest<T>(
     }
 
     /**
-     * 检查是否正在调用回调 - 参考Glide的assertNotCallingCallbacks
+     * 检查是否正在调用回调
      */
     private fun assertNotCallingCallbacks() {
         if (isCallingCallbacks) {
@@ -345,7 +344,7 @@ class SingleAnimationRequest<T>(
     }
 
     /**
-     * 记录详细日志 - 参考Glide的logV设计
+     * 记录详细日志
      */
     private fun logV(message: String) {
         if (IS_VERBOSE_LOGGABLE) {

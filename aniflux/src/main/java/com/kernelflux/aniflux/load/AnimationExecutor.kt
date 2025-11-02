@@ -8,8 +8,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 动画加载线程池管理器
- * 参考Glide的GlideExecutor设计，提供不同类型的线程池
+ * 动画加载线程池管理器，提供不同类型的线程池
  */
 object AnimationExecutor {
     

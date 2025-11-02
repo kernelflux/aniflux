@@ -8,12 +8,13 @@ import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieDrawable
 import com.kernelflux.aniflux.request.listener.AnimationPlayListenerSetupHelper
 import com.kernelflux.aniflux.util.AnimationTypeDetector
-import com.opensource.svgaplayer.SVGADrawable
-import com.opensource.svgaplayer.SVGAImageView
+import com.kernelflux.gif.GifDrawable
+import com.kernelflux.gif.GifImageView
+import com.kernelflux.svgaplayer.SVGADrawable
+import com.kernelflux.svgaplayer.SVGAImageView
+import com.kernelflux.vapplayer.AnimView
 import org.libpag.PAGFile
 import org.libpag.PAGImageView
-import pl.droidsonroids.gif.GifDrawable
-import pl.droidsonroids.gif.GifImageView
 
 /**
  * 通用的动画容器 FrameLayout Target
@@ -68,6 +69,15 @@ class AutoAnimationFrameLayoutTarget(
                     )
                 }
             }
+            AnimationTypeDetector.AnimationType.VAP -> {
+                AnimView(context).apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            }
+
             AnimationTypeDetector.AnimationType.UNKNOWN -> {
                 throw IllegalArgumentException("Unknown animation type")
             }

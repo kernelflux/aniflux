@@ -1,0 +1,8 @@
+NOTICE
+======
+This module is based on SVGAPlayer by YY Inc.
+Original project: https://github.com/svga/SVGAPlayer-Android
+Licensed under the Apache License, Version 2.0.
+
+Modifications Copyright (C) 2025 kernelflux
+Changes include refactoring, performance improvements, and bug fixes.

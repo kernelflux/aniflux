@@ -69,7 +69,6 @@ class AnimationEngine(
         cb: AnimationResourceCallback?,
         key: AnimationKey
     ): LoadStatus {
-        // 创建AnimationJob，参考Glide的EngineJob设计
         val job = AnimationJob<T>(
             engine = this,
             context = context,
@@ -80,11 +79,7 @@ class AnimationEngine(
             listener = listener,
             callback = cb
         )
-
-        // 将任务添加到活跃任务列表
         activeJobs[key] = job
-
-        // 启动任务，参考Glide: engineJob.start(decodeJob)
         job.start()
 
         return LoadStatus(cb, job)

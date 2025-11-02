@@ -60,6 +60,11 @@ object Util {
     }
 
     @JvmStatic
+    fun removeCallbacksOnUiThread(runnable: Runnable){
+        getUiThreadHandler().removeCallbacks(runnable)
+    }
+
+    @JvmStatic
     fun <T> getSnapshot(other: MutableCollection<T>): MutableList<T> {
         val result: MutableList<T> = ArrayList<T>(other.size)
         for (item in other) {

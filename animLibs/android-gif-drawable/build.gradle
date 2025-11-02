@@ -1,0 +1,66 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+group = 'com.kernelflux.gif'
+description = 'Views and Drawable for displaying animated GIFs for Android'
+
+android {
+    namespace = "com.kernelflux.gif"
+    ndkVersion libs.versions.ndk.get()
+    compileSdkVersion libs.versions.compileSdk.get().toInteger()
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion libs.versions.minSdk.get()
+        targetSdkVersion libs.versions.targetSdk.get()
+        consumerProguardFiles 'consumer-proguard-rules.pro'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_PLATFORM=android-${libs.versions.minSdk.get()}", "-DANDROID_STL=none"
+                cFlags '-std=c11', '-Weverything', '-Wall'
+                if (isDevelopmentBuild()) {
+                    cFlags '-DDEBUG', '-g'
+                } else {
+                    cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
+                }
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path 'src/main/c/CMakeLists.txt'
+        }
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+}
+
+dependencies {
+    implementation libs.relinker
+    compileOnly libs.androidx.annotation
+}
+
+def isDevelopmentBuild() {
+    return project.findProperty('android.injected.invoked.from.ide') == 'true'
+}
+
+tasks.register('archiveSymbols', Tar) {
+    def buildDirectory = layout.buildDirectory.asFile.get()
+    from new File(buildDirectory, 'intermediates/cmake/release/obj')
+    archiveBaseName = "${project.archivesBaseName}-symbols"
+    destinationDirectory = new File(buildDirectory, 'libs')
+    archiveExtension = 'tar.gz'
+    compression = Compression.GZIP
+}
+
+configurations.configureEach {
+    resolutionStrategy.force libs.androidx.annotation
+}
+

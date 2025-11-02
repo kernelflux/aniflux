@@ -22,6 +22,9 @@ import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import com.kernelflux.aniflux.util.Util
+import com.kernelflux.gif.GifDrawable
+import com.kernelflux.svgaplayer.SVGADrawable
+import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -143,7 +146,7 @@ class AnimationRequestManager(
         requestTracker.clearRequests()
         lifecycle.removeListener(this)
         lifecycle.removeListener(connectivityMonitor)
-        com.bumptech.glide.util.Util.removeCallbacksOnUiThread(addSelfToLifecycle)
+        Util.removeCallbacksOnUiThread(addSelfToLifecycle)
         aniFlux.unregisterRequestManager(this)
     }
 
@@ -157,12 +160,22 @@ class AnimationRequestManager(
         return AnimationRequestBuilder(aniFlux, this, context, resourceClass)
     }
 
+
+    /**
+     * 指定加载 PAG 动画
+     */
+    @CheckResult
+    fun asFile(): AnimationRequestBuilder<File> {
+        return `as`(File::class.java)
+    }
+
+
     /**
      * 指定加载 PAG 动画
      */
     @CheckResult
     fun asPAG(): AnimationRequestBuilder<org.libpag.PAGFile> {
-        return AnimationRequestBuilder(aniFlux, this, context, org.libpag.PAGFile::class.java)
+        return `as`(org.libpag.PAGFile::class.java)
     }
 
     /**
@@ -170,29 +183,29 @@ class AnimationRequestManager(
      */
     @CheckResult
     fun asLottie(): AnimationRequestBuilder<com.airbnb.lottie.LottieDrawable> {
-        return AnimationRequestBuilder(aniFlux, this, context, com.airbnb.lottie.LottieDrawable::class.java)
+        return `as`(com.airbnb.lottie.LottieDrawable::class.java)
     }
 
     /**
      * 指定加载 SVGA 动画
      */
     @CheckResult
-    fun asSVGA(): AnimationRequestBuilder<com.opensource.svgaplayer.SVGADrawable> {
-        return AnimationRequestBuilder(aniFlux, this, context, com.opensource.svgaplayer.SVGADrawable::class.java)
+    fun asSVGA(): AnimationRequestBuilder<SVGADrawable> {
+        return `as`(SVGADrawable::class.java)
     }
 
     /**
      * 指定加载 GIF 动画
      */
     @CheckResult
-    fun asGif(): AnimationRequestBuilder<pl.droidsonroids.gif.GifDrawable> {
-        return AnimationRequestBuilder(aniFlux, this, context, pl.droidsonroids.gif.GifDrawable::class.java)
+    fun asGif(): AnimationRequestBuilder<GifDrawable> {
+        return `as`(GifDrawable::class.java)
     }
 
     /**
      * 根据动画类型创建对应的 Builder 并加载模型
      * 统一的处理逻辑，消除重复代码
-     * 
+     *
      * @param animationType 检测到的动画类型
      * @param loadAction 加载动作（根据不同的 model 类型调用不同的 load 方法）
      * @param errorMessage 检测失败时的错误消息
@@ -210,16 +223,18 @@ class AnimationRequestManager(
                 return loadAction(AnimationRequestBuilder(aniFlux, this, context, Any::class.java))
             } else {
                 throw IllegalArgumentException(
-                    errorMessage ?: "无法自动检测动画类型\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型"
+                    errorMessage
+                        ?: "无法自动检测动画类型\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型"
                 )
             }
         }
-        
+
         return when (animationType) {
             AnimationTypeDetector.AnimationType.GIF -> loadAction(asGif())
             AnimationTypeDetector.AnimationType.LOTTIE -> loadAction(asLottie())
             AnimationTypeDetector.AnimationType.PAG -> loadAction(asPAG())
             AnimationTypeDetector.AnimationType.SVGA -> loadAction(asSVGA())
+            AnimationTypeDetector.AnimationType.VAP -> loadAction(asFile())
             AnimationTypeDetector.AnimationType.UNKNOWN -> throw IllegalArgumentException(
                 errorMessage ?: "无法自动检测动画类型"
             )
@@ -267,7 +282,7 @@ class AnimationRequestManager(
             throw IllegalArgumentException("File does not exist: ${file.absolutePath}")
         }
         var animationType = AnimationTypeDetector.detectFromPath(file.absolutePath)
-        
+
         // 如果从路径检测失败，尝试从文件头检测
         if (animationType == AnimationTypeDetector.AnimationType.UNKNOWN) {
             try {
@@ -278,7 +293,7 @@ class AnimationRequestManager(
                 // 读取失败，继续使用 UNKNOWN
             }
         }
-        
+
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(file) },
@@ -378,17 +393,18 @@ class AnimationRequestManager(
         if (requestTracker.clearAndRemove(request)) {
             targetTracker.untrack(target)
             target.setRequest(null)
-            
+
             // 清除target上的播放监听器（避免监听器泄漏和重复回调）
             when (target) {
                 is com.kernelflux.aniflux.request.target.CustomAnimationTarget<*> -> {
                     target.clearPlayListener()
                 }
+
                 is com.kernelflux.aniflux.request.target.CustomViewAnimationTarget<*, *> -> {
                     target.clearPlayListener()
                 }
             }
-            
+
             return true
         } else {
             return false

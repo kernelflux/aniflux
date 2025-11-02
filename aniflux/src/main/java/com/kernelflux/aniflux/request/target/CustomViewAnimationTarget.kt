@@ -11,9 +11,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import androidx.annotation.IdRes
-import com.bumptech.glide.request.target.Target
-import com.bumptech.glide.util.Preconditions
-import com.bumptech.glide.util.Synthetic
+import androidx.core.util.Preconditions
 import com.kernelflux.aniflux.R
 import com.kernelflux.aniflux.request.AnimationRequest
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
@@ -252,13 +250,11 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
             }
         }
 
-        @Synthetic
         fun checkCurrentDimens() {
             if (cbs.isEmpty()) {
                 return
             }
-            
-            // 参考Glide：如果View不可见，等待其变为可见
+
             if (view.visibility == View.GONE || view.visibility == View.INVISIBLE) {
                 return
             }
@@ -274,7 +270,6 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
         }
 
         fun getSize(cb: AnimationSizeReadyCallback) {
-            // 参考Glide：如果View不可见，等待其变为可见后再获取尺寸
             if (view.visibility == View.GONE || view.visibility == View.INVISIBLE) {
                 // View不可见，添加到回调列表，等待View变为可见
                 if (!cbs.contains(cb)) {
@@ -370,7 +365,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
         }
 
         private fun isDimensionValid(size: Int): Boolean {
-            return size > 0 || size == Target.SIZE_ORIGINAL
+            return size > 0 || size == AnimationTarget.SIZE_ORIGINAL
         }
 
         private class SizeDeterminerLayoutListener(sizeDeterminer: SizeDeterminer) :
@@ -397,7 +392,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
             private fun getMaxDisplayLength(context: Context): Int {
                 return maxDisplayLength
                     ?: (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).let {
-                        val display = Preconditions.checkNotNull<WindowManager>(it).defaultDisplay
+                        val display = it.defaultDisplay
                         val displayDimensions = Point()
                         display.getSize(displayDimensions)
                         max(displayDimensions.x, displayDimensions.y)

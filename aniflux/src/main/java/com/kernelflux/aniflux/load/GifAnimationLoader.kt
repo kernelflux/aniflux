@@ -1,9 +1,8 @@
 package com.kernelflux.aniflux.load
 
 import android.content.Context
-import android.content.res.AssetManager
 import com.kernelflux.aniflux.util.AnimationTypeDetector
-import pl.droidsonroids.gif.GifDrawable
+import com.kernelflux.gif.GifDrawable
 import java.io.File
 import java.io.InputStream
 

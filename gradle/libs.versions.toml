@@ -1,14 +1,36 @@
 [versions]
+compileSdk = "34"
+kotlinStdlibJdk7 = "2.2.20"
+targetSdk = "34"
+minSdk = "21"
+ndk = "26.3.11579264"
+
+
 agp = "8.13.0"
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
 material = "1.13.0"
+viewpager2 = "1.1.0"
+fragment = "1.7.1"
+androidxAnnotations="1.9.1"
+
+relinker = "1.4.5"
+wireRuntime = "2.3.0-RC1"
+
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlinStdlibJdk7" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
+androidx-fragment = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotations" }
+relinker = { group = "com.getkeepsafe.relinker", name = "relinker", version.ref = "relinker" }
+wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wireRuntime" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

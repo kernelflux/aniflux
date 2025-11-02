@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.engine
 import com.kernelflux.aniflux.load.AnimationDataSource
 
 /**
- * 动画资源回调接口 - 参考Glide的ResourceCallback设计
+ * 动画资源回调接口
  * 用于Engine回调给Request，通知加载完成或失败
  */
 interface AnimationResourceCallback {

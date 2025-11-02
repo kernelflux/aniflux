@@ -7,49 +7,32 @@ import com.airbnb.lottie.LottieDrawable
 /**
  * Lottie动画播放监听器适配器
  * 将Lottie的AnimatorListener适配到统一的AnimationPlayListener
- * 
+ *
  * @author: kerneflux
- * @date: 2025/01/XX
+ * @date: 2025/11/02
  */
 class LottiePlayListenerAdapter(
-    private val listener: AnimationPlayListener
-) {
-    
-    /**
-     * 创建AnimatorListener适配器
-     */
-    fun createAnimatorListener(): Animator.AnimatorListener {
+    listener: AnimationPlayListener
+) : InternalBasePlayListenerAdapter<Animator.AnimatorListener>(listener) {
+    override fun createAnimatorListener(loopCount: Int?): Animator.AnimatorListener {
         return object : Animator.AnimatorListener {
-            override fun onAnimationStart(animation: Animator) {
-                listener.onAnimationStart()
-            }
-            
-            override fun onAnimationEnd(animation: Animator) {
-                listener.onAnimationEnd()
-            }
-            
             override fun onAnimationCancel(animation: Animator) {
-                listener.onAnimationCancel()
+                notifyAnimationCancel()
             }
-            
+
+            override fun onAnimationEnd(animation: Animator) {
+                notifyAnimationEnd()
+            }
+
             override fun onAnimationRepeat(animation: Animator) {
-                listener.onAnimationRepeat()
+                notifyAnimationRepeat()
+            }
+
+            override fun onAnimationStart(animation: Animator) {
+                notifyAnimationStart()
             }
         }
     }
-    
-    /**
-     * 为LottieAnimationView添加监听器
-     */
-    fun attachToView(view: LottieAnimationView) {
-        view.addAnimatorListener(createAnimatorListener())
-    }
-    
-    /**
-     * 为LottieDrawable添加监听器
-     */
-    fun attachToDrawable(drawable: LottieDrawable) {
-        drawable.addAnimatorListener(createAnimatorListener())
-    }
+
 }
 

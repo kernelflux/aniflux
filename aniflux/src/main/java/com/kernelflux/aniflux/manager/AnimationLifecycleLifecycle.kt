@@ -2,6 +2,7 @@ package com.kernelflux.aniflux.manager
 
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * 包装AndroidX Lifecycle的AnimationLifecycleLifecycle
@@ -11,7 +12,7 @@ class AnimationLifecycleLifecycle(
     lifecycle: androidx.lifecycle.Lifecycle
 ) : AnimationLifecycle, DefaultLifecycleObserver {
 
-    private val listeners = mutableListOf<AnimationLifecycleListener>()
+    private val listeners = CopyOnWriteArrayList<AnimationLifecycleListener>()
 
     init {
         lifecycle.addObserver(this)

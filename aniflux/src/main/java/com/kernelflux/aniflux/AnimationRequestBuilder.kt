@@ -13,10 +13,12 @@ import org.libpag.PAGImageView
 import org.libpag.PAGView
 import com.airbnb.lottie.LottieDrawable
 import com.airbnb.lottie.LottieAnimationView
-import com.opensource.svgaplayer.SVGADrawable
-import com.opensource.svgaplayer.SVGAImageView
-import pl.droidsonroids.gif.GifDrawable
-import pl.droidsonroids.gif.GifImageView
+import com.kernelflux.gif.GifDrawable
+import com.kernelflux.gif.GifImageView
+import com.kernelflux.svgaplayer.SVGADrawable
+import com.kernelflux.svgaplayer.SVGAImageView
+import com.kernelflux.vapplayer.AnimView
+import java.io.File
 
 /**
  * 动画请求构建器
@@ -127,7 +129,7 @@ class AnimationRequestBuilder<T>(
         options.timeout(timeout)
         return this
     }
-    
+
     /**
      * 设置动画循环次数
      * @param count -1表示无限循环，0表示不循环，>0表示循环次数
@@ -136,7 +138,7 @@ class AnimationRequestBuilder<T>(
         options.repeatCount(count)
         return this
     }
-    
+
     /**
      * 设置是否自动播放
      */
@@ -163,7 +165,7 @@ class AnimationRequestBuilder<T>(
         requestListener = listener
         return this
     }
-    
+
     fun <Y : AnimationTarget<T>> into(target: Y): Y {
         return into(target, requestListener, playListener)
     }
@@ -180,7 +182,7 @@ class AnimationRequestBuilder<T>(
         }
 
         // 构建AnimationRequest
-        val request = buildRequest(target, requestListener, playListener)
+        val request = buildRequest(target, requestListener)
 
         // 检查是否有之前的请求
         val previousRequest = target.getRequest()
@@ -209,6 +211,7 @@ class AnimationRequestBuilder<T>(
                     target.setPlayListener(listener)
                 }
             }
+
             is CustomViewAnimationTarget<*, *> -> {
                 target.clearPlayListener()
                 // 添加新的监听器（如果有）
@@ -227,8 +230,7 @@ class AnimationRequestBuilder<T>(
     @Suppress("UNCHECKED_CAST")
     private fun buildRequest(
         target: AnimationTarget<*>,
-        requestListener: AnimationRequestListener<T>? = null,
-        playListener: AnimationPlayListener? = null
+        requestListener: AnimationRequestListener<T>? = null
     ): AnimationRequest {
         return SingleAnimationRequest(
             context = context,
@@ -236,7 +238,6 @@ class AnimationRequestBuilder<T>(
             model = model,
             target = target as AnimationTarget<T>,
             requestListener = requestListener,
-            playListener = playListener,
             transcodeClass = getTranscodeClass(),
             overrideWidth = options.width,
             overrideHeight = options.height,
@@ -266,11 +267,22 @@ class AnimationRequestBuilder<T>(
 // ========== 扩展函数：提供更简洁的 API ==========
 
 /**
+ * 加载 File 到 VAP AnimView
+ */
+@JvmName("intoPAGImageView")
+fun AnimationRequestBuilder<File>.into(view: AnimView): VAPViewTarget {
+    val target = VAPViewTarget(view)
+    into(target as AnimationTarget<File>)
+    return target
+}
+
+
+/**
  * 加载 PAGFile 到 PAGImageView
  */
 @JvmName("intoPAGImageView")
-fun AnimationRequestBuilder<PAGFile>.into(view: PAGImageView): PAGViewTarget {
-    val target = PAGViewTarget(view)
+fun AnimationRequestBuilder<PAGFile>.into(view: PAGImageView): PAGImageViewTarget {
+    val target = PAGImageViewTarget(view)
     into(target as AnimationTarget<PAGFile>)
     return target
 }
@@ -279,8 +291,8 @@ fun AnimationRequestBuilder<PAGFile>.into(view: PAGImageView): PAGViewTarget {
  * 加载 PAGFile 到 PAGView
  */
 @JvmName("intoPAGView")
-fun AnimationRequestBuilder<PAGFile>.into(view: PAGView): PAGViewTargetForPAGView {
-    val target = PAGViewTargetForPAGView(view)
+fun AnimationRequestBuilder<PAGFile>.into(view: PAGView): PAGViewTarget {
+    val target = PAGViewTarget(view)
     into(target as AnimationTarget<PAGFile>)
     return target
 }
@@ -333,7 +345,7 @@ fun AnimationRequestBuilder<*>.into(container: android.widget.FrameLayout): Auto
  * 加载到 PAGImageView（类型推断版本）
  * 如果 Builder 类型未知，根据 View 类型推断为 PAGFile
  */
-fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGViewTarget {
+fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGImageViewTarget {
     val builderClass = getBuilderTranscodeClass(this)
 
     return when (builderClass) {
@@ -342,6 +354,7 @@ fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGViewTarget {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<PAGFile>).into(view)
         }
+
         Any::class.java -> {
             // 类型未知，根据 View 类型推断为 PAG
             val requestManager = getRequestManagerFromBuilder(this)
@@ -349,6 +362,7 @@ fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGViewTarget {
             copyBuilderOptions(newBuilder, this)
             newBuilder.into(view)
         }
+
         else -> {
             throw IllegalArgumentException(
                 "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 PAGImageView（需要 PAGFile）\n" +
@@ -361,7 +375,7 @@ fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGViewTarget {
 /**
  * 加载到 PAGView（类型推断版本）
  */
-fun AnimationRequestBuilder<*>.into(view: PAGView): PAGViewTargetForPAGView {
+fun AnimationRequestBuilder<*>.into(view: PAGView): PAGViewTarget {
     val builderClass = getBuilderTranscodeClass(this)
 
     return when (builderClass) {
@@ -369,12 +383,14 @@ fun AnimationRequestBuilder<*>.into(view: PAGView): PAGViewTargetForPAGView {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<PAGFile>).into(view)
         }
+
         Any::class.java -> {
             val requestManager = getRequestManagerFromBuilder(this)
             val newBuilder = requestManager.asPAG()
             copyBuilderOptions(newBuilder, this)
             newBuilder.into(view)
         }
+
         else -> {
             throw IllegalArgumentException(
                 "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 PAGView（需要 PAGFile）\n" +
@@ -422,12 +438,14 @@ fun AnimationRequestBuilder<*>.into(view: SVGAImageView): SVGAViewTarget {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<SVGADrawable>).into(view)
         }
+
         Any::class.java -> {
             val requestManager = getRequestManagerFromBuilder(this)
             val newBuilder = requestManager.asSVGA()
             copyBuilderOptions(newBuilder, this)
             newBuilder.into(view)
         }
+
         else -> {
             throw IllegalArgumentException(
                 "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 SVGAImageView（需要 SVGADrawable）\n" +
@@ -448,12 +466,14 @@ fun AnimationRequestBuilder<*>.into(view: GifImageView): GifViewTarget {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<GifDrawable>).into(view)
         }
+
         Any::class.java -> {
             val requestManager = getRequestManagerFromBuilder(this)
             val newBuilder = requestManager.asGif()
             copyBuilderOptions(newBuilder, this)
             newBuilder.into(view)
         }
+
         else -> {
             throw IllegalArgumentException(
                 "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 GifImageView（需要 GifDrawable）\n" +
@@ -462,6 +482,35 @@ fun AnimationRequestBuilder<*>.into(view: GifImageView): GifViewTarget {
         }
     }
 }
+
+/**
+ * 加载到 AnimView（类型推断版本）
+ */
+fun AnimationRequestBuilder<*>.into(view: AnimView): VAPViewTarget {
+    val builderClass = getBuilderTranscodeClass(this)
+
+    return when (builderClass) {
+        File::class.java -> {
+            @Suppress("UNCHECKED_CAST")
+            (this as AnimationRequestBuilder<File>).into(view)
+        }
+
+        Any::class.java -> {
+            val requestManager = getRequestManagerFromBuilder(this)
+            val newBuilder = requestManager.asGif()
+            copyBuilderOptions(newBuilder, this)
+            newBuilder.into(view)
+        }
+
+        else -> {
+            throw IllegalArgumentException(
+                "类型不匹配：Builder 类型为 ${builderClass.simpleName}，但目标 View 是 AnimView（需要 File）\n" +
+                        "请使用 asFile().load(...) 显式指定类型"
+            )
+        }
+    }
+}
+
 
 /**
  * 获取 Builder 的 transcodeClass

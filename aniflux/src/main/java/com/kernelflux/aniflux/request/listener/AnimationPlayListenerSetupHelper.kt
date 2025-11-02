@@ -8,6 +8,7 @@ import com.kernelflux.aniflux.request.target.CustomAnimationTarget
 import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.gif.AnimationListener
 import com.kernelflux.gif.GifDrawable
+import com.kernelflux.gif.GifImageView
 import com.kernelflux.svgaplayer.SVGADrawable
 import com.kernelflux.svgaplayer.SVGAImageView
 import com.kernelflux.vapplayer.AnimView
@@ -91,11 +92,11 @@ object AnimationPlayListenerSetupHelper {
         // 根据资源类型设置监听器
         when (resource) {
             is PAGFile -> {
-                setupPAGListeners(targetKey, view, listener)
+                setupPAGListeners(targetKey, view, listener, target)
             }
 
             is LottieDrawable -> {
-                setupLottieListeners(targetKey, resource, view, listener)
+                setupLottieListeners(targetKey, resource, view, listener, target)
             }
 
             is SVGADrawable -> {
@@ -103,12 +104,12 @@ object AnimationPlayListenerSetupHelper {
             }
 
             is GifDrawable -> {
-                setupGifListeners(targetKey, resource, listener)
+                setupGifListeners(targetKey, resource, view, listener, target)
             }
 
             is File -> {
                 if (view is AnimView) {
-                    setupVAPListeners(targetKey, view, listener)
+                    setupVAPListeners(targetKey, view, listener, target)
                 }
             }
         }
@@ -121,7 +122,8 @@ object AnimationPlayListenerSetupHelper {
     private fun setupPAGListeners(
         targetKey: String,
         view: View?,
-        listener: AnimationPlayListener
+        listener: AnimationPlayListener,
+        target: Any? = null
     ) {
         // 移除旧的适配器（如果存在）- 必须从View中真正移除
         removeOldPAGAdapter(targetKey, view)
@@ -131,9 +133,18 @@ object AnimationPlayListenerSetupHelper {
             return
         }
 
+        // 从 target 获取 retainLastFrame 配置
+        val retainLastFrame = when (target) {
+            is CustomViewAnimationTarget<*, *> -> {
+                target.animationOptions?.retainLastFrame ?: true
+            }
+
+            else -> true // 默认保留
+        }
+
         when (view) {
             is PAGView -> {
-                val adapter = PAGViewPlayListenerAdapter(listener)
+                val adapter = PAGViewPlayListenerAdapter(listener, view, retainLastFrame)
                 val pagListener = adapter.createAnimatorListener()
                 view.addListener(pagListener)
                 adapterCache[targetKey] = Pair(view, listOf(pagListener))
@@ -141,7 +152,7 @@ object AnimationPlayListenerSetupHelper {
             }
 
             is PAGImageView -> {
-                val adapter = PAGImageViewPlayListenerAdapter(listener)
+                val adapter = PAGImageViewPlayListenerAdapter(listener, view, retainLastFrame)
                 val pagListener = adapter.createAnimatorListener()
                 view.addListener(pagListener)
                 adapterCache[targetKey] = Pair(view, listOf(pagListener))
@@ -213,16 +224,27 @@ object AnimationPlayListenerSetupHelper {
         targetKey: String,
         lottieDrawable: LottieDrawable,
         view: View?,
-        listener: AnimationPlayListener
+        listener: AnimationPlayListener,
+        target: Any? = null
     ) {
         // 移除旧的适配器（如果存在）
         removeOldLottieAdapter(targetKey, view, lottieDrawable)
 
-        val adapter = LottiePlayListenerAdapter(listener)
+        // 从 target 获取 retainLastFrame 配置
+        val retainLastFrame = when (target) {
+            is CustomViewAnimationTarget<*, *> -> {
+                target.animationOptions?.retainLastFrame ?: true
+            }
+
+            else -> true // 默认保留
+        }
+
+        val lottieView = view as? LottieAnimationView
+        val adapter = LottiePlayListenerAdapter(listener, lottieView, retainLastFrame)
         val animatorListener = adapter.createAnimatorListener()
 
-        if (view is LottieAnimationView) {
-            view.addAnimatorListener(animatorListener)
+        if (lottieView != null) {
+            lottieView.addAnimatorListener(animatorListener)
         } else {
             lottieDrawable.addAnimatorListener(animatorListener)
         }
@@ -297,14 +319,25 @@ object AnimationPlayListenerSetupHelper {
     private fun setupVAPListeners(
         targetKey: String,
         view: AnimView,
-        listener: AnimationPlayListener
+        listener: AnimationPlayListener,
+        target: Any? = null
     ) {
         // 移除旧的适配器（如果存在）
         val cached = adapterCache.remove(targetKey)
         if (cached != null) {
             view.setAnimListener(null)
         }
-        val adapter = VapPlayListenerAdapter(listener)
+
+        // 从 target 获取 retainLastFrame 配置
+        val retainLastFrame = when (target) {
+            is CustomViewAnimationTarget<*, *> -> {
+                target.animationOptions?.retainLastFrame ?: true
+            }
+
+            else -> true // 默认保留
+        }
+
+        val adapter = VapPlayListenerAdapter(listener, view, retainLastFrame)
         val animationListener = adapter.createAnimatorListener()
         view.setAnimListener(animationListener)
         adapterCache[targetKey] = Pair(null, listOf(animationListener))
@@ -317,12 +350,24 @@ object AnimationPlayListenerSetupHelper {
     private fun setupGifListeners(
         targetKey: String,
         gifDrawable: GifDrawable,
-        listener: AnimationPlayListener
+        view: View?,
+        listener: AnimationPlayListener,
+        target: Any? = null
     ) {
         // 移除旧的适配器（如果存在）
         removeOldGifAdapter(targetKey, gifDrawable)
 
-        val adapter = GifPlayListenerAdapter(listener)
+        // 从 target 获取 retainLastFrame 配置
+        val retainLastFrame = when (target) {
+            is CustomViewAnimationTarget<*, *> -> {
+                target.animationOptions?.retainLastFrame ?: true
+            }
+
+            else -> true // 默认保留
+        }
+
+        val adapter =
+            GifPlayListenerAdapter(listener, view as? GifImageView, retainLastFrame)
         val animationListener = adapter.createAnimatorListener(gifDrawable.loopCount)
         gifDrawable.addAnimationListener(animationListener)
 

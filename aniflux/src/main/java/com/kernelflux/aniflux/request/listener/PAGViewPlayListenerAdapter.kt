@@ -11,7 +11,9 @@ import kotlin.math.roundToInt
  * @date: 2025/11/02
  */
 class PAGViewPlayListenerAdapter(
-    listener: AnimationPlayListener
+    listener: AnimationPlayListener,
+    private val pagView: PAGView? = null,
+    private val retainLastFrame: Boolean = true
 ) : InternalBasePlayListenerAdapter<PAGView.PAGViewListener>(listener) {
 
     override fun createAnimatorListener(loopCount: Int?): PAGView.PAGViewListener {
@@ -21,6 +23,28 @@ class PAGViewPlayListenerAdapter(
             }
 
             override fun onAnimationEnd(p0: PAGView?) {
+                if (!retainLastFrame) {
+                    val view = p0 ?: pagView
+                    view?.apply {
+                        try {
+                            // ✅ 清空显示：
+                            // 1. 先停止动画
+                            view.pause()
+                            // 2. 清空 PAGView（使用 TextureView + OpenGL）
+                            execute({
+                                // PAGView 使用 TextureView + OpenGL 渲染
+                                // 设置 composition = null 并重置进度到开始位置，然后刷新
+                                view.composition = null
+                                view.progress = 0.0
+                                view.flush()
+                                // 强制刷新视图
+                                view.postInvalidate()
+                            })
+                        } catch (t: Throwable) {
+                            // 忽略错误
+                        }
+                    }
+                }
                 notifyAnimationEnd()
             }
 

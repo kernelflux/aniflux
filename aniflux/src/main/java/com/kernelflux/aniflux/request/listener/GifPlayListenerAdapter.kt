@@ -1,6 +1,8 @@
 package com.kernelflux.aniflux.request.listener
 
 import com.kernelflux.gif.AnimationListener
+import com.kernelflux.gif.GifDrawable
+import com.kernelflux.gif.GifImageView
 
 
 /**
@@ -11,7 +13,9 @@ import com.kernelflux.gif.AnimationListener
  * @date: 2025/11/02
  */
 class GifPlayListenerAdapter(
-    listener: AnimationPlayListener
+    listener: AnimationPlayListener,
+    private val gifImageView: GifImageView? = null,
+    private val retainLastFrame: Boolean = true
 ) : InternalBasePlayListenerAdapter<AnimationListener>(listener) {
 
     override fun createAnimatorListener(loopCount: Int?): AnimationListener {
@@ -25,6 +29,10 @@ class GifPlayListenerAdapter(
                 notifyAnimationRepeat()
                 val isLastPlay = totalPlays > 0 && loopNumber >= totalPlays - 1
                 if (isLastPlay) {
+                    // ✅ 保留当前停止位置的帧：不做任何操作，GIF 已经自动停留在当前帧
+                    if (!retainLastFrame) {
+                        gifImageView?.setImageDrawable(null)
+                    }
                     notifyAnimationEnd()
                 }
             }

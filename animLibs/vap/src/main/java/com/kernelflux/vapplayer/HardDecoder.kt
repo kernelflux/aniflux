@@ -349,7 +349,10 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
 
     private fun release(decoder: MediaCodec?, extractor: MediaExtractor?) {
         renderThread.handler?.post {
-            render?.clearFrame()
+            // ✅ 根据 retainLastFrame 配置决定是否清空帧
+            if (!retainLastFrame) {
+                render?.clearFrame()
+            }
             try {
                 ALog.i(TAG, "release")
                 decoder?.apply {

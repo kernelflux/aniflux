@@ -99,6 +99,7 @@ class VAPTestFragment : Fragment() {
             .load("asset://vap1.mp4")
             .repeatCount(3)
             .cacheStrategy(CacheStrategy.ALL)
+            .retainLastFrame(false)
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {
                     AniFluxLogger.i("[$tabName] VAP动画开始播放")

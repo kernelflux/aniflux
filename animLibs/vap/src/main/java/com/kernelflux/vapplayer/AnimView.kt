@@ -53,6 +53,20 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
     private var innerTextureView: InnerTextureView? = null
     private var lastFile: IFileContainer? = null
     private val scaleTypeUtil = ScaleTypeUtil()
+    
+    /**
+     * 是否保留最后一帧（动画结束时）
+     * true: 保留最后一帧，不清空视图和文件
+     * false: 清空最后一帧，移除视图并关闭文件（默认行为）
+     */
+    var retainLastFrame: Boolean = true
+        set(value) {
+            field = value
+            // ✅ 如果 player 已初始化，同步 retainLastFrame
+            if (::player.isInitialized) {
+                player.retainLastFrame = value
+            }
+        }
 
     // 代理监听
     private val animProxyListener by lazy {
@@ -72,11 +86,15 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
             }
 
             override fun onVideoComplete() {
-                hide()
+                // ✅ 根据 retainLastFrame 配置决定是否调用 hide()
+                if (!retainLastFrame) {
+                    hide()
+                }
                 animListener?.onVideoComplete()
             }
 
             override fun onVideoDestroy() {
+                // ✅ onVideoDestroy 是资源销毁回调，无论 retainLastFrame 都应该清理
                 hide()
                 animListener?.onVideoDestroy()
             }
@@ -106,6 +124,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
     init {
         hide()
         player = AnimPlayer(this)
+        player.retainLastFrame = retainLastFrame
         player.animListener = animProxyListener
     }
 

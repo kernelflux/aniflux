@@ -13,6 +13,11 @@ abstract class InternalBasePlayListenerAdapter<T>(private val listener: Animatio
 
     abstract fun createAnimatorListener(loopCount: Int? = null): T
 
+
+    protected fun execute(runnable: Runnable, delay: Long = 0) {
+        mHandler.postDelayed(runnable, delay)
+    }
+
     fun onClear() {
         mHandler.removeCallbacksAndMessages(null)
     }

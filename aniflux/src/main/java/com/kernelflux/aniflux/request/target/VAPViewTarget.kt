@@ -15,9 +15,14 @@ class VAPViewTarget(view: AnimView) : CustomViewAnimationTarget<AnimView, File>(
 
     override fun onResourceReady(resource: File) {
         val repeatCount = animationOptions?.repeatCount ?: -1
+        val retainLastFrame = animationOptions?.retainLastFrame ?: true
+        
         // 先设置监听器（避免错过 onAnimationStart）
         setupPlayListeners(resource, view)
         view.apply {
+            // ✅ 设置 retainLastFrame 配置
+            this.retainLastFrame = retainLastFrame
+            
             // ✅ VAP 的 setLoop 语义分析（根据 HardDecoder.kt:253-277）：
             // playLoop = N，每次 EOS 时：loop = --playLoop，如果 loop > 0 则循环
             // playLoop = 2: 第1次结束 loop=1>0 循环，第2次结束 loop=0 结束 → 总播放 2 次

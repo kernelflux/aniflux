@@ -20,6 +20,7 @@ class AnimationOptions {
     // 动画播放配置
     var repeatCount: Int = -1 // -1表示无限循环，0表示不循环，>0表示循环次数
     var autoPlay: Boolean = true // 是否自动播放
+    var retainLastFrame: Boolean = true // 是否保留最后一帧（动画结束时），默认 true
     
     companion object {
         fun create(): AnimationOptions = AnimationOptions()
@@ -123,6 +124,15 @@ class AnimationOptions {
      */
     fun autoPlay(auto: Boolean): AnimationOptions {
         this.autoPlay = auto
+        return this
+    }
+    
+    /**
+     * 设置是否保留最后一帧（动画结束时）
+     * @param retain true 表示保留最后一帧，false 表示清空（默认 true）
+     */
+    fun retainLastFrame(retain: Boolean): AnimationOptions {
+        this.retainLastFrame = retain
         return this
     }
 }

@@ -148,6 +148,22 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
+     * 设置是否保留动画停止时的帧（动画结束时）
+     * @param retain true 表示保留当前停止位置的帧（停在当前帧），false 表示清空显示（默认 true）
+     * 
+     * 支持的格式：
+     * - GIF: 保留当前停止位置的帧（动画结束时会自动停留在当前帧）
+     * - Lottie: 保留当前停止位置的帧（动画结束时会自动停留在当前帧）
+     * - SVGA: 通过 fillMode 控制（Forward 保留当前停止位置的帧，Clear 清空）
+     * - PAG: 保留当前停止位置的帧（动画结束时会自动停留在当前帧）
+     * - VAP: 通过 retainLastFrame 配置控制（true 保留最后一帧，false 清空）
+     */
+    fun retainLastFrame(retain: Boolean): AnimationRequestBuilder<T> {
+        options.retainLastFrame(retain)
+        return this
+    }
+
+    /**
      * 应用自定义配置选项
      */
     fun apply(customOptions: AnimationOptions): AnimationRequestBuilder<T> {

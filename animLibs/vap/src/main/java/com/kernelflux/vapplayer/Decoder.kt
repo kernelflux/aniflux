@@ -69,6 +69,14 @@ abstract class Decoder(val player: AnimPlayer) : IAnimListener {
     var playLoop = 0 // 循环播放次数
     var isRunning = false // 是否正在运行
     var isStopReq = false // 是否需要停止
+    
+    /**
+     * 是否保留最后一帧（动画结束时）
+     * true: 保留最后一帧，不清空视图和文件
+     * false: 清空最后一帧，移除视图并关闭文件（默认行为）
+     */
+    var retainLastFrame: Boolean = true
+    
     val speedControlUtil by lazy { SpeedControlUtil() }
 
     abstract fun start(fileContainer: IFileContainer)

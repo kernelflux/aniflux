@@ -22,6 +22,7 @@ class SVGAViewTarget(view: SVGAImageView) :
         // 获取配置选项
         val repeatCount = animationOptions?.repeatCount ?: -1
         val autoPlay = animationOptions?.autoPlay ?: true
+        val retainLastFrame = animationOptions?.retainLastFrame ?: true
 
         view.apply {
             setVideoItem(resource.videoItem)
@@ -32,6 +33,12 @@ class SVGAViewTarget(view: SVGAImageView) :
                     else -> repeatCount  // ✅ 直接使用总播放次数，让 SVGAImageView.play() 统一转换为 ValueAnimator 的重复次数
                 }
             )
+            // ✅ 根据 retainLastFrame 配置设置 fillMode
+            fillMode = if (retainLastFrame) {
+                SVGAImageView.FillMode.Forward  // 保留最后一帧
+            } else {
+                SVGAImageView.FillMode.Clear    // 清空
+            }
             // 如果设置了自动播放，则调用 startAnimation()
             if (autoPlay) {
                 startAnimation()

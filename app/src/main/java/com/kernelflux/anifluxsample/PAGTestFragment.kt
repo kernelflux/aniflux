@@ -12,7 +12,7 @@ import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.aniflux.util.CacheStrategy
-import org.libpag.PAGImageView
+import org.libpag.PAGView
 
 /**
  * PAG 动画测试 Fragment
@@ -20,7 +20,7 @@ import org.libpag.PAGImageView
  */
 class PAGTestFragment : Fragment() {
 
-    private lateinit var pagImageView: PAGImageView
+    private lateinit var pagView: PAGView
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
@@ -42,7 +42,7 @@ class PAGTestFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_pag_test, container, false)
 
-        pagImageView = view.findViewById(R.id.pag_image_view)
+        pagView = view.findViewById(R.id.pag_view)
         tvStatus = view.findViewById(R.id.tv_status)
         tvVisibility = view.findViewById(R.id.tv_visibility)
 
@@ -66,19 +66,19 @@ class PAGTestFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${pagImageView.isAttachedToWindow}, isShown: ${pagImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${pagView.isAttachedToWindow}, isShown: ${pagView.isShown()}")
         updateVisibilityStatus()
     }
 
     override fun onPause() {
         super.onPause()
-        AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${pagImageView.isAttachedToWindow}, isShown: ${pagImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${pagView.isAttachedToWindow}, isShown: ${pagView.isShown()}")
         updateVisibilityStatus()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${pagImageView.isAttachedToWindow}, isShown: ${pagImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${pagView.isAttachedToWindow}, isShown: ${pagView.isShown()}")
         updateVisibilityStatus()
     }
 
@@ -97,6 +97,7 @@ class PAGTestFragment : Fragment() {
             .load(pagUrl)
             .repeatCount(3)
             .cacheStrategy(CacheStrategy.ALL)
+            .retainLastFrame(false)
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {
                     AniFluxLogger.i("[$tabName] PAG动画开始播放")
@@ -133,7 +134,7 @@ class PAGTestFragment : Fragment() {
                     }
                 }
             })
-            .into(pagImageView)
+            .into(pagView)
     }
 
     private fun startVisibilityMonitoring() {
@@ -154,13 +155,13 @@ class PAGTestFragment : Fragment() {
     }
 
     private fun updateVisibilityStatus() {
-        if (!::pagImageView.isInitialized || !::tvVisibility.isInitialized) {
+        if (!::pagView.isInitialized || !::tvVisibility.isInitialized) {
             return
         }
 
-        val isAttached = pagImageView.isAttachedToWindow
-        val isShown = pagImageView.isShown()
-        val visibility = when (pagImageView.visibility) {
+        val isAttached = pagView.isAttachedToWindow
+        val isShown = pagView.isShown()
+        val visibility = when (pagView.visibility) {
             View.VISIBLE -> "VISIBLE"
             View.INVISIBLE -> "INVISIBLE"
             View.GONE -> "GONE"

@@ -1,6 +1,8 @@
 package com.kernelflux.aniflux.request.listener
 
+import android.view.View
 import com.kernelflux.vapplayer.AnimConfig
+import com.kernelflux.vapplayer.AnimView
 import com.kernelflux.vapplayer.inter.IAnimListener
 
 
@@ -12,7 +14,9 @@ import com.kernelflux.vapplayer.inter.IAnimListener
  * @date: 2025/11/02
  */
 class VapPlayListenerAdapter(
-    listener: AnimationPlayListener
+    listener: AnimationPlayListener,
+    private val animView: AnimView? = null,
+    private val retainLastFrame: Boolean = true
 ) : InternalBasePlayListenerAdapter<IAnimListener>(listener) {
 
     override fun createAnimatorListener(loopCount: Int?): IAnimListener {
@@ -77,6 +81,10 @@ class VapPlayListenerAdapter(
             }
 
             override fun onVideoComplete() {
+                // ✅ VAP 源码已支持 retainLastFrame 配置
+                // 在 VAPViewTarget 中已经设置了 animView.retainLastFrame
+                // 如果 retainLastFrame = true，AnimView 不会调用 hide()，最后一帧会被保留
+                // 如果 retainLastFrame = false，AnimView 会调用 hide()，清空视图
                 notifyAnimationEnd()
             }
 

@@ -54,6 +54,17 @@ class AnimPlayer(val animView: IAnimView) {
     var startRunnable: Runnable? = null
     var isStartRunning = false // 启动时运行状态
     var isMute = false // 是否静音
+    
+    /**
+     * 是否保留最后一帧（动画结束时）
+     * true: 保留最后一帧，不清空视图和文件
+     * false: 清空最后一帧，移除视图并关闭文件（默认行为）
+     */
+    var retainLastFrame: Boolean = true
+        set(value) {
+            field = value
+            decoder?.retainLastFrame = value
+        }
 
     val configManager = AnimConfigManager(this)
     val pluginManager = AnimPluginManager(this)
@@ -138,7 +149,11 @@ class AnimPlayer(val animView: IAnimView) {
             decoder = HardDecoder(this).apply {
                 playLoop = this@AnimPlayer.playLoop
                 fps = this@AnimPlayer.fps
+                retainLastFrame = this@AnimPlayer.retainLastFrame
             }
+        } else {
+            // ✅ 如果 decoder 已存在，同步 retainLastFrame（可能在某些场景下 decoder 被复用）
+            decoder?.retainLastFrame = this.retainLastFrame
         }
         if (audioPlayer == null) {
             audioPlayer = AudioPlayer(this).apply {

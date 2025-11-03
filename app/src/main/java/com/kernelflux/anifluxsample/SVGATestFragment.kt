@@ -168,7 +168,7 @@ class SVGATestFragment : BaseLazyFragment() {
         }
 
         val isAttached = svgaImageView.isAttachedToWindow
-        val isShown = svgaImageView.isShown()
+        val isShown = svgaImageView.isShown
         val visibility = when (svgaImageView.visibility) {
             View.VISIBLE -> "VISIBLE"
             View.INVISIBLE -> "INVISIBLE"
@@ -178,11 +178,6 @@ class SVGATestFragment : BaseLazyFragment() {
 
         val status = "可见性：attached=$isAttached, shown=$isShown, visibility=$visibility"
         tvVisibility.text = status
-
-        // 如果不可见，记录日志
-        if (!isAttached || !isShown) {
-         //   AniFluxLogger.i("[$tabName] View不可见: $status")
-        }
     }
 
     companion object {

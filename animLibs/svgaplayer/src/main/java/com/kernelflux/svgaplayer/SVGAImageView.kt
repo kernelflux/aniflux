@@ -273,6 +273,13 @@ open class SVGAImageView @JvmOverloads constructor(
     }
 
     private fun onAnimationEnd(animation: Animator?) {
+        // ✅ 如果是因为可见性变化而暂停，忽略 onAnimationEnd 回调
+        // 使用 mPausedAnimationState 作为判断依据更可靠，因为它只在恢复可见时才会被清除
+        if (mPausedAnimationState != null) {
+            LogUtils.info(TAG, "Ignore onAnimationEnd due to visibility pause")
+            return
+        }
+        
         isAnimating = false
         getSVGADrawable()?.videoItem?.isPlaying = false
 
@@ -449,25 +456,84 @@ open class SVGAImageView @JvmOverloads constructor(
                 mPausedAnimationState = null
                 val drawable = getSVGADrawable()
                 if (drawable != null) {
+                    val pausedFrame = state?.currentFrame ?: 0
                     // Restore to the frame where it was paused
-                    drawable.currentFrame = state?.currentFrame ?: 0
+                    drawable.currentFrame = pausedFrame
                     // ✅ 恢复音频（如果是暂停状态）
                     drawable.resume()
                     state?.apply {
                         mCompletedRepeatCount = completedRepeatCount
                         mOriginalRepeatCount = originalRepeatCount
+                        
+                        LogUtils.info(
+                            TAG,
+                            "Auto-resume: originalRepeatCount=$originalRepeatCount, " +
+                                    "completedRepeatCount=$completedRepeatCount, " +
+                                    "remainingRepeatCount=$repeatCount, " +
+                                    "frame=$pausedFrame"
+                        )
                     }
+
+                    // ✅ 恢复播放，从保存的状态继续
+                    // 注意：play() 会创建新的 animator 并 start()/reverse()
+                    // 我们需要在播放后立即设置 currentPlayTime 从暂停的帧继续
                     play(state?.range, state?.reverse ?: false, state?.repeatCount)
-                    LogUtils.info(TAG, "Auto-resume animation at frame ${state?.currentFrame}")
+                    
+                    // ✅ 设置动画从暂停的帧继续播放（必须在 play() 之后，因为 play() 会创建新的 animator）
+                    mAnimator?.let { animator ->
+                        val startFrame = mStartFrame
+                        val endFrame = mEndFrame
+                        val totalFrames = endFrame - startFrame + 1
+                        
+                        if (totalFrames > 0 && pausedFrame in startFrame..endFrame) {
+                            // 计算进度（相对于 range）
+                            val frameProgress = (pausedFrame - startFrame).toFloat() / totalFrames
+                            val clampedProgress = frameProgress.coerceIn(0f, 1f)
+                            
+                            if (state?.reverse == true) {
+                                // 反向播放：animator.reverse() 从 endFrame 反向到 startFrame
+                                // 所以 pausedFrame 的进度需要反转
+                                animator.currentPlayTime = ((1f - clampedProgress) * animator.duration).toLong()
+                            } else {
+                                // 正向播放：从 startFrame 到 endFrame
+                                animator.currentPlayTime = (clampedProgress * animator.duration).toLong()
+                            }
+                            LogUtils.info(TAG, "Set animator currentPlayTime to frame $pausedFrame (progress=$clampedProgress)")
+                        }
+                    }
+                    LogUtils.info(TAG, "Auto-resume animation at frame $pausedFrame")
                 }
             }
         } else {
-            // Become invisible: pause animation and save state
+            // Become invisible: cancel animation to stop execution (better performance) and save state
             if (isAnimating && mAnimator != null) {
                 val drawable = getSVGADrawable()
                 if (drawable != null) {
                     val currentFrame = drawable.currentFrame
-                    val currentRepeatCount = mOriginalRepeatCount - mCompletedRepeatCount
+                    
+                    // ✅ 计算剩余的 ValueAnimator repeatCount
+                    // mOriginalRepeatCount 是初始的 ValueAnimator repeatCount（额外重复次数）
+                    // mCompletedRepeatCount 是已完成的重复次数
+                    // 剩余的额外重复次数 = mOriginalRepeatCount - mCompletedRepeatCount
+                    // 注意：如果 mOriginalRepeatCount 是 INFINITE 或 <= 0，需要特殊处理
+                    val remainingRepeatCount = when {
+                        mOriginalRepeatCount == ValueAnimator.INFINITE -> ValueAnimator.INFINITE
+                        mOriginalRepeatCount <= 0 -> mOriginalRepeatCount // 保持原值（可能是 99999 或其他）
+                        else -> {
+                            val remaining = mOriginalRepeatCount - mCompletedRepeatCount
+                            if (remaining < 0) 0 else remaining
+                        }
+                    }
+                    
+                    LogUtils.info(
+                        TAG,
+                        "Auto-pause: originalRepeatCount=$mOriginalRepeatCount, " +
+                                "completedRepeatCount=$mCompletedRepeatCount, " +
+                                "remainingRepeatCount=$remainingRepeatCount, " +
+                                "frame=$currentFrame"
+                    )
+                    
+                    // ✅ 先保存状态，这样 cancel() 触发的 onAnimationCancel 可以通过 mPausedAnimationState 判断
                     mPausedAnimationState = PausedAnimationState(
                         range = if (mStartFrame >= 0 && mEndFrame > mStartFrame) {
                             SVGARange(mStartFrame, mEndFrame - mStartFrame + 1)
@@ -476,17 +542,21 @@ open class SVGAImageView @JvmOverloads constructor(
                         },
                         reverse = mCurrentReverse,
                         currentFrame = currentFrame,
-                        repeatCount = currentRepeatCount,
+                        repeatCount = remainingRepeatCount,
                         completedRepeatCount = mCompletedRepeatCount,
                         originalRepeatCount = mOriginalRepeatCount
                     )
-                    drawable.videoItem.isPlaying = false
-                    isAnimating = false
+                    
+                    // ✅ 使用 cancel() 而不是 pause()，真正停止动画执行，提升性能
+                    // cancel() 只会触发 onAnimationCancel，不会触发 onAnimationEnd
                     mAnimator?.cancel()
+                    drawable.videoItem.isPlaying = false
                     drawable.pause()
+                    // isAnimating 会在 onAnimationCancel 中设置，但由于 mPausedAnimationState 不为 null，
+                    // 我们会在 onAnimationCancel 中保留状态，所以这里不设置 isAnimating = false
                     LogUtils.info(
                         TAG,
-                        "Auto-pause animation at frame $currentFrame, reverse=$mCurrentReverse"
+                        "Auto-cancel animation at frame $currentFrame, reverse=$mCurrentReverse (visibility pause)"
                     )
                 }
             }
@@ -509,8 +579,14 @@ open class SVGAImageView @JvmOverloads constructor(
 
         override fun onAnimationCancel(animation: Animator) {
             weakReference.get()?.apply {
+                // ✅ 设置动画状态为停止
+                // 如果是因为可见性变化而取消（mPausedAnimationState 不为 null），
+                // 状态已经保存，恢复可见时会从保存的状态继续播放
                 isAnimating = false
                 getSVGADrawable()?.videoItem?.isPlaying = false
+                if (mPausedAnimationState != null) {
+                    LogUtils.info(TAG, "Animation canceled due to visibility, state saved for resume")
+                }
             }
         }
 

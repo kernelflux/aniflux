@@ -7,13 +7,13 @@ import com.kernelflux.aniflux.request.SingleAnimationRequest
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.aniflux.request.target.*
 import com.kernelflux.aniflux.util.AnimationOptions
-import com.kernelflux.aniflux.util.Priority
 import org.libpag.PAGFile
 import org.libpag.PAGImageView
 import org.libpag.PAGView
 import com.airbnb.lottie.LottieDrawable
 import com.airbnb.lottie.LottieAnimationView
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
+import com.kernelflux.aniflux.util.AnimationPriority
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
 import com.kernelflux.svgaplayer.SVGADrawable
@@ -108,17 +108,9 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 设置是否使用磁盘缓存
-     */
-    fun useDiskCache(use: Boolean): AnimationRequestBuilder<T> {
-        options.useDiskCache(use)
-        return this
-    }
-
-    /**
      * 设置请求优先级
      */
-    fun priority(priority: Priority): AnimationRequestBuilder<T> {
+    fun priority(priority: AnimationPriority): AnimationRequestBuilder<T> {
         options.priority(priority)
         return this
     }

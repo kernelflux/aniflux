@@ -73,7 +73,7 @@ class AnimationJob<T>(
     fun start() {
         if (isCancelled || isComplete) return
 
-        val executor = selectExecutor()
+        val executor = AnimationExecutor.getSourceExecutor()
         executor.execute {
             try {
                 executeTask()
@@ -87,11 +87,7 @@ class AnimationJob<T>(
      * 选择执行器
      */
     private fun selectExecutor(): ExecutorService {
-        return when {
-            options.useDiskCache -> AnimationExecutor.getDiskCacheExecutor()
-            options.isAnimation -> AnimationExecutor.getAnimationExecutor()
-            else -> AnimationExecutor.getSourceExecutor()
-        }
+        return AnimationExecutor.getSourceExecutor()
     }
 
     /**

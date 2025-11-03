@@ -14,9 +14,7 @@ class AnimationOptions {
     var height: Int = 0
     var scaleType: ImageView.ScaleType? = null
     var cacheStrategy: AnimationCacheStrategy = AnimationCacheStrategy.BOTH
-    var useDiskCache: Boolean = true
-    var isAnimation: Boolean = false
-    var priority: Priority = Priority.NORMAL
+    var priority: AnimationPriority = AnimationPriority.NORMAL
     var timeout: Long = 30000L // 30秒超时
     
     // 动画播放配置
@@ -26,54 +24,6 @@ class AnimationOptions {
     
     companion object {
         fun create(): AnimationOptions = AnimationOptions()
-        
-        /**
-         * 创建默认配置
-         */
-        fun defaultOptions(): AnimationOptions {
-            return create()
-                .cacheStrategy(AnimationCacheStrategy.BOTH)
-                .useDiskCache(true)
-                .isAnimation(true)
-                .priority(Priority.NORMAL)
-                .timeout(30000L)
-        }
-        
-        /**
-         * 创建高性能配置（无缓存）
-         */
-        fun highPerformanceOptions(): AnimationOptions {
-            return create()
-                .cacheStrategy(AnimationCacheStrategy.NONE)
-                .useDiskCache(false)
-                .isAnimation(true)
-                .priority(Priority.HIGH)
-                .timeout(15000L)
-        }
-        
-        /**
-         * 创建低内存配置（仅磁盘缓存）
-         */
-        fun lowMemoryOptions(): AnimationOptions {
-            return create()
-                .cacheStrategy(AnimationCacheStrategy.DISK_ONLY)
-                .useDiskCache(true)
-                .isAnimation(true)
-                .priority(Priority.LOW)
-                .timeout(60000L)
-        }
-        
-        /**
-         * 创建仅内存缓存配置
-         */
-        fun memoryOnlyOptions(): AnimationOptions {
-            return create()
-                .cacheStrategy(AnimationCacheStrategy.MEMORY_ONLY)
-                .useDiskCache(false)
-                .isAnimation(true)
-                .priority(Priority.NORMAL)
-                .timeout(30000L)
-        }
     }
     
     fun size(width: Int, height: Int): AnimationOptions {
@@ -92,17 +42,7 @@ class AnimationOptions {
         return this
     }
     
-    fun useDiskCache(use: Boolean): AnimationOptions {
-        this.useDiskCache = use
-        return this
-    }
-    
-    fun isAnimation(isAnimation: Boolean): AnimationOptions {
-        this.isAnimation = isAnimation
-        return this
-    }
-    
-    fun priority(priority: Priority): AnimationOptions {
+    fun priority(priority: AnimationPriority): AnimationOptions {
         this.priority = priority
         return this
     }
@@ -137,14 +77,4 @@ class AnimationOptions {
         this.retainLastFrame = retain
         return this
     }
-}
-
-/**
- * 请求优先级
- */
-enum class Priority {
-    LOW,
-    NORMAL,
-    HIGH,
-    IMMEDIATE
 }

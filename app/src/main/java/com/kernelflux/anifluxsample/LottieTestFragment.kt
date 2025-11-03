@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import com.airbnb.lottie.LottieAnimationView
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
@@ -24,7 +23,6 @@ class LottieTestFragment : BaseLazyFragment() {
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
-    private var visibilityCheckRunnable: Runnable? = null
 
     private val tabName: String by lazy {
         arguments?.getString(ARG_TAB_NAME) ?: "Tab"
@@ -56,9 +54,6 @@ class LottieTestFragment : BaseLazyFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         AniFluxLogger.i("[$tabName] onViewCreated")
-
-        // 启动可见性监控（不在这里加载动画，等懒加载）
-        startVisibilityMonitoring()
     }
 
     override fun onLoadData() {
@@ -75,25 +70,21 @@ class LottieTestFragment : BaseLazyFragment() {
     override fun onResume() {
         super.onResume()
         AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${lottieAnimationView.isAttachedToWindow}, isShown: ${lottieAnimationView.isShown()}")
-        updateVisibilityStatus()
     }
 
     override fun onPause() {
         super.onPause()
         AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${lottieAnimationView.isAttachedToWindow}, isShown: ${lottieAnimationView.isShown()}")
-        updateVisibilityStatus()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${lottieAnimationView.isAttachedToWindow}, isShown: ${lottieAnimationView.isShown()}")
-        updateVisibilityStatus()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         AniFluxLogger.i("[$tabName] Fragment onDestroyView")
-        stopVisibilityMonitoring()
     }
 
     private fun loadGIFAnimation() {
@@ -141,46 +132,6 @@ class LottieTestFragment : BaseLazyFragment() {
                 }
             })
             .into(lottieAnimationView)
-    }
-
-    private fun startVisibilityMonitoring() {
-        visibilityCheckRunnable = object : Runnable {
-            override fun run() {
-                updateVisibilityStatus()
-                handler.postDelayed(this, 1000) // 每秒更新一次
-            }
-        }
-        handler.post(visibilityCheckRunnable!!)
-    }
-
-    private fun stopVisibilityMonitoring() {
-        visibilityCheckRunnable?.let {
-            handler.removeCallbacks(it)
-        }
-        visibilityCheckRunnable = null
-    }
-
-    private fun updateVisibilityStatus() {
-        if (!::lottieAnimationView.isInitialized || !::tvVisibility.isInitialized) {
-            return
-        }
-
-        val isAttached = lottieAnimationView.isAttachedToWindow
-        val isShown = lottieAnimationView.isShown()
-        val visibility = when (lottieAnimationView.visibility) {
-            View.VISIBLE -> "VISIBLE"
-            View.INVISIBLE -> "INVISIBLE"
-            View.GONE -> "GONE"
-            else -> "UNKNOWN"
-        }
-
-        val status = "可见性：attached=$isAttached, shown=$isShown, visibility=$visibility"
-        tvVisibility.text = status
-
-        // 如果不可见，记录日志
-        if (!isAttached || !isShown) {
-            //   AniFluxLogger.i("[$tabName] View不可见: $status")
-        }
     }
 
     companion object {

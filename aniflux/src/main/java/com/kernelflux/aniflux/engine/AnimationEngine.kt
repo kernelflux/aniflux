@@ -57,7 +57,6 @@ class AnimationEngine(
 
         // 2. 内存中没有，检查磁盘缓存（如果启用）
         if (animationDiskCache != null &&
-            options.useDiskCache &&
             (options.cacheStrategy == AnimationCacheStrategy.DISK_ONLY || options.cacheStrategy == AnimationCacheStrategy.BOTH)
         ) {
             val diskFile = animationDiskCache.get(key.toCacheKey())

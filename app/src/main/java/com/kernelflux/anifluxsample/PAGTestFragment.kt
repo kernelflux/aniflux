@@ -23,7 +23,6 @@ class PAGTestFragment : BaseLazyFragment() {
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
-    private var visibilityCheckRunnable: Runnable? = null
 
     private val tabName: String by lazy {
         arguments?.getString(ARG_TAB_NAME) ?: "Tab"
@@ -55,9 +54,6 @@ class PAGTestFragment : BaseLazyFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         AniFluxLogger.i("[$tabName] onViewCreated")
-
-        // 启动可见性监控（不在这里加载动画，等懒加载）
-        startVisibilityMonitoring()
     }
 
     override fun onLoadData() {
@@ -74,25 +70,21 @@ class PAGTestFragment : BaseLazyFragment() {
     override fun onResume() {
         super.onResume()
         AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${pagView.isAttachedToWindow}, isShown: ${pagView.isShown()}")
-        updateVisibilityStatus()
     }
 
     override fun onPause() {
         super.onPause()
         AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${pagView.isAttachedToWindow}, isShown: ${pagView.isShown()}")
-        updateVisibilityStatus()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${pagView.isAttachedToWindow}, isShown: ${pagView.isShown()}")
-        updateVisibilityStatus()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         AniFluxLogger.i("[$tabName] Fragment onDestroyView")
-        stopVisibilityMonitoring()
     }
 
     private fun loadPAGAnimation() {
@@ -143,45 +135,6 @@ class PAGTestFragment : BaseLazyFragment() {
             .into(pagView)
     }
 
-    private fun startVisibilityMonitoring() {
-        visibilityCheckRunnable = object : Runnable {
-            override fun run() {
-                updateVisibilityStatus()
-                handler.postDelayed(this, 1000) // 每秒更新一次
-            }
-        }
-        handler.post(visibilityCheckRunnable!!)
-    }
-
-    private fun stopVisibilityMonitoring() {
-        visibilityCheckRunnable?.let {
-            handler.removeCallbacks(it)
-        }
-        visibilityCheckRunnable = null
-    }
-
-    private fun updateVisibilityStatus() {
-        if (!::pagView.isInitialized || !::tvVisibility.isInitialized) {
-            return
-        }
-
-        val isAttached = pagView.isAttachedToWindow
-        val isShown = pagView.isShown()
-        val visibility = when (pagView.visibility) {
-            View.VISIBLE -> "VISIBLE"
-            View.INVISIBLE -> "INVISIBLE"
-            View.GONE -> "GONE"
-            else -> "UNKNOWN"
-        }
-
-        val status = "可见性：attached=$isAttached, shown=$isShown, visibility=$visibility"
-        tvVisibility.text = status
-
-        // 如果不可见，记录日志
-        if (!isAttached || !isShown) {
-         //   AniFluxLogger.i("[$tabName] View不可见: $status")
-        }
-    }
 
     companion object {
         private const val ARG_TAB_NAME = "tab_name"

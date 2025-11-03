@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
@@ -18,7 +17,7 @@ import org.libpag.PAGView
  * PAG 动画测试 Fragment
  * 用于测试 Tab 切换时动画是否自动暂停
  */
-class PAGTestFragment : Fragment() {
+class PAGTestFragment : BaseLazyFragment() {
 
     private lateinit var pagView: PAGView
     private lateinit var tvStatus: TextView
@@ -57,11 +56,19 @@ class PAGTestFragment : Fragment() {
 
         AniFluxLogger.i("[$tabName] onViewCreated")
 
-        // 加载 PAG 动画
-        loadPAGAnimation()
-
-        // 启动可见性监控
+        // 启动可见性监控（不在这里加载动画，等懒加载）
         startVisibilityMonitoring()
+    }
+
+    override fun onLoadData() {
+        // ✅ 懒加载：只有在 Fragment 真正可见时才加载动画
+        AniFluxLogger.i("[$tabName] onLoadData - Fragment 可见，开始加载动画")
+        loadPAGAnimation()
+    }
+
+    override fun onInvisible() {
+        // Fragment 变为不可见时的处理
+        AniFluxLogger.i("[$tabName] onInvisible - Fragment 不可见")
     }
 
     override fun onResume() {
@@ -95,7 +102,6 @@ class PAGTestFragment : Fragment() {
         AniFlux.with(requireContext())
             .asPAG()
             .load(pagUrl)
-            .repeatCount(3)
             .cacheStrategy(AnimationCacheStrategy.BOTH)
             .retainLastFrame(false)
             .playListener(object : AnimationPlayListener {

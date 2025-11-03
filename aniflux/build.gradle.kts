@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.constraintlayout)
 
     api("com.squareup.okhttp3:okhttp:5.1.0")
     api("com.tencent.tav:libpag:4.5.2")

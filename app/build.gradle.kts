@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.fragment)
+    implementation(libs.androidx.constraintlayout)
 
     implementation(project(":aniflux"))
 

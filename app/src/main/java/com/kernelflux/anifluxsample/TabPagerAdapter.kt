@@ -14,21 +14,21 @@ class TabPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter
             "Tab 1",
             "https://peanut-oss.wemogu.net/client/test/anim_linglu.pag"
         ),
-        PAGTestFragment.newInstance(
-            "Tab 2",
-            "https://peanut-oss.wemogu.net/client/test/anim_linglu.pag"
-        ),
         SVGATestFragment.newInstance(
-            "Tab 3",
+            "Tab 2",
             "http://peanut-oss.weli010.cn/img/gift/29_ani.svga"
         ),
         GIFTestFragment.newInstance(
-            "Tab 4",
+            "Tab 3",
             "http://imgcom.static.suishenyun.net/c6a3e39be73229d8a2ca2be5662b5a49.gif"
         ),
         VAPTestFragment.newInstance(
+            "Tab 4",
+            "asset://vap1.mp4"
+        ),
+        LottieTestFragment.newInstance(
             "Tab 5",
-            "https://github.com/user-attachments/assets/19308e3b-23d3-46e5-a7a8-cc184301caca"
+            "asset://test1.lottie"
         )
     )
 

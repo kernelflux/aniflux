@@ -1,6 +1,5 @@
 package com.kernelflux.anifluxsample
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,19 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.airbnb.lottie.LottieAnimationView
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-import com.kernelflux.svgaplayer.SVGAImageView
 
 /**
- * SVGA 动画测试 Fragment
+ * Lottie 动画测试 Fragment
  * 用于测试 Tab 切换时动画是否自动暂停
  */
-class SVGATestFragment : BaseLazyFragment() {
+class LottieTestFragment : BaseLazyFragment() {
 
-    private lateinit var svgaImageView: SVGAImageView
+    private lateinit var lottieAnimationView: LottieAnimationView
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
@@ -31,20 +30,19 @@ class SVGATestFragment : BaseLazyFragment() {
         arguments?.getString(ARG_TAB_NAME) ?: "Tab"
     }
 
-    private val svgaUrl: String by lazy {
-        arguments?.getString(ARG_SVGA_URL)
-            ?: "https://peanut-oss.wemogu.net/client/animation/common/live_room_seat_boy.svga"
+    private val lottieUrl: String by lazy {
+        arguments?.getString(ARG_LOTTIE_URL)
+            ?: "asset://test1.lottie"
     }
 
-    @SuppressLint("MissingInflatedId")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_svga_test, container, false)
+        val view = inflater.inflate(R.layout.fragment_lottie_test, container, false)
 
-        svgaImageView = view.findViewById(R.id.svga_image_view)
+        lottieAnimationView = view.findViewById(R.id.lottie_view)
         tvStatus = view.findViewById(R.id.tv_status)
         tvVisibility = view.findViewById(R.id.tv_visibility)
 
@@ -66,7 +64,7 @@ class SVGATestFragment : BaseLazyFragment() {
     override fun onLoadData() {
         // ✅ 懒加载：只有在 Fragment 真正可见时才加载动画
         AniFluxLogger.i("[$tabName] onLoadData - Fragment 可见，开始加载动画")
-        loadSVGAAnimation()
+        loadGIFAnimation()
     }
 
     override fun onInvisible() {
@@ -76,19 +74,19 @@ class SVGATestFragment : BaseLazyFragment() {
 
     override fun onResume() {
         super.onResume()
-        AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${svgaImageView.isAttachedToWindow}, isShown: ${svgaImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${lottieAnimationView.isAttachedToWindow}, isShown: ${lottieAnimationView.isShown()}")
         updateVisibilityStatus()
     }
 
     override fun onPause() {
         super.onPause()
-        AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${svgaImageView.isAttachedToWindow}, isShown: ${svgaImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${lottieAnimationView.isAttachedToWindow}, isShown: ${lottieAnimationView.isShown()}")
         updateVisibilityStatus()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${svgaImageView.isAttachedToWindow}, isShown: ${svgaImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${lottieAnimationView.isAttachedToWindow}, isShown: ${lottieAnimationView.isShown()}")
         updateVisibilityStatus()
     }
 
@@ -98,51 +96,51 @@ class SVGATestFragment : BaseLazyFragment() {
         stopVisibilityMonitoring()
     }
 
-    private fun loadSVGAAnimation() {
-        AniFluxLogger.i("[$tabName] 开始加载 SVGA 动画: $svgaUrl")
+    private fun loadGIFAnimation() {
+        AniFluxLogger.i("[$tabName] 开始加载 Lottie 动画: $lottieUrl")
         tvStatus.text = "状态：加载中..."
 
         AniFlux.with(requireContext())
-            .asSVGA()
-            .load(svgaUrl)
+            .asLottie()
+            .load(lottieUrl)
             .cacheStrategy(AnimationCacheStrategy.BOTH)
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {
-                    AniFluxLogger.i("[$tabName] SVGA动画开始播放")
+                    AniFluxLogger.i("[$tabName] Lottie动画开始播放")
                     handler.post {
                         tvStatus.text = "状态：播放中"
                     }
                 }
 
                 override fun onAnimationEnd() {
-                    AniFluxLogger.i("[$tabName] SVGA动画播放结束")
+                    AniFluxLogger.i("[$tabName] Lottie动画播放结束")
                     handler.post {
                         tvStatus.text = "状态：播放结束"
                     }
                 }
 
                 override fun onAnimationCancel() {
-                    AniFluxLogger.i("[$tabName] SVGA动画播放取消")
+                    AniFluxLogger.i("[$tabName] Lottie动画播放取消")
                     handler.post {
                         tvStatus.text = "状态：已取消"
                     }
                 }
 
                 override fun onAnimationRepeat() {
-                    AniFluxLogger.i("[$tabName] SVGA动画重复播放 ⚠️")
+                    AniFluxLogger.i("[$tabName] Lottie动画重复播放 ⚠️")
                     handler.post {
                         tvStatus.text = "状态：重复播放中"
                     }
                 }
 
                 override fun onAnimationFailed(error: Throwable?) {
-                    AniFluxLogger.i("[$tabName] SVGA动画播放失败: ${error?.message}")
+                    AniFluxLogger.i("[$tabName] Lottie动画播放失败: ${error?.message}")
                     handler.post {
                         tvStatus.text = "状态：加载失败"
                     }
                 }
             })
-            .into(svgaImageView)
+            .into(lottieAnimationView)
     }
 
     private fun startVisibilityMonitoring() {
@@ -163,13 +161,13 @@ class SVGATestFragment : BaseLazyFragment() {
     }
 
     private fun updateVisibilityStatus() {
-        if (!::svgaImageView.isInitialized || !::tvVisibility.isInitialized) {
+        if (!::lottieAnimationView.isInitialized || !::tvVisibility.isInitialized) {
             return
         }
 
-        val isAttached = svgaImageView.isAttachedToWindow
-        val isShown = svgaImageView.isShown()
-        val visibility = when (svgaImageView.visibility) {
+        val isAttached = lottieAnimationView.isAttachedToWindow
+        val isShown = lottieAnimationView.isShown()
+        val visibility = when (lottieAnimationView.visibility) {
             View.VISIBLE -> "VISIBLE"
             View.INVISIBLE -> "INVISIBLE"
             View.GONE -> "GONE"
@@ -181,19 +179,19 @@ class SVGATestFragment : BaseLazyFragment() {
 
         // 如果不可见，记录日志
         if (!isAttached || !isShown) {
-         //   AniFluxLogger.i("[$tabName] View不可见: $status")
+            //   AniFluxLogger.i("[$tabName] View不可见: $status")
         }
     }
 
     companion object {
         private const val ARG_TAB_NAME = "tab_name"
-        private const val ARG_SVGA_URL = "svga_url"
+        private const val ARG_LOTTIE_URL = "lottie_url"
 
-        fun newInstance(tabName: String, pagUrl: String): SVGATestFragment {
-            return SVGATestFragment().apply {
+        fun newInstance(tabName: String, pagUrl: String): LottieTestFragment {
+            return LottieTestFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_TAB_NAME, tabName)
-                    putString(ARG_SVGA_URL, pagUrl)
+                    putString(ARG_LOTTIE_URL, pagUrl)
                 }
             }
         }

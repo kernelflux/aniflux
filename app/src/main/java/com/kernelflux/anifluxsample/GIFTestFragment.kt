@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
@@ -18,7 +17,7 @@ import com.kernelflux.gif.GifImageView
  * GIF 动画测试 Fragment
  * 用于测试 Tab 切换时动画是否自动暂停
  */
-class GIFTestFragment : Fragment() {
+class GIFTestFragment : BaseLazyFragment() {
 
     private lateinit var gifImageView: GifImageView
     private lateinit var tvStatus: TextView
@@ -57,11 +56,19 @@ class GIFTestFragment : Fragment() {
 
         AniFluxLogger.i("[$tabName] onViewCreated")
 
-        // 加载 GIF 动画
-        loadGIFAnimation()
-
-        // 启动可见性监控
+        // 启动可见性监控（不在这里加载动画，等懒加载）
         startVisibilityMonitoring()
+    }
+
+    override fun onLoadData() {
+        // ✅ 懒加载：只有在 Fragment 真正可见时才加载动画
+        AniFluxLogger.i("[$tabName] onLoadData - Fragment 可见，开始加载动画")
+        loadGIFAnimation()
+    }
+
+    override fun onInvisible() {
+        // Fragment 变为不可见时的处理
+        AniFluxLogger.i("[$tabName] onInvisible - Fragment 不可见")
     }
 
     override fun onResume() {
@@ -95,7 +102,6 @@ class GIFTestFragment : Fragment() {
         AniFlux.with(requireContext())
             .asGif()
             .load(gifUrl)
-            .repeatCount(3)
             .cacheStrategy(AnimationCacheStrategy.BOTH)
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {
@@ -170,10 +176,6 @@ class GIFTestFragment : Fragment() {
         val status = "可见性：attached=$isAttached, shown=$isShown, visibility=$visibility"
         tvVisibility.text = status
 
-        // 如果不可见，记录日志
-        if (!isAttached || !isShown) {
-         //   AniFluxLogger.i("[$tabName] View不可见: $status")
-        }
     }
 
     companion object {

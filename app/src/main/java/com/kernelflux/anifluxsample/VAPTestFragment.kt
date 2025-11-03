@@ -18,7 +18,7 @@ import com.kernelflux.vapplayer.AnimView
  * VAP 动画测试 Fragment
  * 用于测试 Tab 切换时动画是否自动暂停
  */
-class VAPTestFragment : Fragment() {
+class VAPTestFragment : BaseLazyFragment() {
 
     private lateinit var vapImageView: AnimView
     private lateinit var tvStatus: TextView
@@ -57,11 +57,19 @@ class VAPTestFragment : Fragment() {
 
         AniFluxLogger.i("[$tabName] onViewCreated")
 
-        // 加载 VAP 动画
-        loadVapAnimation()
-
-        // 启动可见性监控
+        // 启动可见性监控（不在这里加载动画，等懒加载）
         startVisibilityMonitoring()
+    }
+
+    override fun onLoadData() {
+        // ✅ 懒加载：只有在 Fragment 真正可见时才加载动画
+        AniFluxLogger.i("[$tabName] onLoadData - Fragment 可见，开始加载动画")
+        loadVapAnimation()
+    }
+
+    override fun onInvisible() {
+        // Fragment 变为不可见时的处理
+        AniFluxLogger.i("[$tabName] onInvisible - Fragment 不可见")
     }
 
     override fun onResume() {
@@ -95,7 +103,6 @@ class VAPTestFragment : Fragment() {
         AniFlux.with(requireContext())
             .asFile()
             .load("asset://vap1.mp4")
-            .repeatCount(3)
             .cacheStrategy(AnimationCacheStrategy.BOTH)
             .retainLastFrame(false)
             .playListener(object : AnimationPlayListener {

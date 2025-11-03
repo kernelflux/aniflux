@@ -65,7 +65,7 @@ object AnimationTypeDetector {
         val lowerPath = path.lowercase()
         return when {
             lowerPath.endsWith(".gif") -> AnimationType.GIF
-            lowerPath.endsWith(".json") -> AnimationType.LOTTIE
+            lowerPath.endsWith(".json") || lowerPath.endsWith(".lottie") -> AnimationType.LOTTIE
             lowerPath.endsWith(".svga") -> AnimationType.SVGA
             lowerPath.endsWith(".pag") -> AnimationType.PAG
             lowerPath.endsWith(".mp4") -> AnimationType.VAP

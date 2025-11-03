@@ -241,7 +241,19 @@ object AnimationPlayListenerSetupHelper {
 
         val lottieView = view as? LottieAnimationView
         val adapter = LottiePlayListenerAdapter(listener, lottieView, retainLastFrame)
-        val animatorListener = adapter.createAnimatorListener()
+        
+        // 获取用户的原始 repeatCount（总播放次数）
+        val userRepeatCount = when (target) {
+            is CustomViewAnimationTarget<*, *> -> {
+                target.animationOptions?.repeatCount ?: -1
+            }
+            else -> -1  // 默认无限循环
+        }
+        
+        // 传递给 adapter：用户期望的总播放次数
+        // 注意：LottieViewTarget 会将用户的 repeatCount 转换为 Lottie 的语义
+        // 但 adapter 需要知道用户期望的总播放次数，而不是 Lottie 的 repeatCount
+        val animatorListener = adapter.createAnimatorListener(userRepeatCount)
 
         if (lottieView != null) {
             lottieView.addAnimatorListener(animatorListener)

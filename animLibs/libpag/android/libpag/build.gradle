@@ -1,0 +1,242 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20'
+        classpath 'org.jreleaser:jreleaser-gradle-plugin:1.19.0'
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+apply plugin: 'org.jreleaser'
+
+
+version = '4.5.2.1'
+project.ext.artifactId = 'libpag'
+project.group = 'com.tencent.tav'
+
+// Try to access version catalog, fallback to hardcoded values
+def getVersionCatalog() {
+    try {
+        return rootProject.extensions.getByName("libs")
+    } catch (Exception e) {
+        return null
+    }
+}
+
+def libs = getVersionCatalog()
+
+
+android {
+    compileSdkVersion libs ? libs.versions.compileSdk.get().toInteger() : 36
+    ndkVersion "28.0.13004108"
+
+    defaultConfig {
+        minSdkVersion libs ? libs.versions.minSdk.get().toInteger() : 21
+        targetSdkVersion libs ? libs.versions.targetSdk.get().toInteger() : 36
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_static",
+                        "-DPAG_USE_LIBAVC=OFF",
+                        "-DPAG_USE_FFAVC=ON"
+            }
+        }
+
+        ndk {
+            if (project.hasProperty("arm64-only")) {
+                abiFilters.add("arm64-v8a")
+            } else {
+                abiFilters.add("armeabi-v7a")
+                abiFilters.add("arm64-v8a")
+                // x86_64 removed temporarily due to build issues
+                // Uncomment if needed for emulator support
+                // abiFilters.add("x86_64")
+            }
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ["libs"]
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path '../../CMakeLists.txt'
+            version = "3.22.1"
+        }
+    }
+    namespace 'org.libpag'
+
+
+    libraryVariants.configureEach { variant ->
+        variant.outputs.all { output ->
+            def versionName = project.version
+            def buildType = variant.buildType.name
+            def timestamp = new Date().format('yyyyMMddHHmmss')
+            outputFileName = "libpag-${versionName}-${buildType}-${timestamp}.aar"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api("androidx.exifinterface:exifinterface:1.4.1")
+}
+
+tasks.register('androidSourcesJar', Jar) {
+    archiveClassifier.set("sources")
+    from android.sourceSets.main.java.source
+    exclude "**/R.class"
+    exclude "**/BuildConfig.class"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.tencent.tav'
+            artifactId = 'libpag'
+
+            artifact("$buildDir/outputs/aar/libpag-release.aar")
+            artifact androidSourcesJar
+            pom {
+                name = 'libpag'
+                description = 'A real-time rendering library for PAG (Portable Animated Graphics) files that renders After Effects animations natively across multiple platforms.'
+                url = 'https://github.com/Tencent/libpag'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://github.com/Tencent/libpag/blob/main/LICENSE.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'libpag'
+                        name = 'libpag'
+                        email = 'libpag@tencent.com'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/Tencent/libpag'
+                    connection = 'scm:git:github.com/Tencent/libpag.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/Tencent/libpag.git'
+                }
+            }
+        }
+    }
+    
+    repositories {
+        maven {
+            name = 'staging'
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
+}
+
+signing {
+    // Completely disable Gradle signing - JReleaser will handle all signing
+    required { false }
+}
+
+jreleaser {
+    gitRootSearch = true
+
+    project{
+        description = "A real-time rendering library for PAG (Portable Animated Graphics) files that renders After Effects animations natively across multiple platforms."
+        copyright = "Copyright © 2025 Tencent. All rights reserved."
+    }
+    
+    release {
+        github {
+            enabled = true
+            skipTag = true
+            skipRelease = true
+        }
+    }
+    
+    signing {
+        active = 'ALWAYS'
+        armored = true
+    }
+    
+    deploy {
+        maven {
+            mavenCentral {
+                    sonatype {
+                    active = "ALWAYS"
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    stagingRepository(layout.buildDirectory.dir("staging-deploy").get().toString())
+                    setAuthorization("Basic")
+                    applyMavenCentralRules = false // Wait for fix: https://github.com/kordamp/pomchecker/issues/21
+                    sign = true
+                    checksums = true
+                    sourceJar = true
+                    javadocJar = true
+                    retryDelay = 60
+                }
+            }
+        }
+    }
+}
+
+project.afterEvaluate {
+    mergeReleaseNativeLibs.doLast {
+        delete {
+            delete project.getBuildDir().path + '/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi'
+        }
+        copy {
+            from project.getBuildDir().path + '/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi-v7a'
+            into project.getBuildDir().path + '/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi'
+            include '*.so'
+        }
+    }
+    stripReleaseDebugSymbols.doLast {
+        delete {
+            delete project.getBuildDir().path + '/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/armeabi'
+        }
+        copy {
+            from project.getBuildDir().path + '/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/armeabi-v7a'
+            into project.getBuildDir().path + '/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/armeabi'
+            include '*.so'
+        }
+    }
+    // 此处为了方便debug，保留debug版本armeabi的拷贝，方便源码接入时候的调试
+    mergeDebugNativeLibs.doLast {
+        delete {
+            delete project.getBuildDir().path + '/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/armeabi'
+        }
+        copy {
+            from project.getBuildDir().path + '/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/armeabi-v7a'
+            into project.getBuildDir().path + '/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/armeabi'
+            include '*.so'
+        }
+    }
+    stripDebugDebugSymbols.doLast {
+        delete {
+            delete project.getBuildDir().path + '/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/armeabi'
+        }
+        copy {
+            from project.getBuildDir().path + '/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/armeabi-v7a'
+            into project.getBuildDir().path + '/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/armeabi'
+            include '*.so'
+        }
+    }
+}

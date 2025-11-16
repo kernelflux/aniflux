@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakePythonSetting">
+    <option name="pythonIntegrationState" value="YES" />
+  </component>
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/../android" />
+      <file path="$PROJECT_DIR$/../assets" />
+      <file path="$PROJECT_DIR$/../gitInit" />
+      <file path="$PROJECT_DIR$/../ios" />
+      <file path="$PROJECT_DIR$/../mac" />
+      <file path="$PROJECT_DIR$/../resources" />
+      <file path="$PROJECT_DIR$/.idea" />
+    </excludeRoots>
+  </component>
+</project>

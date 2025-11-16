@@ -1,0 +1,9 @@
+// This file is kept for compatibility but buildscript is managed by root project's settings.gradle.kts
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+// Note: Repositories are managed by root project's settings.gradle.kts
+// Do not define repositories here as it conflicts with repositoriesMode.FAIL_ON_PROJECT_REPOS
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

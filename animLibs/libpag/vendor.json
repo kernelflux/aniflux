@@ -1,0 +1,56 @@
+{
+  "source": "third_party",
+  "out": "third_party/out",
+  "vendors": [
+    {
+      "name": "libavc",
+      "cmake": {
+        "targets": [
+          "libavcdec"
+        ],
+        "platforms": [
+          "ios",
+          "android",
+          "mac",
+          "win",
+          "linux"
+        ]
+      }
+    },
+    {
+      "name": "harfbuzz",
+      "cmake": {
+        "targets": [
+          "harfbuzz"
+        ],
+        "arguments": [
+          "-DHB_HAVE_FREETYPE=OFF",
+          "-DHB_HAVE_CORETEXT=OFF",
+          "-DCMAKE_CXX_FLAGS=\"-DHB_LEAN -DHB_MINI -DHB_NO_UCD_UNASSIGNED -DNDEBUG -D__OPTIMIZE_SIZE__\"",
+          "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+        ]
+      }
+    },
+    {
+      "name": "rttr",
+      "cmake": {
+        "targets": [
+          "rttr_core_lib"
+        ],
+        "arguments": [
+          "-DBUILD_STATIC=TRUE",
+          "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+        ],
+        "includes": [
+          "${SOURCE_DIR}/src/rttr",
+          "${BUILD_DIR}/src/rttr"
+        ],
+        "platforms": [
+          "mac",
+          "win",
+          "linux"
+        ]
+      }
+    }
+  ]
+}

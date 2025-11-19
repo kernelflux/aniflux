@@ -1,6 +1,7 @@
 package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
+import android.util.Log
 import org.libpag.PAGFile
 import org.libpag.PAGView
 
@@ -18,11 +19,10 @@ class PAGViewTarget(view: PAGView) : CustomViewAnimationTarget<PAGView, PAGFile>
         // 获取配置选项
         val repeatCount = animationOptions?.repeatCount ?: -1
         val autoPlay = animationOptions?.autoPlay ?: true
-
         view.apply {
-            composition = resource
+            //防止多个view共用导致的复用问题
+            composition = resource.copyOriginal()
             setRepeatCount(repeatCount)
-
             // 如果设置了自动播放，则调用 play()
             if (autoPlay) {
                 play()

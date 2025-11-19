@@ -7,7 +7,6 @@ import com.kernelflux.aniflux.request.SingleAnimationRequest
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.aniflux.request.target.*
 import com.kernelflux.aniflux.util.AnimationOptions
-import com.kernelflux.aniflux.util.Priority
 import org.libpag.PAGFile
 import org.libpag.PAGImageView
 import org.libpag.PAGView
@@ -104,30 +103,6 @@ class AnimationRequestBuilder<T>(
      */
     fun cacheStrategy(strategy: AnimationCacheStrategy): AnimationRequestBuilder<T> {
         options.cacheStrategy(strategy)
-        return this
-    }
-
-    /**
-     * 设置是否使用磁盘缓存
-     */
-    fun useDiskCache(use: Boolean): AnimationRequestBuilder<T> {
-        options.useDiskCache(use)
-        return this
-    }
-
-    /**
-     * 设置请求优先级
-     */
-    fun priority(priority: Priority): AnimationRequestBuilder<T> {
-        options.priority(priority)
-        return this
-    }
-
-    /**
-     * 设置超时时间
-     */
-    fun timeout(timeout: Long): AnimationRequestBuilder<T> {
-        options.timeout(timeout)
         return this
     }
 
@@ -363,9 +338,7 @@ fun AnimationRequestBuilder<*>.into(container: android.widget.FrameLayout): Auto
  * 如果 Builder 类型未知，根据 View 类型推断为 PAGFile
  */
 fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGImageViewTarget {
-    val builderClass = getBuilderTranscodeClass(this)
-
-    return when (builderClass) {
+    return when (val builderClass = getBuilderTranscodeClass(this)) {
         PAGFile::class.java -> {
             // 类型匹配，直接使用
             @Suppress("UNCHECKED_CAST")
@@ -393,9 +366,7 @@ fun AnimationRequestBuilder<*>.into(view: PAGImageView): PAGImageViewTarget {
  * 加载到 PAGView（类型推断版本）
  */
 fun AnimationRequestBuilder<*>.into(view: PAGView): PAGViewTarget {
-    val builderClass = getBuilderTranscodeClass(this)
-
-    return when (builderClass) {
+    return when (val builderClass = getBuilderTranscodeClass(this)) {
         PAGFile::class.java -> {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<PAGFile>).into(view)
@@ -421,8 +392,7 @@ fun AnimationRequestBuilder<*>.into(view: PAGView): PAGViewTarget {
  * 加载到 LottieAnimationView（类型推断版本）
  */
 fun AnimationRequestBuilder<*>.into(view: LottieAnimationView): LottieViewTarget {
-    val builderClass = getBuilderTranscodeClass(this)
-    return when (builderClass) {
+    return when (val builderClass = getBuilderTranscodeClass(this)) {
         LottieDrawable::class.java -> {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<LottieDrawable>).into(view)
@@ -476,9 +446,7 @@ fun AnimationRequestBuilder<*>.into(view: SVGAImageView): SVGAViewTarget {
  * 加载到 GifImageView（类型推断版本）
  */
 fun AnimationRequestBuilder<*>.into(view: GifImageView): GifViewTarget {
-    val builderClass = getBuilderTranscodeClass(this)
-
-    return when (builderClass) {
+    return when (val builderClass = getBuilderTranscodeClass(this)) {
         GifDrawable::class.java -> {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<GifDrawable>).into(view)
@@ -504,9 +472,7 @@ fun AnimationRequestBuilder<*>.into(view: GifImageView): GifViewTarget {
  * 加载到 AnimView（类型推断版本）
  */
 fun AnimationRequestBuilder<*>.into(view: AnimView): VAPViewTarget {
-    val builderClass = getBuilderTranscodeClass(this)
-
-    return when (builderClass) {
+    return when (val builderClass = getBuilderTranscodeClass(this)) {
         File::class.java -> {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<File>).into(view)

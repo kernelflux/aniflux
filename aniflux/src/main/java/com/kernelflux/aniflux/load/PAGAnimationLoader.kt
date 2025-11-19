@@ -14,7 +14,16 @@ class PAGAnimationLoader : AnimationLoader<PAGFile> {
 
     override fun loadFromPath(context: Context,path: String): PAGFile? {
         return try {
-            PAGFile.Load(path)
+            // ⚠️ 问题：PAGFile.Load(path) 会使用内部缓存，相同路径会共享底层 File 对象
+            // ✅ 解决方案：读取文件为字节数组，使用 PAGFile.Load(byte[]) 创建独立实例
+            val file = java.io.File(path)
+            if (file.exists()) {
+                val bytes = file.readBytes()
+                PAGFile.Load(bytes)
+            } else {
+                // 如果文件不存在，尝试直接加载（可能是网络URL或其他路径）
+                PAGFile.Load(path)
+            }
         } catch (e: Exception) {
             android.util.Log.e("PagAnimationLoader", "Failed to load PAG from path: $path", e)
             null
@@ -23,7 +32,11 @@ class PAGAnimationLoader : AnimationLoader<PAGFile> {
 
     override fun loadFromFile(context: Context,file: File): PAGFile? {
         return try {
-            PAGFile.Load(file.absolutePath)
+            // ⚠️ 问题：PAGFile.Load(filePath) 会使用内部缓存，相同路径会共享底层 File 对象
+            // 这导致多个 PAGView 使用同一个 PAGFile 时，只有最后一个能显示动画
+            // ✅ 解决方案：使用 PAGFile.Load(byte[]) 为每个请求创建独立的 PAGFile 实例
+            val bytes = file.readBytes()
+            PAGFile.Load(bytes)
         } catch (e: Exception) {
             android.util.Log.e(
                 "PagAnimationLoader",
@@ -89,7 +102,12 @@ class PAGAnimationLoader : AnimationLoader<PAGFile> {
 
     override fun loadFromAssetPath(context: Context, assetPath: String): PAGFile? {
         return try {
-            PAGFile.Load(context.assets, assetPath)
+            // ⚠️ 问题：PAGFile.Load(assets, path) 可能也有缓存机制
+            // ✅ 解决方案：读取 asset 为字节数组，使用 PAGFile.Load(byte[]) 创建独立实例
+            val inputStream = context.assets.open(assetPath)
+            val bytes = inputStream.readBytes()
+            inputStream.close()
+            PAGFile.Load(bytes)
         } catch (e: Exception) {
             android.util.Log.e(
                 "PagAnimationLoader",

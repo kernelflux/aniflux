@@ -1,7 +1,7 @@
 [versions]
-compileSdk = "34"
+compileSdk = "36"
 kotlinStdlibJdk7 = "2.2.20"
-targetSdk = "34"
+targetSdk = "36"
 minSdk = "21"
 ndk = "26.3.11579264"
 

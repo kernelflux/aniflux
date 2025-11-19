@@ -17,15 +17,14 @@ class PAGImageViewTarget(view: PAGImageView) : CustomViewAnimationTarget<PAGImag
     override fun onResourceReady(resource: PAGFile) {
         // 先设置监听器（避免错过 onAnimationStart）
         setupPlayListeners(resource, view)
-        
         // 获取配置选项
         val repeatCount = animationOptions?.repeatCount ?: 0
         val autoPlay = animationOptions?.autoPlay ?: true
         
         view.apply {
-            composition = resource
+            //防止多个view共用导致的复用问题
+            composition = resource.copyOriginal()
             setRepeatCount(repeatCount)
-            
             // 如果设置了自动播放，则调用 play()
             if (autoPlay) {
                 play()

@@ -2,77 +2,30 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/title_view"
-        android:layout_width="wrap_content"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="AntiFlux"
-        android:textColor="#000000"
-        android:textSize="40sp"
-        android:textStyle="bold"
+        android:layout_marginTop="60dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:tabGravity="fill"
+        app:tabMode="fixed"
         tools:ignore="HardcodedText" />
 
-
-    <org.libpag.PAGImageView
-        android:id="@+id/pag_view"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_view" />
-
-
-    <Button
-        android:id="@+id/btn_load_pag"
-        android:layout_width="100dp"
-        android:layout_height="40dp"
-        android:text="加载PAG"
-        android:textColor="#333333"
-        android:textSize="13sp"
-        app:layout_constraintBottom_toBottomOf="@id/pag_view"
-        app:layout_constraintEnd_toStartOf="@id/pag_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/pag_view" />
-
-    <com.opensource.svgaplayer.SVGAImageView
-        android:id="@+id/svga_view"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:visibility="gone"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pag_view" />
-
-    <com.kernelflux.gif.GifImageView
-        android:id="@+id/gif_view"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:visibility="gone"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/svga_view" />
-
-
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottie_view"
-        android:visibility="gone"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/gif_view" />
-
+        app:layout_constraintTop_toBottomOf="@id/tab_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

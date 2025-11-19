@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         
         // 使用带 Tab 的布局
-        setContentView(R.layout.activity_main_with_tabs)
+        setContentView(R.layout.activity_main)
         
         AniFluxLogger.i("MainActivity onCreate")
 

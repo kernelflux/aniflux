@@ -11,6 +11,7 @@ import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
+import org.libpag.PAGImageView
 import org.libpag.PAGView
 
 /**
@@ -20,6 +21,8 @@ import org.libpag.PAGView
 class PAGTestFragment : BaseLazyFragment() {
 
     private lateinit var pagView: PAGView
+    private lateinit var pagView2: PAGView
+    private lateinit var pagView3: PAGImageView
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
@@ -42,6 +45,8 @@ class PAGTestFragment : BaseLazyFragment() {
         val view = inflater.inflate(R.layout.fragment_pag_test, container, false)
 
         pagView = view.findViewById(R.id.pag_view)
+        pagView2 = view.findViewById(R.id.pag_view2)
+        pagView3 = view.findViewById(R.id.pag_image_view)
         tvStatus = view.findViewById(R.id.tv_status)
         tvVisibility = view.findViewById(R.id.tv_visibility)
 
@@ -102,45 +107,24 @@ class PAGTestFragment : BaseLazyFragment() {
         AniFlux.with(requireContext())
             .asPAG()
             .load(pagUrl)
-            .cacheStrategy(AnimationCacheStrategy.BOTH)
+            .cacheStrategy(AnimationCacheStrategy.NONE)
             .retainLastFrame(false)
-            .playListener(object : AnimationPlayListener {
-                override fun onAnimationStart() {
-                    AniFluxLogger.i("[$tabName] PAG动画开始播放")
-                    handler.post {
-                        tvStatus.text = "状态：播放中"
-                    }
-                }
-
-                override fun onAnimationEnd() {
-                    AniFluxLogger.i("[$tabName] PAG动画播放结束")
-                    handler.post {
-                        tvStatus.text = "状态：播放结束"
-                    }
-                }
-
-                override fun onAnimationCancel() {
-                    AniFluxLogger.i("[$tabName] PAG动画播放取消")
-                    handler.post {
-                        tvStatus.text = "状态：已取消"
-                    }
-                }
-
-                override fun onAnimationRepeat() {
-                    AniFluxLogger.i("[$tabName] PAG动画重复播放 ⚠️")
-                    handler.post {
-                        tvStatus.text = "状态：重复播放中"
-                    }
-                }
-
-                override fun onAnimationFailed(error: Throwable?) {
-                    AniFluxLogger.i("[$tabName] PAG动画播放失败: ${error?.message}")
-                    handler.post {
-                        tvStatus.text = "状态：加载失败"
-                    }
-                }
-            })
             .into(pagView)
+
+        AniFlux.with(requireContext())
+            .asPAG()
+            .load(pagUrl)
+            .cacheStrategy(AnimationCacheStrategy.NONE)
+            .retainLastFrame(false)
+            .into(pagView2)
+
+        AniFlux.with(requireContext())
+            .asPAG()
+            .load(pagUrl)
+            .cacheStrategy(AnimationCacheStrategy.NONE)
+            .retainLastFrame(false)
+            .into(pagView3)
+
     }
 
     private fun startVisibilityMonitoring() {
@@ -179,7 +163,7 @@ class PAGTestFragment : BaseLazyFragment() {
 
         // 如果不可见，记录日志
         if (!isAttached || !isShown) {
-         //   AniFluxLogger.i("[$tabName] View不可见: $status")
+            //   AniFluxLogger.i("[$tabName] View不可见: $status")
         }
     }
 

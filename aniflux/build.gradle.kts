@@ -5,10 +5,10 @@ plugins {
 
 android {
     namespace = "com.kernelflux.aniflux"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -37,19 +37,14 @@ dependencies {
         include("*.jar", "*.aar")
     })
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
+    api(libs.androidx.core.ktx)
+    api(libs.androidx.appcompat)
+    api("androidx.fragment:fragment:1.8.9")
 
     api("androidx.exifinterface:exifinterface:1.4.1")
     api("com.squareup.okhttp3:okhttp:5.1.0")
     api("com.airbnb.android:lottie:6.7.1")
-
-    //api("com.tencent.tav:libpag:4.5.2")
-    //api("io.github.tencent:vap:2.0.28")
-    //api("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
-    //api("com.github.yyued:svgaplayer-android:2.6.1")
+    api(project(path = ":animLibs:libpag:android:libpag"))
     api(project(path = ":animLibs:svgaplayer"))
     api(project(path = ":animLibs:android-gif-drawable"))
     api(project(path = ":animLibs:vap"))

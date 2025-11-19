@@ -57,7 +57,6 @@ class AnimationEngine(
 
         // 2. 内存中没有，检查磁盘缓存（如果启用）
         if (animationDiskCache != null &&
-            options.useDiskCache &&
             (options.cacheStrategy == AnimationCacheStrategy.DISK_ONLY || options.cacheStrategy == AnimationCacheStrategy.BOTH)
         ) {
             val diskFile = animationDiskCache.get(key.toCacheKey())
@@ -71,7 +70,10 @@ class AnimationEngine(
         // 3. 检查是否有正在执行的任务
         val existingJob = activeJobs[key]
         if (existingJob != null) {
-            // 有正在执行的任务，等待它完成
+            //有正在执行的任务，将新的 callback 添加到现有的Job
+            if (cb != null) {
+                existingJob.addCallback(cb)
+            }
             return LoadStatus(cb, existingJob)
         }
 
@@ -209,11 +211,11 @@ class AnimationEngine(
 
     /**
      * 处理等待该资源的其他任务
-     * 暂时简化实现，后续可以扩展
+     * 实际上不需要在这里处理，因为 addCallback 已经处理了等待的请求
+     * 但可以保留作为扩展点
      */
     private fun handleWaitingJobs(key: AnimationKey, resource: AnimationResource<*>?) {
-        // 简化实现：暂时不需要复杂的等待队列管理
-        // 后续可以根据需要实现等待相同资源的任务队列
+        // addCallback 已经处理了等待的请求，这里可以留空或做额外处理
     }
 
     /**

@@ -20,6 +20,7 @@ import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import java.util.concurrent.ExecutorService
 import androidx.core.net.toUri
+import com.kernelflux.aniflux.cache.AnimationDiskCache
 
 /**
  * 动画任务
@@ -34,7 +35,7 @@ class AnimationJob<T>(
     private val key: AnimationKey,
     private val listener: AnimationRequestListener<T>?,
     private val callback: AnimationResourceCallback? = null,
-    private val animationDiskCache: com.kernelflux.aniflux.cache.AnimationDiskCache? = null,
+    private val animationDiskCache: AnimationDiskCache? = null,
     private val diskCachedFile: java.io.File? = null
 ) {
 
@@ -67,6 +68,50 @@ class AnimationJob<T>(
     private var exception: Throwable? = null
     private var dataSource: AnimationDataSource = AnimationDataSource.LOCAL
 
+    //添加 callback 列表管理
+    private val callbacks = mutableListOf<AnimationResourceCallback>()
+
+    init {
+        // 将第一个 callback 添加到列表
+        callback?.let { callbacks.add(it) }
+    }
+
+    /**
+     * 添加 callback（供等待的请求使用）
+     * 参考 Glide EngineJob.addCallback()
+     */
+    @Synchronized
+    fun addCallback(cb: AnimationResourceCallback) {
+        if (isCancelled || isComplete) {
+            return
+        }
+
+        callbacks.add(cb)
+
+        // 如果资源已经准备好，立即通知新添加的 callback
+        if (hasResource && resource != null) {
+            // 提前 acquire，避免资源被回收
+            resource!!.acquire()
+            mainHandler.post {
+                try {
+                    cb.onResourceReady(resource!!, dataSource, false)
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "Error in callback onResourceReady", e)
+                    // 如果出错，释放资源
+                    resource?.release()
+                }
+            }
+        } else if (hasLoadFailed && exception != null) {
+            mainHandler.post {
+                try {
+                    cb.onLoadFailed(exception!!)
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "Error in callback onLoadFailed", e)
+                }
+            }
+        }
+    }
+
     /**
      * 启动任务
      */
@@ -87,11 +132,7 @@ class AnimationJob<T>(
      * 选择执行器
      */
     private fun selectExecutor(): ExecutorService {
-        return when {
-            options.useDiskCache -> AnimationExecutor.getDiskCacheExecutor()
-            options.isAnimation -> AnimationExecutor.getAnimationExecutor()
-            else -> AnimationExecutor.getSourceExecutor()
-        }
+        return AnimationExecutor.getSourceExecutor()
     }
 
     /**
@@ -99,13 +140,8 @@ class AnimationJob<T>(
      */
     private fun executeTask() {
         if (isCancelled) return
-
-        // 这里应该调用具体的动画加载逻辑
-        // 暂时使用简单的模拟
         val result = loadAnimation()
-
         if (isCancelled) return
-
         handleSuccess(result)
     }
 
@@ -585,35 +621,45 @@ class AnimationJob<T>(
     private fun notifyCallbacksOfResult() {
         val resource = this.resource ?: return
 
-        // 如果有callback，优先通知callback
-        if (callback != null) {
-            mainHandler.post {
-                try {
-                    callback.onResourceReady(
-                        resource,
-                        dataSource,
-                        false
-                    )
-                } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Error in callback onResourceReady", e)
+        // 复制列表，避免并发修改
+        val callbacksCopy = synchronized(this) {
+            if (isCancelled) {
+                resource.recycle()
+                return
+            } else if (callbacks.isEmpty()) {
+                // 如果没有 callback，通知 target 和 listener（保持向后兼容）
+                mainHandler.post {
+                    try {
+                        target.onResourceReady(resource.get())
+                        listener?.onResourceReady(
+                            resource.get(),
+                            model,
+                            target,
+                            dataSource,
+                            false
+                        )
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error in success callback", e)
+                    }
                 }
+                return
             }
-            return
+            // 注意：hasResource 已经在 handleSuccess() 中设置为 true，这里不需要再次设置
+            callbacks.toList()  // 复制列表
         }
 
-        // 通知target和listener
+        // 通知所有 callback
         mainHandler.post {
-            try {
-                target.onResourceReady(resource.get())
-                listener?.onResourceReady(
-                    resource.get(),
-                    model,
-                    target,
-                    dataSource,
-                    false
-                )
-            } catch (e: Exception) {
-                android.util.Log.e(TAG, "Error in success callback", e)
+            callbacksCopy.forEach { cb ->
+                try {
+                    // 每个 callback 都需要 acquire
+                    resource.acquire()
+                    cb.onResourceReady(resource, dataSource, false)
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "Error in callback onResourceReady", e)
+                    // 如果出错，释放资源
+                    resource.release()
+                }
             }
         }
     }
@@ -624,35 +670,46 @@ class AnimationJob<T>(
     private fun notifyCallbacksOfException() {
         val exception = this.exception ?: return
 
-        // 如果有callback，优先通知callback（这是从SingleAnimationRequest传来的）
-        if (callback != null) {
-            mainHandler.post {
+        // 复制列表，避免并发修改
+        val callbacksCopy = synchronized(this) {
+            if (isCancelled) {
+                return
+            } else if (callbacks.isEmpty()) {
+                // 如果没有 callback，通知 target 和 listener（保持向后兼容）
+                mainHandler.post {
+                    try {
+                        target.onLoadFailed(null)
+                        listener?.onLoadFailed(exception, model, target, false)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error in failure callback", e)
+                    }
+                }
+                return
+            }
+            // 注意：hasLoadFailed 已经在 handleError() 中设置为 true，这里不需要再次设置
+            callbacks.toList()  // 复制列表
+        }
+
+        // 通知所有 callback
+        mainHandler.post {
+            callbacksCopy.forEach { cb ->
                 try {
-                    callback.onLoadFailed(exception)
+                    cb.onLoadFailed(exception)
                 } catch (e: Exception) {
                     android.util.Log.e(TAG, "Error in callback onLoadFailed", e)
                 }
-            }
-            return
-        }
-
-        // 通知target和listener
-        mainHandler.post {
-            try {
-                target.onLoadFailed(null)
-                listener?.onLoadFailed(exception, model, target, false)
-            } catch (e: Exception) {
-                android.util.Log.e(TAG, "Error in failure callback", e)
             }
         }
     }
 
     /**
-     * 移除回调（简化实现）
+     * 移除回调
      */
     @Synchronized
     fun removeCallback(cb: AnimationResourceCallback?) {
-        // 简化实现，暂时不需要复杂的回调管理
+        if (cb != null) {
+            callbacks.remove(cb)
+        }
     }
 
     /**

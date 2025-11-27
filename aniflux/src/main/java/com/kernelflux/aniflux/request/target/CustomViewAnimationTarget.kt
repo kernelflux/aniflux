@@ -1,7 +1,9 @@
 package com.kernelflux.aniflux.request.target
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Point
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -12,6 +14,9 @@ import android.view.ViewTreeObserver
 import android.view.WindowManager
 import androidx.annotation.IdRes
 import androidx.core.util.Preconditions
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import com.kernelflux.aniflux.R
 import com.kernelflux.aniflux.request.AnimationRequest
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
@@ -19,6 +24,8 @@ import com.kernelflux.aniflux.request.listener.AnimationPlayListenerSetupHelper
 import com.kernelflux.aniflux.util.AnimationOptions
 import java.lang.ref.WeakReference
 import kotlin.math.max
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 
 /**
  * @author: kerneflux
@@ -236,6 +243,59 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     override fun removeCallback(cb: AnimationSizeReadyCallback) {
         sizeDeterminer.removeCallback(cb)
     }
+    
+    /**
+     * 获取关联的Lifecycle（如果存在）
+     * 通过View找到对应的Activity或Fragment的Lifecycle
+     */
+    protected fun getLifecycle(): androidx.lifecycle.Lifecycle? {
+        val context = view.context ?: return null
+        
+        // 尝试从Context获取Activity
+        val activity = findActivity(context) ?: return null
+        
+        // 如果是FragmentActivity，尝试找到Fragment
+        if (activity is androidx.fragment.app.FragmentActivity) {
+            val fragment = findSupportFragment(view, activity)
+            if (fragment != null) {
+                return fragment.lifecycle
+            }
+            return activity.lifecycle
+        }
+        
+        // 标准Activity（需要AndroidX Activity）
+        if (activity is androidx.lifecycle.LifecycleOwner) {
+            return activity.lifecycle
+        }
+        
+        return null
+    }
+    
+    /**
+     * 查找View所属的Fragment
+     */
+    private fun findSupportFragment(view: View, activity: androidx.fragment.app.FragmentActivity): androidx.fragment.app.Fragment? {
+        var current: View? = view
+        while (current != null) {
+            val fragment = activity.supportFragmentManager.findFragmentByTag(current.tag?.toString())
+            if (fragment != null) {
+                return fragment
+            }
+            current = current.parent as? View
+        }
+        return null
+    }
+    
+    /**
+     * 从Context查找Activity
+     */
+    private fun findActivity(context: Context): android.app.Activity? {
+        return when (context) {
+            is android.app.Activity -> context
+            is android.content.ContextWrapper -> findActivity(context.baseContext)
+            else -> null
+        }
+    }
 
 
     class SizeDeterminer internal constructor(private val view: View) {
@@ -255,7 +315,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
                 return
             }
 
-            if (view.visibility == View.GONE || view.visibility == View.INVISIBLE) {
+            if (view.isGone || view.isInvisible) {
                 return
             }
             
@@ -270,7 +330,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
         }
 
         fun getSize(cb: AnimationSizeReadyCallback) {
-            if (view.visibility == View.GONE || view.visibility == View.INVISIBLE) {
+            if (view.isGone || view.isInvisible) {
                 // View不可见，添加到回调列表，等待View变为可见
                 if (!cbs.contains(cb)) {
                     cbs.add(cb)

@@ -2,6 +2,7 @@ package com.kernelflux.aniflux.util
 
 import android.widget.ImageView
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
+import com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap
 
 /**
  * 动画选项
@@ -19,6 +20,9 @@ class AnimationOptions {
     var repeatCount: Int = -1 // -1表示无限循环，0表示不循环，>0表示循环次数
     var autoPlay: Boolean = true // 是否自动播放
     var retainLastFrame: Boolean = true // 是否保留最后一帧（动画结束时），默认 true
+    
+    // 占位图替换配置
+    var placeholderReplacements: PlaceholderReplacementMap? = null
     
     companion object {
         @JvmStatic
@@ -64,6 +68,29 @@ class AnimationOptions {
      */
     fun retainLastFrame(retain: Boolean): AnimationOptions {
         this.retainLastFrame = retain
+        return this
+    }
+    
+    /**
+     * 设置占位图替换配置（使用DSL）
+     * 
+     * @param builder 占位图替换配置的构建器
+     * @return this，支持链式调用
+     */
+    fun placeholderReplacements(builder: PlaceholderReplacementMap.() -> Unit): AnimationOptions {
+        val map = PlaceholderReplacementMap().apply(builder)
+        this.placeholderReplacements = map
+        return this
+    }
+    
+    /**
+     * 设置占位图替换配置（直接传入）
+     * 
+     * @param map 占位图替换映射表
+     * @return this，支持链式调用
+     */
+    fun placeholderReplacements(map: PlaceholderReplacementMap): AnimationOptions {
+        this.placeholderReplacements = map
         return this
     }
 }

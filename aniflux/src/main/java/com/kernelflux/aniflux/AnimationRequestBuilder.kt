@@ -138,6 +138,41 @@ class AnimationRequestBuilder<T>(
         options.retainLastFrame(retain)
         return this
     }
+    
+    /**
+     * 设置占位图替换配置（使用DSL）
+     * 
+     * 支持的格式：SVGA、PAG、Lottie
+     * 
+     * @param builder 占位图替换配置的构建器
+     * @return this，支持链式调用
+     * 
+     * 示例：
+     * ```
+     * .placeholderReplacements {
+     *     add("user_1", "https://example.com/user1.jpg")
+     *     add("user_2", File("/sdcard/user2.jpg"))
+     *     add("logo", R.drawable.logo)
+     * }
+     * ```
+     */
+    fun placeholderReplacements(builder: com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap.() -> Unit): AnimationRequestBuilder<T> {
+        options.placeholderReplacements(builder)
+        return this
+    }
+    
+    /**
+     * 设置占位图替换配置（直接传入）
+     * 
+     * 支持的格式：SVGA、PAG、Lottie
+     * 
+     * @param map 占位图替换映射表
+     * @return this，支持链式调用
+     */
+    fun placeholderReplacements(map: com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap): AnimationRequestBuilder<T> {
+        options.placeholderReplacements(map)
+        return this
+    }
 
     /**
      * 应用自定义配置选项

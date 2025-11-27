@@ -15,6 +15,7 @@ import java.io.File
 import com.kernelflux.aniflux.manager.AnimationConnectivityMonitorFactory
 import com.kernelflux.aniflux.manager.AnimationRequestManagerRetriever
 import com.kernelflux.aniflux.manager.DefaultAnimationConnectivityMonitorFactory
+import com.kernelflux.aniflux.placeholder.PlaceholderImageLoader
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.target.AnimationTarget
 import com.kernelflux.aniflux.util.Util
@@ -32,6 +33,9 @@ class AniFlux : ComponentCallbacks2 {
     private val defaultRequestListeners: List<AnimationRequestListener<Any>>
     private val logLevel: Int
     private val engine: AnimationEngine
+    
+    @Volatile
+    private var placeholderImageLoader: PlaceholderImageLoader? = null
 
     constructor(
         context: Context,
@@ -77,6 +81,25 @@ class AniFlux : ComponentCallbacks2 {
             synchronized(AniFlux::class.java) {
                 aniFlux?.let { unInit() }
                 initializeAniFlux(context)
+            }
+        }
+        
+        /**
+         * 带配置的初始化
+         * 
+         * @param context 上下文
+         * @param config 配置构建器
+         */
+        @JvmStatic
+        fun init(context: Context, config: AniFluxConfiguration.() -> Unit) {
+            synchronized(AniFlux::class.java) {
+                aniFlux?.let { unInit() }
+                val configuration = AniFluxConfiguration().apply(config)
+                val instance = initializeAniFlux(context)
+                configuration.placeholderImageLoader?.let {
+                    instance.setPlaceholderImageLoader(it)
+                }
+                aniFlux = instance
             }
         }
 
@@ -154,6 +177,23 @@ class AniFlux : ComponentCallbacks2 {
     }
 
     fun getEngine(): AnimationEngine = engine
+    
+    /**
+     * 设置占位图加载器
+     * 业务方需要实现 PlaceholderImageLoader 接口
+     * 
+     * @param loader 占位图加载器实现
+     */
+    fun setPlaceholderImageLoader(loader: PlaceholderImageLoader) {
+        this.placeholderImageLoader = loader
+    }
+    
+    /**
+     * 获取占位图加载器
+     * 
+     * @return 占位图加载器，如果未设置则返回null
+     */
+    fun getPlaceholderImageLoader(): PlaceholderImageLoader? = placeholderImageLoader
 
     fun removeFromManagers(target: AnimationTarget<*>): Boolean {
         synchronized(managers) {

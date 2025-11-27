@@ -12,10 +12,9 @@ class AntiFluxSampleApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        AniFlux.init(this)
-
-
+        // 初始化 AniFlux，并设置 Glide 占位图加载器
+        AniFlux.init(this) {
+            setPlaceholderImageLoader(GlidePlaceholderImageLoader())
+        }
     }
-
-
 }

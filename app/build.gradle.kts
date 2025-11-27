@@ -60,6 +60,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    publishing {
+        singleVariant("release") {}
+    }
 }
 
 
@@ -79,7 +82,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
 
-    implementation(project(":aniflux"))
+    debugImplementation(project(":aniflux"))
+    releaseImplementation(libs.aniflux)
 
 
 }

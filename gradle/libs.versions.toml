@@ -1,4 +1,5 @@
 [versions]
+aniflux = "1.0.4"
 compileSdk = "36"
 glide = "5.0.5"
 kotlinStdlibJdk7 = "2.2.20"
@@ -32,6 +33,7 @@ mavencentraluploader = "1.0.3"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+aniflux = { module = "com.kernelflux.mobile:aniflux", version.ref = "aniflux" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlinStdlibJdk7" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }

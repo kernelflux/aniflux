@@ -213,7 +213,7 @@ public class PAGSurface {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 

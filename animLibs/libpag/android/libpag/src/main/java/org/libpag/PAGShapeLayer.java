@@ -10,7 +10,7 @@ public class PAGShapeLayer extends PAGLayer {
     private static native void nativeInit();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 }

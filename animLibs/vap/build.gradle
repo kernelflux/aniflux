@@ -1,10 +1,21 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.kernelflux.maven.publish' version '1.0.3'
+}
+
+// 发布配置
+ext {
+    publishArtifactId = "aniflux-vap"
+    publishVersion = "1.0.4"
+    publishBundleName = "aniflux_vap_bundle_v${publishVersion}"
+}
+
 
 android {
-    namespace = "com.kernelflux.vapplayer"
+    namespace = "com.kernelflux.vap"
 
     compileSdkVersion libs.versions.compileSdk.get().toInteger()
 
@@ -28,6 +39,12 @@ android {
         }
     }
 
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+
 }
 
 tasks.withType(KotlinCompile).configureEach {
@@ -38,18 +55,10 @@ tasks.withType(KotlinCompile).configureEach {
 
 
 dependencies {
-    implementation(libs.kotlin.stdlib.jdk7){
+    implementation(libs.kotlin.stdlib.jdk7) {
         exclude module: 'annotations'
     }
 }
 
-// jcenter 上传(这个要在底部)
-// 上传需要执行此任务 IDE -> gradle-> Tasks/publishing/bintrayUpload
-// apply from: file("publish.gradle")
-
-
-// maven central
-// 上传指令./gradlew uploadArchives
-// https://s01.oss.sonatype.org/
-// Staging Repositories -> close -> release
-// apply from: "../publish-mavencentral.gradle"
+// 应用通用发布配置
+apply from: rootProject.file('gradle/maven-publish.gradle')

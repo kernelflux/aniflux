@@ -23,7 +23,8 @@ import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import com.kernelflux.aniflux.util.Util
 import com.kernelflux.gif.GifDrawable
-import com.kernelflux.svgaplayer.SVGADrawable
+import com.kernelflux.lottie.LottieDrawable
+import com.kernelflux.svga.SVGADrawable
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -182,8 +183,8 @@ class AnimationRequestManager(
      * 指定加载 Lottie 动画
      */
     @CheckResult
-    fun asLottie(): AnimationRequestBuilder<com.airbnb.lottie.LottieDrawable> {
-        return `as`(com.airbnb.lottie.LottieDrawable::class.java)
+    fun asLottie(): AnimationRequestBuilder<LottieDrawable> {
+        return `as`(LottieDrawable::class.java)
     }
 
     /**

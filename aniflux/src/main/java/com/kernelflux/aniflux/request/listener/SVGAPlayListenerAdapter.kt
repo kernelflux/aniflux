@@ -1,6 +1,6 @@
 package com.kernelflux.aniflux.request.listener
 
-import com.kernelflux.svgaplayer.SVGACallback
+import com.kernelflux.svga.SVGACallback
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

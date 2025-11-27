@@ -1,0 +1,62 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.kernelflux.maven.publish' version '1.0.3'
+}
+
+// 发布配置
+ext {
+    publishArtifactId = "aniflux-svga"
+    publishVersion = "1.0.4"
+    publishBundleName = "aniflux_svga_bundle_v${publishVersion}"
+}
+
+
+android {
+    namespace = "com.kernelflux.svga"
+    compileSdkVersion libs.versions.compileSdk.get().toInteger()
+    defaultConfig {
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
+        versionCode 1
+        versionName "1.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+        kotlinOptions.freeCompilerArgs += ['-module-name', "com.kernelflux.svgaplayer"]
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+    packagingOptions {
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/MANIFEST.MF'
+    }
+}
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation libs.wire.runtime
+    implementation libs.kotlin.stdlib.jdk7
+}
+
+// 应用通用发布配置
+apply from: rootProject.file('gradle/maven-publish.gradle')

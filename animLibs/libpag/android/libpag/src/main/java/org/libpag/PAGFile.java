@@ -194,7 +194,7 @@ public class PAGFile extends PAGComposition {
     private static native final void nativeInit();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 }

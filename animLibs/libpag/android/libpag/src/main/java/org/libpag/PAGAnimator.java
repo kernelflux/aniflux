@@ -209,7 +209,7 @@ class PAGAnimator {
     private static native void nativeInit();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 

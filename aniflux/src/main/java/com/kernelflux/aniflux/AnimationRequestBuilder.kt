@@ -10,14 +10,14 @@ import com.kernelflux.aniflux.util.AnimationOptions
 import org.libpag.PAGFile
 import org.libpag.PAGImageView
 import org.libpag.PAGView
-import com.airbnb.lottie.LottieDrawable
-import com.airbnb.lottie.LottieAnimationView
+import com.kernelflux.lottie.LottieDrawable
+import com.kernelflux.lottie.LottieAnimationView
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
-import com.kernelflux.svgaplayer.SVGADrawable
-import com.kernelflux.svgaplayer.SVGAImageView
-import com.kernelflux.vapplayer.AnimView
+import com.kernelflux.svga.SVGADrawable
+import com.kernelflux.svga.SVGAImageView
+import com.kernelflux.vap.AnimView
 import java.io.File
 
 /**

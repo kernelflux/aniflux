@@ -13,10 +13,18 @@ buildscript {
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
-apply plugin: 'org.jreleaser'
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.kernelflux.maven.publish' version '1.0.3'
+}
+
+// 发布配置
+ext {
+    publishArtifactId = "aniflux-pag"
+    publishVersion = "1.0.4"
+    publishBundleName = "aniflux_pag_bundle_v${publishVersion}"
+}
 
 
 version = '4.5.2.1'
@@ -86,6 +94,9 @@ android {
     }
     namespace 'org.libpag'
 
+    publishing {
+        singleVariant("release") {}
+    }
 
     libraryVariants.configureEach { variant ->
         variant.outputs.all { output ->
@@ -109,93 +120,9 @@ tasks.register('androidSourcesJar', Jar) {
     exclude "**/BuildConfig.class"
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = 'com.tencent.tav'
-            artifactId = 'libpag'
+// 应用通用发布配置
+apply from: rootProject.file('gradle/maven-publish.gradle')
 
-            artifact("$buildDir/outputs/aar/libpag-release.aar")
-            artifact androidSourcesJar
-            pom {
-                name = 'libpag'
-                description = 'A real-time rendering library for PAG (Portable Animated Graphics) files that renders After Effects animations natively across multiple platforms.'
-                url = 'https://github.com/Tencent/libpag'
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'https://github.com/Tencent/libpag/blob/main/LICENSE.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'libpag'
-                        name = 'libpag'
-                        email = 'libpag@tencent.com'
-                    }
-                }
-                scm {
-                    url = 'https://github.com/Tencent/libpag'
-                    connection = 'scm:git:github.com/Tencent/libpag.git'
-                    developerConnection = 'scm:git:ssh://git@github.com/Tencent/libpag.git'
-                }
-            }
-        }
-    }
-    
-    repositories {
-        maven {
-            name = 'staging'
-            url = layout.buildDirectory.dir('staging-deploy')
-        }
-    }
-}
-
-signing {
-    // Completely disable Gradle signing - JReleaser will handle all signing
-    required { false }
-}
-
-jreleaser {
-    gitRootSearch = true
-
-    project{
-        description = "A real-time rendering library for PAG (Portable Animated Graphics) files that renders After Effects animations natively across multiple platforms."
-        copyright = "Copyright © 2025 Tencent. All rights reserved."
-    }
-    
-    release {
-        github {
-            enabled = true
-            skipTag = true
-            skipRelease = true
-        }
-    }
-    
-    signing {
-        active = 'ALWAYS'
-        armored = true
-    }
-    
-    deploy {
-        maven {
-            mavenCentral {
-                    sonatype {
-                    active = "ALWAYS"
-                    url = "https://central.sonatype.com/api/v1/publisher"
-                    stagingRepository(layout.buildDirectory.dir("staging-deploy").get().toString())
-                    setAuthorization("Basic")
-                    applyMavenCentralRules = false // Wait for fix: https://github.com/kordamp/pomchecker/issues/21
-                    sign = true
-                    checksums = true
-                    sourceJar = true
-                    javadocJar = true
-                    retryDelay = 60
-                }
-            }
-        }
-    }
-}
 
 project.afterEvaluate {
     mergeReleaseNativeLibs.doLast {

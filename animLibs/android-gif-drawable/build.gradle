@@ -1,5 +1,15 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.kernelflux.maven.publish' version '1.0.3'
+}
+
+// 发布配置
+ext {
+    publishArtifactId = "aniflux-gif"
+    publishVersion = "1.0.4"
+    publishBundleName = "aniflux_gif_bundle_v${publishVersion}"
+}
 
 group = 'com.kernelflux.gif'
 description = 'Views and Drawable for displaying animated GIFs for Android'
@@ -64,3 +74,5 @@ configurations.configureEach {
     resolutionStrategy.force libs.androidx.annotation
 }
 
+// 应用通用发布配置
+apply from: rootProject.file('gradle/maven-publish.gradle')

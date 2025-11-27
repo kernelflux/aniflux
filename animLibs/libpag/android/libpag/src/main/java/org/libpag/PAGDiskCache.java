@@ -70,6 +70,6 @@ public class PAGDiskCache {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
     }
 }

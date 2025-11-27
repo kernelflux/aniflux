@@ -149,7 +149,7 @@ public class PAGDecoder {
     private static native void nativeInit();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 

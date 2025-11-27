@@ -222,7 +222,7 @@ public class PAGLayer {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 }

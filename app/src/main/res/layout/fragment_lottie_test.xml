@@ -32,7 +32,7 @@
         app:layout_constraintTop_toBottomOf="@id/tv_title"
         tools:ignore="HardcodedText" />
 
-    <com.airbnb.lottie.LottieAnimationView
+    <com.kernelflux.lottie.LottieAnimationView
         android:id="@+id/lottie_view"
         android:layout_width="200dp"
         android:layout_height="200dp"

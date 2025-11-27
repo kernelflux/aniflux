@@ -25,6 +25,6 @@ class NativeTask {
     static native void Run(Runnable runnable);
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
     }
 }

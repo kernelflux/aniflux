@@ -10,6 +10,7 @@ ndk = "26.3.11579264"
 
 #noinspection AndroidGradlePluginVersion
 agp = "8.13.0"
+#noinspection NewerVersionAvailable
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
@@ -25,7 +26,7 @@ relinker = "1.4.5"
 #noinspection NewerVersionAvailable
 wireRuntime = "2.3.0-RC1"
 
-
+mavencentraluploader = "1.0.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,4 +47,5 @@ wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wireR
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+maven-central-uploader = { id = "com.kernelflux.maven.publish", version.ref = "mavencentraluploader" }
 

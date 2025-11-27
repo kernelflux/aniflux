@@ -347,6 +347,6 @@ public class PAGFont {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
     }
 }

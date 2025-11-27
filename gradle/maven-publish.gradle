@@ -1,0 +1,71 @@
+/**
+ * 通用的 Maven Central 发布配置脚本
+ * 
+ * 使用方法：
+ * 1. 在 build.gradle 中 apply 此脚本：
+ *    apply from: rootProject.file('gradle/maven-publish.gradle')
+ * 
+ * 2. 在 apply 之前定义以下变量：
+ *    ext {
+ *        publishArtifactId = "aniflux-xxx"  // 必需：artifact ID
+ *        publishVersion = "1.0.0"            // 必需：版本号
+ *        publishBundleName = "aniflux_xxx_bundle_v${publishVersion}"  // 可选：默认使用 artifactId
+ *    }
+ */
+// 检查必需的配置
+if (!project.hasProperty('publishArtifactId')) {
+    throw new GradleException("publishArtifactId must be defined before applying maven-publish.gradle")
+}
+if (!project.hasProperty('publishVersion')) {
+    throw new GradleException("publishVersion must be defined before applying maven-publish.gradle")
+}
+
+// 默认配置
+def sGroupId = "com.kernelflux.mobile"
+def sArtifactId = project.ext.publishArtifactId
+def sVersion = project.ext.publishVersion
+def sBundleName = project.hasProperty('publishBundleName') 
+    ? project.ext.publishBundleName 
+    : "${sArtifactId.replace('-', '_')}_bundle_v${sVersion}"
+
+// 配置 mavenCentralUpload
+mavenCentralUpload {
+    uploadBundleName = sBundleName
+    username = findProperty("sonatypeUsername")
+    password = findProperty("sonatypePassword")
+
+    groupId = sGroupId
+    artifactId = sArtifactId
+    version = sVersion
+
+    signingKeyFile = rootProject.rootDir.absolutePath + findProperty("signingKeyFile")
+    signingPass = findProperty("signingPass")
+
+    // 在 Groovy DSL 中，需要显式创建 Action 对象
+    pom.set(new Action<MavenPom>() {
+        @Override
+        void execute(MavenPom mavenPom) {
+            mavenPom.name.set(sArtifactId)
+            mavenPom.description.set("A powerful Android animation loading framework ")
+            mavenPom.url.set("https://github.com/kernelflux")
+            mavenPom.licenses {
+                license {
+                    name.set("Apache License 2.0")
+                    url.set("http://www.apache.org/licenses/LICENSE-2.0")
+                }
+            }
+            mavenPom.developers {
+                developer {
+                    id.set("kernelflux")
+                    name.set("0kt12")
+                }
+            }
+            mavenPom.scm {
+                url.set("https://github.com/kernelflux")
+                connection.set("https://github.com/kernelflux")
+                developerConnection.set("https://github.com/kernelflux")
+            }
+        }
+    })
+}
+

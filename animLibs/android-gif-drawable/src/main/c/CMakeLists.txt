@@ -13,7 +13,7 @@ if((${ANDROID_ABI} STREQUAL "armeabi") OR (${ANDROID_ABI} STREQUAL "armeabi-v7a"
     list(APPEND SOURCES	memset.arm.S)
 endif((${ANDROID_ABI} STREQUAL "armeabi") OR (${ANDROID_ABI} STREQUAL "armeabi-v7a"))
 
-add_library(com_kernelflux_gif SHARED ${SOURCES})
+add_library(anifluxGif SHARED ${SOURCES})
 
 set(LIBS)
 list(APPEND LIBS
@@ -23,5 +23,5 @@ list(APPEND LIBS
     log
 )
 
-target_link_libraries(com_kernelflux_gif ${LIBS})
-target_link_options(com_kernelflux_gif PRIVATE "-Wl,-z,max-page-size=16384")
+target_link_libraries(anifluxGif ${LIBS})
+target_link_options(anifluxGif PRIVATE "-Wl,-z,max-page-size=16384")

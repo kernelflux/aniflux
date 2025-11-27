@@ -2,16 +2,16 @@ package com.kernelflux.aniflux.request.listener
 
 import android.annotation.SuppressLint
 import android.view.View
-import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieDrawable
+import com.kernelflux.lottie.LottieAnimationView
+import com.kernelflux.lottie.LottieDrawable
 import com.kernelflux.aniflux.request.target.CustomAnimationTarget
 import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.gif.AnimationListener
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
-import com.kernelflux.svgaplayer.SVGADrawable
-import com.kernelflux.svgaplayer.SVGAImageView
-import com.kernelflux.vapplayer.AnimView
+import com.kernelflux.svga.SVGADrawable
+import com.kernelflux.svga.SVGAImageView
+import com.kernelflux.vap.AnimView
 import org.libpag.PAGFile
 import org.libpag.PAGImageView
 import org.libpag.PAGView

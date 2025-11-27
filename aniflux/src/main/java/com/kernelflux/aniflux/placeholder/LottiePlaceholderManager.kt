@@ -3,8 +3,8 @@ package com.kernelflux.aniflux.placeholder
 import android.graphics.Bitmap
 import android.view.View
 import androidx.lifecycle.Lifecycle
-import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieDrawable
+import com.kernelflux.lottie.LottieAnimationView
+import com.kernelflux.lottie.LottieDrawable
 
 /**
  * Lottie 占位图管理器

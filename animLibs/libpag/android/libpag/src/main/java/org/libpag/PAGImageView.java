@@ -897,6 +897,6 @@ public class PAGImageView extends View implements PAGAnimator.Listener {
     }
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
     }
 }

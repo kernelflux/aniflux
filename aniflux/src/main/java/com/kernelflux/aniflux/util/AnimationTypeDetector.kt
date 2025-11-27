@@ -1,10 +1,6 @@
 package com.kernelflux.aniflux.util
 
 import android.content.Context
-import android.content.res.AssetManager
-import com.kernelflux.gif.GifDrawable
-import com.kernelflux.svgaplayer.SVGADrawable
-import java.io.File
 import java.io.InputStream
 
 /**

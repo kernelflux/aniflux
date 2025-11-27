@@ -1,7 +1,7 @@
 package com.kernelflux.aniflux.request.listener
 
 import android.animation.Animator
-import com.airbnb.lottie.LottieAnimationView
+import com.kernelflux.lottie.LottieAnimationView
 
 /**
  * Lottie动画播放监听器适配器

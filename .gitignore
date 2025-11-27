@@ -1,11 +1,16 @@
 *.iml
 .gradle
-.idea/
-.kotlin/
+local.properties
+gradle.properties
+private.properties
+/.idea
 .DS_Store
 build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
-private.properties
+
+/gpg
+# keystore files
+*.jks
+keystore.properties

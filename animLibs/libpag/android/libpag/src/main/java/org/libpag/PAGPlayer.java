@@ -244,7 +244,7 @@ public class PAGPlayer {
 
     static {
         LibraryLoadUtils.loadLibrary("ffavc");
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 

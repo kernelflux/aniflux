@@ -2,11 +2,10 @@ package com.kernelflux.aniflux.request.target
 
 import android.animation.ValueAnimator
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.Lifecycle
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.placeholder.PlaceholderManager
-import com.kernelflux.svgaplayer.SVGADrawable
-import com.kernelflux.svgaplayer.SVGAImageView
+import com.kernelflux.svga.SVGADrawable
+import com.kernelflux.svga.SVGAImageView
 
 /**
  * SVGA动画的专用ViewTarget

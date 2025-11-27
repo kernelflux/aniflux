@@ -211,7 +211,7 @@ public class PAGImage {
     private native void nativeFinalize();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 

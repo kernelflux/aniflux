@@ -1,12 +1,10 @@
 package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.Lifecycle
-import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieDrawable
+import com.kernelflux.lottie.LottieAnimationView
+import com.kernelflux.lottie.LottieDrawable
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.placeholder.PlaceholderManager
-import com.kernelflux.aniflux.request.listener.AnimationPlayListenerSetupHelper
 
 /**
  * Lottie动画的专用ViewTarget

@@ -16,6 +16,6 @@ public abstract class VideoDecoder {
     public static native void SetMaxHardwareDecoderCount(int maxCount);
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
     }
 }

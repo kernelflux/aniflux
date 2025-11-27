@@ -2,6 +2,7 @@
 
 > **A powerful Android animation loading framework that unifies loading and management of multiple animation formats**
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.kernelflux.mobile/aniflux.svg)](https://search.maven.org/artifact/com.kernelflux.mobile/aniflux)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-blue.svg)](https://kotlinlang.org/)
 [![Min SDK](https://img.shields.io/badge/Min%20SDK-21-green.svg)](https://developer.android.com/about/versions/android-5.0)
@@ -27,23 +28,25 @@ AniFlux is an Android animation loading framework inspired by [Glide](https://gi
 
 ### Add Dependencies
 
-> **⚠️ Important**: AniFlux is currently in development and has not been released to Maven Central yet.  
-> Please use source code dependency for now.
+Add the AniFlux dependency to your `build.gradle`. The core library includes all animation format support (GIF, Lottie, SVGA, PAG, VAP).
 
-**Source Code Dependency** (Current development version):
+**Kotlin DSL (build.gradle.kts)**:
+```kotlin
+dependencies {
+    implementation("com.kernelflux.mobile:aniflux:1.0.4")
+}
+```
 
-1. Clone or download the AniFlux repository
-2. Add the `aniflux` module to your project's `settings.gradle`:
-   ```gradle
-   include ':aniflux'
-   project(':aniflux').projectDir = new File('/path/to/aniflux/aniflux')
-   ```
-3. Add dependency in your app's `build.gradle`:
-   ```gradle
-   dependencies {
-       implementation project(':aniflux')
-   }
-   ```
+**Groovy DSL (build.gradle)**:
+```groovy
+dependencies {
+    implementation 'com.kernelflux.mobile:aniflux:1.0.4'
+}
+```
+
+> **Note**: The `aniflux` library includes all animation format libraries. You don't need to add them separately.
+
+**Find the latest version**: [Maven Central](https://search.maven.org/search?q=g:com.kernelflux.mobile)
 
 ### Initialize
 
@@ -349,31 +352,33 @@ AniFlux.with(context)
 
 ## 🎨 Supported Animation Formats
 
+All animation formats are included in the `aniflux` library. No additional dependencies are required.
+
 ### GIF
-- **Library**: android-gif-drawable
+- **Based on**: android-gif-drawable
 - **Format**: `.gif`
 - **Features**: Good compatibility, large file size
 
 ### Lottie
-- **Library**: lottie-android
+- **Based on**: lottie-android
 - **Format**: `.json`
 - **Features**: Vector animation, small file size, high quality
 - **Placeholder Support**: ✅ Yes
 
 ### SVGA
-- **Library**: SVGAPlayer-Android (Enhanced auto-pause feature)
+- **Based on**: SVGAPlayer-Android (Enhanced auto-pause feature)
 - **Format**: `.svga`
 - **Features**: High performance, audio support, small file size
 - **Placeholder Support**: ✅ Yes
 
 ### PAG
-- **Library**: libpag
+- **Based on**: libpag
 - **Format**: `.pag`
 - **Features**: Adobe After Effects export, high performance, powerful
 - **Placeholder Support**: ✅ Yes
 
 ### VAP
-- **Library**: vap
+- **Based on**: vap
 - **Format**: `.mp4` (Special format)
 - **Features**: Video format, transparency support, small file size
 - **Placeholder Support**: ❌ No

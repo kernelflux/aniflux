@@ -3,10 +3,10 @@ package com.kernelflux.aniflux.placeholder
 import android.graphics.Bitmap
 import android.view.View
 import androidx.lifecycle.Lifecycle
-import com.kernelflux.svgaplayer.SVGADynamicEntity
-import com.kernelflux.svgaplayer.SVGADrawable
-import com.kernelflux.svgaplayer.SVGAImageView
-import com.kernelflux.svgaplayer.SVGAVideoEntity
+import com.kernelflux.svga.SVGADynamicEntity
+import com.kernelflux.svga.SVGADrawable
+import com.kernelflux.svga.SVGAImageView
+import com.kernelflux.svga.SVGAVideoEntity
 
 /**
  * SVGA 占位图管理器

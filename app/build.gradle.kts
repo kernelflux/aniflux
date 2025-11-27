@@ -1,7 +1,21 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
+
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(keystorePropsFile.inputStream())
+}
+// helper to read env if property missing
+fun propOrEnv(key: String): String? =
+    (keystoreProps.getProperty(key) ?: System.getenv(key))?.takeIf { it.isNotBlank() }
 
 android {
     namespace = "com.kernelflux.anifluxsample"
@@ -18,8 +32,20 @@ android {
 
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(propOrEnv("storeFile") ?: "")
+            storePassword = propOrEnv("storePassword")
+            keyAlias = propOrEnv("keyAlias")
+            keyPassword = propOrEnv("keyPassword")
+        }
+    }
+
+
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -27,14 +53,22 @@ android {
             )
         }
     }
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+
+}
+
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
+
 
 dependencies {
     implementation(libs.material)

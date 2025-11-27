@@ -1,7 +1,7 @@
 package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
-import com.kernelflux.vapplayer.AnimView
+import com.kernelflux.vap.AnimView
 import java.io.File
 
 /**

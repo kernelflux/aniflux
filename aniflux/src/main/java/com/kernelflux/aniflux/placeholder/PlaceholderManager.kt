@@ -3,8 +3,8 @@ package com.kernelflux.aniflux.placeholder
 import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.airbnb.lottie.LottieDrawable
-import com.kernelflux.svgaplayer.SVGADrawable
+import com.kernelflux.lottie.LottieDrawable
+import com.kernelflux.svga.SVGADrawable
 import org.libpag.PAGFile
 
 /**

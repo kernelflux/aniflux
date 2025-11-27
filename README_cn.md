@@ -2,6 +2,7 @@
 
 > **一个强大的 Android 动画加载框架，统一多种动画格式的加载和管理**
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.kernelflux.mobile/aniflux.svg)](https://search.maven.org/artifact/com.kernelflux.mobile/aniflux)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-blue.svg)](https://kotlinlang.org/)
 [![Min SDK](https://img.shields.io/badge/Min%20SDK-21-green.svg)](https://developer.android.com/about/versions/android-5.0)
@@ -27,23 +28,25 @@ AniFlux 是一个专为 Android 设计的动画加载框架，灵感来源于 [G
 
 ### 添加依赖
 
-> **⚠️ 重要提示**: AniFlux 目前仍在开发中，尚未发布到 Maven Central。  
-> 请先使用源码依赖。
+在 `build.gradle` 中添加 AniFlux 依赖。核心库已包含所有动画格式支持（GIF、Lottie、SVGA、PAG、VAP）。
 
-**源码依赖**（当前开发版本）:
+**Kotlin DSL (build.gradle.kts)**:
+```kotlin
+dependencies {
+    implementation("com.kernelflux.mobile:aniflux:1.0.4")
+}
+```
 
-1. 克隆或下载 AniFlux 仓库
-2. 将 `aniflux` 模块添加到项目的 `settings.gradle`:
-   ```gradle
-   include ':aniflux'
-   project(':aniflux').projectDir = new File('/path/to/aniflux/aniflux')
-   ```
-3. 在应用的 `build.gradle` 中添加依赖:
-   ```gradle
-   dependencies {
-       implementation project(':aniflux')
-   }
-   ```
+**Groovy DSL (build.gradle)**:
+```groovy
+dependencies {
+    implementation 'com.kernelflux.mobile:aniflux:1.0.4'
+}
+```
+
+> **注意**: `aniflux` 库已包含所有动画格式库，无需单独添加。
+
+**查找最新版本**: [Maven Central](https://search.maven.org/search?q=g:com.kernelflux.mobile)
 
 ### 初始化
 
@@ -349,31 +352,33 @@ AniFlux.with(context)
 
 ## 🎨 支持的动画格式
 
+所有动画格式都已包含在 `aniflux` 库中，无需额外依赖。
+
 ### GIF
-- **库**: android-gif-drawable
+- **基于**: android-gif-drawable
 - **格式**: `.gif`
 - **特点**: 兼容性好，文件体积较大
 
 ### Lottie
-- **库**: lottie-android
+- **基于**: lottie-android
 - **格式**: `.json`
 - **特点**: 矢量动画，文件小，质量高
 - **占位图支持**: ✅ 是
 
 ### SVGA
-- **库**: SVGAPlayer-Android（已增强自动暂停功能）
+- **基于**: SVGAPlayer-Android（已增强自动暂停功能）
 - **格式**: `.svga`
 - **特点**: 高性能，支持音频，文件小
 - **占位图支持**: ✅ 是
 
 ### PAG
-- **库**: libpag
+- **基于**: libpag
 - **格式**: `.pag`
 - **特点**: Adobe After Effects 导出，高性能，功能强大
 - **占位图支持**: ✅ 是
 
 ### VAP
-- **库**: vap
+- **基于**: vap
 - **格式**: `.mp4`（特殊格式）
 - **特点**: 视频格式，支持透明度，文件小
 - **占位图支持**: ❌ 否

@@ -48,7 +48,7 @@ class VideoSurface implements SurfaceTexture.OnFrameAvailableListener {
     long nativeContext = 0;
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
         nativeInit();
     }
 

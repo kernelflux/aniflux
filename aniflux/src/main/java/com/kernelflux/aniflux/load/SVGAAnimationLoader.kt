@@ -2,9 +2,9 @@ package com.kernelflux.aniflux.load
 
 import android.content.Context
 import com.kernelflux.aniflux.util.AnimationTypeDetector
-import com.kernelflux.svgaplayer.SVGADrawable
-import com.kernelflux.svgaplayer.SVGAParser
-import com.kernelflux.svgaplayer.SVGAVideoEntity
+import com.kernelflux.svga.SVGADrawable
+import com.kernelflux.svga.SVGAParser
+import com.kernelflux.svga.SVGAVideoEntity
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream

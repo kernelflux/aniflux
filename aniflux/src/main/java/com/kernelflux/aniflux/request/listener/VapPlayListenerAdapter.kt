@@ -1,9 +1,8 @@
 package com.kernelflux.aniflux.request.listener
 
-import android.view.View
-import com.kernelflux.vapplayer.AnimConfig
-import com.kernelflux.vapplayer.AnimView
-import com.kernelflux.vapplayer.inter.IAnimListener
+import com.kernelflux.vap.AnimConfig
+import com.kernelflux.vap.AnimView
+import com.kernelflux.vap.inter.IAnimListener
 
 
 /**

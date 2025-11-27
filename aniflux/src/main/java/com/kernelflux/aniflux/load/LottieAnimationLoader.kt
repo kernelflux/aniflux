@@ -1,12 +1,11 @@
 package com.kernelflux.aniflux.load
 
 import android.content.Context
-import com.airbnb.lottie.LottieComposition
-import com.airbnb.lottie.LottieCompositionFactory
-import com.airbnb.lottie.LottieDrawable
+import com.kernelflux.lottie.LottieComposition
+import com.kernelflux.lottie.LottieCompositionFactory
+import com.kernelflux.lottie.LottieDrawable
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

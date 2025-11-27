@@ -9,6 +9,6 @@ public class PAG {
     public static native String SDKVersion();
 
     static {
-        LibraryLoadUtils.loadLibrary("pag");
+        LibraryLoadUtils.loadLibrary("anifluxPag");
     }
 }

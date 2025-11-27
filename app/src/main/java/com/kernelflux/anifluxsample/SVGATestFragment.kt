@@ -12,7 +12,7 @@ import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-import com.kernelflux.svgaplayer.SVGAImageView
+import com.kernelflux.svga.SVGAImageView
 
 /**
  * SVGA 动画测试 Fragment

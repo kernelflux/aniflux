@@ -16,7 +16,7 @@ class TabPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter
         ),
         SVGATestFragment.newInstance(
             "Tab 2",
-            "http://peanut-oss.weli010.cn/img/gift/29_ani.svga"
+            "asset://123.svga"
         ),
         GIFTestFragment.newInstance(
             "Tab 3",

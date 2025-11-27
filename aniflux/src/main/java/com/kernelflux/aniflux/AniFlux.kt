@@ -31,8 +31,6 @@ class AniFlux : ComponentCallbacks2 {
     private val connectivityMonitorFactory: AnimationConnectivityMonitorFactory
     private val defaultRequestListeners: List<AnimationRequestListener<Any>>
     private val logLevel: Int
-    
-    // 添加Engine实例
     private val engine: AnimationEngine
 
     constructor(
@@ -154,8 +152,7 @@ class AniFlux : ComponentCallbacks2 {
     fun getConnectivityMonitorFactory(): AnimationConnectivityMonitorFactory {
         return connectivityMonitorFactory
     }
-    
-    // 提供Engine访问
+
     fun getEngine(): AnimationEngine = engine
 
     fun removeFromManagers(target: AnimationTarget<*>): Boolean {

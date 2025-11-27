@@ -1,6 +1,7 @@
 package com.kernelflux.anifluxsample
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +14,8 @@ import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
+import com.kernelflux.svgaplayer.SVGADrawable
+import com.kernelflux.svgaplayer.SVGADynamicEntity
 import com.kernelflux.svgaplayer.SVGAImageView
 
 /**
@@ -26,6 +29,8 @@ class SVGATestFragment : BaseLazyFragment() {
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
     private var visibilityCheckRunnable: Runnable? = null
+    private var placeholderSetupRetryCount = 0
+    private val MAX_PLACEHOLDER_SETUP_RETRIES = 5
 
     private val tabName: String by lazy {
         arguments?.getString(ARG_TAB_NAME) ?: "Tab"
@@ -33,7 +38,7 @@ class SVGATestFragment : BaseLazyFragment() {
 
     private val svgaUrl: String by lazy {
         arguments?.getString(ARG_SVGA_URL)
-            ?: "https://peanut-oss.wemogu.net/client/animation/common/live_room_seat_boy.svga"
+            ?: "asset://123.svga"
     }
 
     @SuppressLint("MissingInflatedId")
@@ -143,6 +148,86 @@ class SVGATestFragment : BaseLazyFragment() {
                 }
             })
             .into(svgaImageView)
+
+        // 在动画加载完成后设置占位图
+        // 使用post延迟执行，确保drawable已经设置
+        svgaImageView.postDelayed({
+            setupPlaceholderImages()
+        }, 100) // 延迟100ms，确保drawable已经准备好
+    }
+
+    /**
+     * 设置SVGA占位图
+     * 从assets加载user1.jpg和user2.jpg，替换user_1和user_2占位符
+     */
+    private fun setupPlaceholderImages() {
+        try {
+            val drawable = svgaImageView.drawable as? SVGADrawable
+            val videoItem = drawable?.videoItem ?: run {
+                // 如果drawable还没准备好，重试（最多重试5次）
+                if (placeholderSetupRetryCount < MAX_PLACEHOLDER_SETUP_RETRIES) {
+                    placeholderSetupRetryCount++
+                    AniFluxLogger.i("[$tabName] 无法获取videoItem，重试设置占位图 ($placeholderSetupRetryCount/$MAX_PLACEHOLDER_SETUP_RETRIES)")
+                    svgaImageView.postDelayed({
+                        setupPlaceholderImages()
+                    }, 100)
+                } else {
+                    AniFluxLogger.i("[$tabName] 无法获取videoItem，占位图设置失败（已达到最大重试次数）")
+                }
+                return
+            }
+
+            // 重置重试计数器
+            placeholderSetupRetryCount = 0
+
+            // 创建动态实体
+            val dynamicEntity = SVGADynamicEntity()
+
+            // 从assets加载user1.jpg
+            try {
+                val inputStream1 = requireContext().assets.open("user1.jpg")
+                val bitmap1 = BitmapFactory.decodeStream(inputStream1)
+                inputStream1.close()
+                if (bitmap1 != null) {
+                    dynamicEntity.setDynamicImage(bitmap1, "user_1")
+                    AniFluxLogger.i("[$tabName] 成功设置占位图 user_1")
+                } else {
+                    AniFluxLogger.i("[$tabName] 无法解码 user1.jpg")
+                }
+            } catch (e: Exception) {
+                AniFluxLogger.i("[$tabName] 加载 user1.jpg 失败:${e.message}")
+            }
+
+            // 从assets加载user2.jpg
+            try {
+                val inputStream2 = requireContext().assets.open("user2.jpg")
+                val bitmap2 = BitmapFactory.decodeStream(inputStream2)
+                inputStream2.close()
+                if (bitmap2 != null) {
+                    dynamicEntity.setDynamicImage(bitmap2, "user_2")
+                    AniFluxLogger.i("[$tabName] 成功设置占位图 user_2")
+                } else {
+                    AniFluxLogger.i("[$tabName] 无法解码 user2.jpg")
+                }
+            } catch (e: Exception) {
+                AniFluxLogger.i("[$tabName] 加载 user2.jpg 失败:${e.message}")
+            }
+
+            // 保存当前播放状态
+            val wasAnimating = svgaImageView.isAnimating
+
+            // 重新设置videoItem，应用动态实体
+            svgaImageView.setVideoItem(videoItem, dynamicEntity)
+
+            // 如果之前正在播放，重新启动动画
+            if (wasAnimating) {
+                svgaImageView.startAnimation()
+            }
+
+            AniFluxLogger.i("[$tabName] 占位图设置完成")
+        } catch (e: Exception) {
+            AniFluxLogger.i("[$tabName] 设置占位图时发生错误:${e.message}")
+        }
     }
 
     private fun startVisibilityMonitoring() {

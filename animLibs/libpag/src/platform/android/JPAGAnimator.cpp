@@ -168,30 +168,33 @@ class JPAGAnimator {
       return;
     }
 
-    // 先断开回调链，再取消动画，避免回调中访问已销毁对象
-    std::shared_ptr<pag::PAGAnimator> animatorToCancel;
-    std::shared_ptr<pag::AnimatorListener> listenerToClear;
+    // 关键修复：不调用 cancel()，避免在 finalize 线程中死锁
+    // cancel() 需要获取 mutex 并可能回调到 Java 层，不适合在 finalize 中调用
+    // 只清理资源，不触发回调
+    std::shared_ptr<pag::PAGAnimator> animatorToRelease;
+    std::shared_ptr<pag::AnimatorListener> listenerToRelease;
     
     {
       std::lock_guard<std::mutex> autoLock(locker);
       // 保存引用，避免在锁外访问
-      animatorToCancel = animator;
-      listenerToClear = listener;
+      animatorToRelease = animator;
+      listenerToRelease = listener;
       
       // 先清空引用，防止回调中访问
       animator = nullptr;
       listener = nullptr;
     }
 
-    // 在锁外取消动画，避免死锁
-    // 此时 listener 已清空，cancel() 不会触发回调到 Java
-    if (animatorToCancel != nullptr) {
-      animatorToCancel->cancel();
-    }
-    
-    // 清理引用
-    animatorToCancel = nullptr;
-    listenerToClear = nullptr;
+    // 关键修复：不调用 cancel()，直接释放资源
+    // 如果需要在主线程中取消动画，应该在调用 clear() 之前显式调用 cancel()
+    animatorToRelease = nullptr;
+    listenerToRelease = nullptr;
+  }
+
+  void markAsCleared() {
+    // 标记为已清理，但不执行任何清理操作
+    // 用于 finalize 中，避免触发任何可能死锁的操作
+    isCleared.store(true, std::memory_order_release);
   }
 
   bool isDestroyed() const {
@@ -252,7 +255,7 @@ void setPAGAnimator(JNIEnv* env, jobject thiz, JPAGAnimator* animator) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGAnimator_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_nativeInit(JNIEnv* env, jclass clazz) {
   PAGAnimator_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
   PAGAnimator_onAnimationStart = env->GetMethodID(clazz, "onAnimationStart", "()V");
   PAGAnimator_onAnimationEnd = env->GetMethodID(clazz, "onAnimationEnd", "()V");
@@ -261,14 +264,14 @@ PAG_API void Java_org_libpag_PAGAnimator_nativeInit(JNIEnv* env, jclass clazz) {
   PAGAnimator_onAnimationUpdate = env->GetMethodID(clazz, "onAnimationUpdate", "()V");
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_nativeSetup(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_nativeSetup(JNIEnv* env, jobject thiz) {
   if (env == nullptr || thiz == nullptr) {
     return;
   }
   setPAGAnimator(env, thiz, new JPAGAnimator(env, thiz));
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_nativeRelease(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_nativeRelease(JNIEnv* env, jobject thiz) {
   if (env == nullptr || thiz == nullptr) {
     return;
   }
@@ -276,12 +279,17 @@ PAG_API void Java_org_libpag_PAGAnimator_nativeRelease(JNIEnv* env, jobject thiz
       reinterpret_cast<JPAGAnimator*>(env->GetLongField(thiz, PAGAnimator_nativeContext));
   if (jAnimator != nullptr) {
     jAnimator->clear();
+    // 关键修复：清空 nativeContext，避免复用已释放的对象
+    // 这样在 RecyclerView 中，如果 View 被复用，可以重新创建 animator
+    env->SetLongField(thiz, PAGAnimator_nativeContext, 0);
+    delete jAnimator;
   }
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_nativeFinalize(JNIEnv* env, jobject thiz) {
-  // 关键修复：在 finalize 中先清理资源，再删除对象
-  // 这样可以避免在析构函数中触发回调导致的死锁
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_nativeFinalize(JNIEnv* env, jobject thiz) {
+  // 关键修复：finalize 中不调用 clear()，避免死锁
+  // clear() 会调用 cancel()，而 cancel() 需要获取 mutex 并可能回调到 Java 层
+  // 在 GC finalize 线程中调用会导致与主线程的死锁
   if (env == nullptr || thiz == nullptr) {
     return;
   }
@@ -290,9 +298,11 @@ PAG_API void Java_org_libpag_PAGAnimator_nativeFinalize(JNIEnv* env, jobject thi
       reinterpret_cast<JPAGAnimator*>(env->GetLongField(thiz, PAGAnimator_nativeContext));
   
   if (jAnimator != nullptr) {
-    // 先清理资源（会断开回调链，避免回调中访问已销毁对象）
-    jAnimator->clear();
-    // 再删除对象（此时析构函数不会触发回调）
+    // 关键修复：只标记为已清理，不调用 clear()
+    // clear() 会触发 cancel()，可能导致死锁
+    // 在 finalize 中只做简单的资源释放，不调用任何需要同步的方法
+    jAnimator->markAsCleared();
+    // 直接删除对象，析构函数中会安全清理资源
     delete jAnimator;
   }
   
@@ -300,7 +310,7 @@ PAG_API void Java_org_libpag_PAGAnimator_nativeFinalize(JNIEnv* env, jobject thi
   env->SetLongField(thiz, PAGAnimator_nativeContext, 0);
 }
 
-PAG_API jboolean Java_org_libpag_PAGAnimator_isSync(JNIEnv* env, jobject thiz) {
+PAG_API jboolean Java_com_kernelflux_pag_PAGAnimator_isSync(JNIEnv* env, jobject thiz) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return JNI_FALSE;
@@ -308,7 +318,7 @@ PAG_API jboolean Java_org_libpag_PAGAnimator_isSync(JNIEnv* env, jobject thiz) {
   return animator->isSync() ? JNI_TRUE : JNI_FALSE;
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_setSync(JNIEnv* env, jobject thiz, jboolean sync) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_setSync(JNIEnv* env, jobject thiz, jboolean sync) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return;
@@ -316,7 +326,7 @@ PAG_API void Java_org_libpag_PAGAnimator_setSync(JNIEnv* env, jobject thiz, jboo
   animator->setSync(sync == JNI_TRUE);
 }
 
-PAG_API jlong Java_org_libpag_PAGAnimator_duration(JNIEnv* env, jobject thiz) {
+PAG_API jlong Java_com_kernelflux_pag_PAGAnimator_duration(JNIEnv* env, jobject thiz) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return 0;
@@ -324,7 +334,7 @@ PAG_API jlong Java_org_libpag_PAGAnimator_duration(JNIEnv* env, jobject thiz) {
   return animator->duration();
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_setDuration(JNIEnv* env, jobject thiz, jlong duration) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_setDuration(JNIEnv* env, jobject thiz, jlong duration) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return;
@@ -332,7 +342,7 @@ PAG_API void Java_org_libpag_PAGAnimator_setDuration(JNIEnv* env, jobject thiz, 
   animator->setDuration(duration);
 }
 
-PAG_API jint Java_org_libpag_PAGAnimator_repeatCount(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGAnimator_repeatCount(JNIEnv* env, jobject thiz) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return 0;
@@ -340,7 +350,7 @@ PAG_API jint Java_org_libpag_PAGAnimator_repeatCount(JNIEnv* env, jobject thiz) 
   return animator->repeatCount();
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_setRepeatCount(JNIEnv* env, jobject thiz, jint count) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_setRepeatCount(JNIEnv* env, jobject thiz, jint count) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return;
@@ -348,7 +358,7 @@ PAG_API void Java_org_libpag_PAGAnimator_setRepeatCount(JNIEnv* env, jobject thi
   animator->setRepeatCount(count);
 }
 
-PAG_API jdouble Java_org_libpag_PAGAnimator_progress(JNIEnv* env, jobject thiz) {
+PAG_API jdouble Java_com_kernelflux_pag_PAGAnimator_progress(JNIEnv* env, jobject thiz) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return 0;
@@ -356,7 +366,7 @@ PAG_API jdouble Java_org_libpag_PAGAnimator_progress(JNIEnv* env, jobject thiz) 
   return animator->progress();
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_setProgress(JNIEnv* env, jobject thiz, jdouble progress) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_setProgress(JNIEnv* env, jobject thiz, jdouble progress) {
   // 关键修复：在回调中调用此方法时，检查对象有效性
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
@@ -365,15 +375,29 @@ PAG_API void Java_org_libpag_PAGAnimator_setProgress(JNIEnv* env, jobject thiz, 
   animator->setProgress(progress);
 }
 
-PAG_API jboolean Java_org_libpag_PAGAnimator_isRunning(JNIEnv* env, jobject thiz) {
+PAG_API jboolean Java_com_kernelflux_pag_PAGAnimator_isRunning(JNIEnv* env, jobject thiz) {
+  // 关键修复：添加异常处理，避免崩溃
+  if (env == nullptr || thiz == nullptr) {
+    return JNI_FALSE;
+  }
+  
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return JNI_FALSE;
   }
+  
+  // 关键修复：在 -fno-exceptions 模式下，直接调用
+  // 如果对象正在被销毁，getPAGAnimator 会返回 nullptr，这里已经检查过了
+  // 检查 JNI 异常（不是 C++ 异常，不受 -fno-exceptions 影响）
+  if (env->ExceptionCheck()) {
+    env->ExceptionClear();
+    return JNI_FALSE;
+  }
+  
   return animator->isRunning() ? JNI_TRUE : JNI_FALSE;
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_doStart(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_doStart(JNIEnv* env, jobject thiz) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return;
@@ -381,15 +405,34 @@ PAG_API void Java_org_libpag_PAGAnimator_doStart(JNIEnv* env, jobject thiz) {
   animator->start();
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_cancel(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_cancel(JNIEnv* env, jobject thiz) {
+  // 关键修复：添加异常处理，避免崩溃
+  if (env == nullptr || thiz == nullptr) {
+    return;
+  }
+  
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return;
   }
+  
+  // 关键修复：在 -fno-exceptions 模式下，直接调用
+  // 如果对象正在被销毁，getPAGAnimator 会返回 nullptr，这里已经检查过了
+  // 检查 JNI 异常（不是 C++ 异常，不受 -fno-exceptions 影响）
+  if (env->ExceptionCheck()) {
+    env->ExceptionClear();
+    return;
+  }
+  
   animator->cancel();
+  
+  // 调用后再次检查 JNI 异常
+  if (env->ExceptionCheck()) {
+    env->ExceptionClear();
+  }
 }
 
-PAG_API void Java_org_libpag_PAGAnimator_update(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGAnimator_update(JNIEnv* env, jobject thiz) {
   auto animator = getPAGAnimator(env, thiz);
   if (animator == nullptr) {
     return;

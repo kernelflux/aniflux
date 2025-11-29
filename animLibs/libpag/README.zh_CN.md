@@ -120,7 +120,7 @@ dependencies {
 在混淆列表里面，添加libpag的keep规则
 
 ```
-  -keep class org.libpag.** {*;}
+  -keep class com.kernelflux.pag.** {*;}
   -keep class androidx.exifinterface.** {*;}
 ```
 

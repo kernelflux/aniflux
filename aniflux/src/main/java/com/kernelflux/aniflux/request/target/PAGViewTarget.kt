@@ -1,9 +1,8 @@
 package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
-import android.util.Log
-import org.libpag.PAGFile
-import org.libpag.PAGView
+import com.kernelflux.pag.PAGFile
+import com.kernelflux.pag.PAGView
 
 /**
  * @author: kerneflux

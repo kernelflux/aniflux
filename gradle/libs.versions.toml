@@ -1,8 +1,9 @@
 [versions]
-aniflux = "1.0.4"
+aniflux = "1.0.6"
 compileSdk = "36"
 glide = "5.0.5"
 kotlinStdlibJdk7 = "2.2.20"
+libpag = "4.5.2"
 lifecycleRuntimeKtx = "2.10.0"
 targetSdk = "36"
 minSdk = "21"
@@ -27,7 +28,7 @@ relinker = "1.4.5"
 #noinspection NewerVersionAvailable
 wireRuntime = "2.3.0-RC1"
 
-mavencentraluploader = "1.0.3"
+mavencentraluploader = "1.0.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +37,7 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 aniflux = { module = "com.kernelflux.mobile:aniflux", version.ref = "aniflux" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlinStdlibJdk7" }
+libpag = { module = "com.tencent.tav:libpag", version.ref = "libpag" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
 androidx-fragment = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }

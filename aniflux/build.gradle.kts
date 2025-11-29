@@ -11,7 +11,7 @@ plugins {
 
 // 发布配置
 project.ext.set("publishArtifactId", "aniflux")
-project.ext.set("publishVersion", "1.0.4")
+project.ext.set("publishVersion", "1.0.6")
 project.ext.set("publishBundleName", "aniflux_bundle_v${project.ext.get("publishVersion")}")
 
 
@@ -52,10 +52,6 @@ tasks.withType<KotlinCompile>().configureEach {
 
 //noinspection NewerVersionAvailable,UseTomlInstead
 dependencies {
-    api(fileTree("libs") {
-        include("*.jar", "*.aar")
-    })
-
     api(libs.androidx.core.ktx)
     api(libs.androidx.appcompat)
     api("androidx.fragment:fragment:1.8.9")
@@ -66,16 +62,18 @@ dependencies {
     // 使用本地源码依赖
     debugApi(project(path = ":animLibs:lottie"))
     debugApi(project(path = ":animLibs:libpag:android:libpag"))
-    debugApi(project(":animLibs:svga"))
+    debugApi(project(path = ":animLibs:svga"))
     debugApi(project(path = ":animLibs:android-gif-drawable"))
     debugApi(project(path = ":animLibs:vap"))
 
 
-    releaseApi("com.kernelflux.mobile:aniflux-gif:1.0.4")
-    releaseApi("com.kernelflux.mobile:aniflux-pag:1.0.4")
-    releaseApi("com.kernelflux.mobile:aniflux-svga:1.0.4")
-    releaseApi("com.kernelflux.mobile:aniflux-vap:1.0.4")
-    releaseApi("com.kernelflux.mobile:aniflux-lottie:1.0.4")
+    releaseApi("com.kernelflux.mobile:aniflux-gif:1.0.6")
+    releaseApi("com.kernelflux.mobile:aniflux-pag:1.0.6")
+    releaseApi("com.kernelflux.mobile:aniflux-svga:1.0.6")
+    releaseApi("com.kernelflux.mobile:aniflux-vap:1.0.6")
+    releaseApi("com.kernelflux.mobile:aniflux-lottie:1.0.6")
+
+
 
 }
 

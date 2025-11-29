@@ -7,14 +7,14 @@ import com.kernelflux.aniflux.request.SingleAnimationRequest
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.aniflux.request.target.*
 import com.kernelflux.aniflux.util.AnimationOptions
-import org.libpag.PAGFile
-import org.libpag.PAGImageView
-import org.libpag.PAGView
 import com.kernelflux.lottie.LottieDrawable
 import com.kernelflux.lottie.LottieAnimationView
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
+import com.kernelflux.pag.PAGFile
+import com.kernelflux.pag.PAGImageView
+import com.kernelflux.pag.PAGView
 import com.kernelflux.svga.SVGADrawable
 import com.kernelflux.svga.SVGAImageView
 import com.kernelflux.vap.AnimView

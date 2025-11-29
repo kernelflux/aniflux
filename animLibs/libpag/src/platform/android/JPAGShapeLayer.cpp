@@ -34,7 +34,7 @@ std::shared_ptr<PAGShapeLayer> GetPAGShapeLayer(JNIEnv* env, jobject thiz) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGShapeLayer_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGShapeLayer_nativeInit(JNIEnv* env, jclass clazz) {
   PAGShapeLayer_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
 }
 }

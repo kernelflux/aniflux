@@ -194,10 +194,13 @@ bool PAGSurface::readPixels(ColorType colorType, AlphaType alphaType, void* dstP
 
 bool PAGSurface::draw(RenderCache* cache, std::shared_ptr<Graphic> graphic,
                       BackendSemaphore* signalSemaphore, bool autoClear) {
+  // 关键修复：确保 unlockContext() 总是被调用
+  // 在 -fno-exceptions 模式下，使用手动管理确保资源释放
   auto context = lockContext();
   if (!context) {
     return false;
   }
+  
   cache->prepareLayers();
   auto surface = drawable->getSurface(context, true);
   if (surface != nullptr && autoClear && contentVersion == cache->getContentVersion()) {
@@ -232,6 +235,8 @@ bool PAGSurface::draw(RenderCache* cache, std::shared_ptr<Graphic> graphic,
   context->submit();
   drawable->setTimeStamp(pagPlayer->getTimeStampInternal());
   drawable->present(context);
+  
+  // 关键修复：确保在所有返回路径都解锁
   unlockContext();
   return true;
 }

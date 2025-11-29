@@ -129,7 +129,7 @@ dependencies {
 Add the following rule to your proguard rules to prevent incorrect obfuscation:
 
 ```
-  -keep class org.libpag.** {*;}
+  -keep class com.kernelflux.pag.** {*;}
   -keep class androidx.exifinterface.** {*;}
 ```
 

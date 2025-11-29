@@ -46,7 +46,7 @@ static jfieldID PAGText_backgroundColor;
 static jfieldID PAGText_backgroundAlpha;
 
 void InitPAGTextJNI(JNIEnv* env) {
-  PAGTextClass = env->FindClass("org/libpag/PAGText");
+  PAGTextClass = env->FindClass("com/kernelflux/pag/PAGText");
   if (PAGTextClass.get() == nullptr) {
     LOGE("Could not run InitPAGTextJNI, PAGTextClass is not found!");
     return;

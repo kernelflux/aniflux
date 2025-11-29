@@ -23,14 +23,14 @@
 using namespace pag;
 
 extern "C" {
-PAG_API void JNICALL Java_org_libpag_PAGFont_UnregisterFont(JNIEnv* env, jclass,
+PAG_API void JNICALL Java_com_kernelflux_pag_PAGFont_UnregisterFont(JNIEnv* env, jclass,
                                                             jstring font_family,
                                                             jstring font_style) {
   PAGFont::UnregisterFont(
       {SafeConvertToStdString(env, font_family), SafeConvertToStdString(env, font_style)});
 }
 
-PAG_API void Java_org_libpag_PAGFont_SetFallbackFontPaths(JNIEnv* env, jclass,
+PAG_API void Java_com_kernelflux_pag_PAGFont_SetFallbackFontPaths(JNIEnv* env, jclass,
                                                           jobjectArray fontNameList,
                                                           jintArray ttcIndices) {
   std::vector<std::string> fallbackList;
@@ -50,7 +50,7 @@ PAG_API void Java_org_libpag_PAGFont_SetFallbackFontPaths(JNIEnv* env, jclass,
 }
 
 PAG_API jobject JNICALL
-Java_org_libpag_PAGFont_RegisterFont__Ljava_lang_String_2ILjava_lang_String_2Ljava_lang_String_2(
+Java_com_kernelflux_pag_PAGFont_RegisterFont__Ljava_lang_String_2ILjava_lang_String_2Ljava_lang_String_2(
     JNIEnv* env, jclass, jstring font_path, jint ttc_index, jstring font_family,
     jstring font_style) {
   auto fontPath = SafeConvertToStdString(env, font_path);
@@ -63,7 +63,7 @@ Java_org_libpag_PAGFont_RegisterFont__Ljava_lang_String_2ILjava_lang_String_2Lja
 }
 
 PAG_API jobject JNICALL
-Java_org_libpag_PAGFont_RegisterFont__Landroid_content_res_AssetManager_2Ljava_lang_String_2ILjava_lang_String_2Ljava_lang_String_2(
+Java_com_kernelflux_pag_PAGFont_RegisterFont__Landroid_content_res_AssetManager_2Ljava_lang_String_2ILjava_lang_String_2Ljava_lang_String_2(
     JNIEnv* env, jclass, jobject manager, jstring file_name, jint ttc_index, jstring font_family,
     jstring font_style) {
   auto path = SafeConvertToStdString(env, file_name);
@@ -80,7 +80,7 @@ Java_org_libpag_PAGFont_RegisterFont__Landroid_content_res_AssetManager_2Ljava_l
   return MakePAGFontObject(env, font.fontFamily, font.fontStyle);
 }
 
-PAG_API jobject Java_org_libpag_PAGFont_RegisterFontBytes(JNIEnv* env, jclass, jbyteArray bytes,
+PAG_API jobject Java_com_kernelflux_pag_PAGFont_RegisterFontBytes(JNIEnv* env, jclass, jbyteArray bytes,
                                                           jint length, jint ttcIndex,
                                                           jstring font_family, jstring font_style) {
   auto data = env->GetByteArrayElements(bytes, nullptr);

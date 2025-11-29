@@ -27,18 +27,35 @@ class LockGuard {
  public:
   explicit LockGuard(std::shared_ptr<std::mutex> locker) : mutex(std::move(locker)) {
     if (mutex) {
+      // 关键修复：在 -fno-exceptions 模式下，mutex 操作是安全的
+      // 如果 mutex 已被销毁，行为是未定义的，但不会抛出异常
       mutex->lock();
+      isLocked = true;
+    } else {
+      isLocked = false;
     }
   }
 
   ~LockGuard() {
-    if (mutex) {
+    if (isLocked && mutex) {
+      // 关键修复：在 -fno-exceptions 模式下，直接调用 unlock
+      // 如果 mutex 已被销毁，行为是未定义的，但不会抛出异常
       mutex->unlock();
     }
   }
 
+  // 禁止拷贝和赋值
+  LockGuard(const LockGuard&) = delete;
+  LockGuard& operator=(const LockGuard&) = delete;
+
+  // 检查锁是否有效
+  bool isValid() const {
+    return isLocked && mutex != nullptr;
+  }
+
  private:
   std::shared_ptr<std::mutex> mutex;
+  bool isLocked = false;
 };
 
 }  // namespace pag

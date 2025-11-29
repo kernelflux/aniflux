@@ -49,22 +49,22 @@ void setPAGImage(JNIEnv* env, jobject thiz, JPAGImage* pagImage) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGImage_nativeRelease(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGImage_nativeRelease(JNIEnv* env, jobject thiz) {
   auto jPagImage = reinterpret_cast<JPAGImage*>(env->GetLongField(thiz, PAGImage_nativeContext));
   if (jPagImage != nullptr) {
     jPagImage->clear();
   }
 }
 
-PAG_API void Java_org_libpag_PAGImage_nativeFinalize(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGImage_nativeFinalize(JNIEnv* env, jobject thiz) {
   setPAGImage(env, thiz, nullptr);
 }
 
-PAG_API void Java_org_libpag_PAGImage_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGImage_nativeInit(JNIEnv* env, jclass clazz) {
   PAGImage_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
 }
 
-PAG_API jlong Java_org_libpag_PAGImage_LoadFromBitmap(JNIEnv*, jclass, jobject bitmap) {
+PAG_API jlong Java_com_kernelflux_pag_PAGImage_LoadFromBitmap(JNIEnv*, jclass, jobject bitmap) {
   auto image = tgfx::Image::MakeFrom(bitmap);
   auto pagImage = StillImage::MakeFrom(std::move(image));
   if (pagImage == nullptr) {
@@ -74,7 +74,7 @@ PAG_API jlong Java_org_libpag_PAGImage_LoadFromBitmap(JNIEnv*, jclass, jobject b
   return reinterpret_cast<jlong>(new JPAGImage(pagImage));
 }
 
-PAG_API jlong Java_org_libpag_PAGImage_LoadFromPath(JNIEnv* env, jclass, jstring pathObj) {
+PAG_API jlong Java_com_kernelflux_pag_PAGImage_LoadFromPath(JNIEnv* env, jclass, jstring pathObj) {
   if (pathObj == nullptr) {
     LOGE("PAGImage.LoadFromPath() Invalid path specified.");
     return 0;
@@ -91,7 +91,7 @@ PAG_API jlong Java_org_libpag_PAGImage_LoadFromPath(JNIEnv* env, jclass, jstring
   return reinterpret_cast<jlong>(new JPAGImage(pagImage));
 }
 
-PAG_API jlong Java_org_libpag_PAGImage_LoadFromBytes(JNIEnv* env, jclass, jbyteArray bytes,
+PAG_API jlong Java_com_kernelflux_pag_PAGImage_LoadFromBytes(JNIEnv* env, jclass, jbyteArray bytes,
                                                      jint length) {
   if (bytes == nullptr) {
     LOGE("PAGImage.LoadFromBytes() Invalid image bytes specified.");
@@ -107,7 +107,7 @@ PAG_API jlong Java_org_libpag_PAGImage_LoadFromBytes(JNIEnv* env, jclass, jbyteA
   return reinterpret_cast<jlong>(new JPAGImage(pagImage));
 }
 
-PAG_API jlong Java_org_libpag_PAGImage_LoadFromAssets(JNIEnv* env, jclass, jobject managerObj,
+PAG_API jlong Java_com_kernelflux_pag_PAGImage_LoadFromAssets(JNIEnv* env, jclass, jobject managerObj,
                                                       jstring pathObj) {
   auto path = SafeConvertToStdString(env, pathObj);
   auto byteData = ReadBytesFromAssets(env, managerObj, pathObj);
@@ -124,7 +124,7 @@ PAG_API jlong Java_org_libpag_PAGImage_LoadFromAssets(JNIEnv* env, jclass, jobje
   return reinterpret_cast<jlong>(new JPAGImage(pagImage));
 }
 
-PAG_API jlong Java_org_libpag_PAGImage_LoadFromTexture(JNIEnv*, jclass, jint textureID,
+PAG_API jlong Java_com_kernelflux_pag_PAGImage_LoadFromTexture(JNIEnv*, jclass, jint textureID,
                                                        jint textureTarget, jint width, jint height,
                                                        jboolean flipY) {
   GLTextureInfo textureInfo = {};
@@ -140,7 +140,7 @@ PAG_API jlong Java_org_libpag_PAGImage_LoadFromTexture(JNIEnv*, jclass, jint tex
   return reinterpret_cast<jlong>(pagImage);
 }
 
-PAG_API jint Java_org_libpag_PAGImage_width(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGImage_width(JNIEnv* env, jobject thiz) {
   auto image = getPAGImage(env, thiz);
   if (image == nullptr) {
     return 0;
@@ -148,7 +148,7 @@ PAG_API jint Java_org_libpag_PAGImage_width(JNIEnv* env, jobject thiz) {
   return image->width();
 }
 
-PAG_API jint Java_org_libpag_PAGImage_height(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGImage_height(JNIEnv* env, jobject thiz) {
   auto image = getPAGImage(env, thiz);
   if (image == nullptr) {
     return 0;
@@ -156,7 +156,7 @@ PAG_API jint Java_org_libpag_PAGImage_height(JNIEnv* env, jobject thiz) {
   return image->height();
 }
 
-PAG_API jint Java_org_libpag_PAGImage_scaleMode(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGImage_scaleMode(JNIEnv* env, jobject thiz) {
   auto image = getPAGImage(env, thiz);
   if (image == nullptr) {
     return 0;
@@ -164,7 +164,7 @@ PAG_API jint Java_org_libpag_PAGImage_scaleMode(JNIEnv* env, jobject thiz) {
   return static_cast<jint>(image->scaleMode());
 }
 
-PAG_API void Java_org_libpag_PAGImage_setScaleMode(JNIEnv* env, jobject thiz, jint value) {
+PAG_API void Java_com_kernelflux_pag_PAGImage_setScaleMode(JNIEnv* env, jobject thiz, jint value) {
   auto image = getPAGImage(env, thiz);
   if (image == nullptr) {
     return;
@@ -172,7 +172,7 @@ PAG_API void Java_org_libpag_PAGImage_setScaleMode(JNIEnv* env, jobject thiz, ji
   image->setScaleMode(static_cast<PAGScaleMode>(value));
 }
 
-PAG_API void Java_org_libpag_PAGImage_nativeGetMatrix(JNIEnv* env, jobject thiz,
+PAG_API void Java_com_kernelflux_pag_PAGImage_nativeGetMatrix(JNIEnv* env, jobject thiz,
                                                       jfloatArray values) {
   auto list = env->GetFloatArrayElements(values, nullptr);
   auto image = getPAGImage(env, thiz);
@@ -188,7 +188,7 @@ PAG_API void Java_org_libpag_PAGImage_nativeGetMatrix(JNIEnv* env, jobject thiz,
   env->ReleaseFloatArrayElements(values, list, 0);
 }
 
-PAG_API void Java_org_libpag_PAGImage_nativeSetMatrix(JNIEnv* env, jobject thiz, jfloat a, jfloat b,
+PAG_API void Java_com_kernelflux_pag_PAGImage_nativeSetMatrix(JNIEnv* env, jobject thiz, jfloat a, jfloat b,
                                                       jfloat c, jfloat d, jfloat tx, jfloat ty) {
   auto image = getPAGImage(env, thiz);
   if (image == nullptr) {

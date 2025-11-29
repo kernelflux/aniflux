@@ -4,8 +4,8 @@ import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.kernelflux.lottie.LottieDrawable
+import com.kernelflux.pag.PAGFile
 import com.kernelflux.svga.SVGADrawable
-import org.libpag.PAGFile
 
 /**
  * 占位图管理器基类

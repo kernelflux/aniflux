@@ -25,7 +25,7 @@ static Global<jclass> TraceImageClass;
 static jmethodID TraceImage_Trace;
 
 void JTraceImage::InitJNI(JNIEnv* env) {
-  TraceImageClass = env->FindClass("org/libpag/TraceImage");
+  TraceImageClass = env->FindClass("com/kernelflux/pag/TraceImage");
   if (TraceImageClass.get() == nullptr) {
     LOGE("Could not run TraceImage.InitJNI(), TraceImageClass is not found!");
     return;

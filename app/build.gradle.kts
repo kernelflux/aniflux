@@ -74,6 +74,10 @@ tasks.withType<KotlinCompile>().configureEach {
 
 
 dependencies {
+    implementation(fileTree("libs") {
+        include("*.jar", "*.aar")
+    })
+
     implementation(libs.material)
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.fragment)
@@ -81,9 +85,9 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-
     debugImplementation(project(":aniflux"))
     releaseImplementation(libs.aniflux)
+
 
 
 }

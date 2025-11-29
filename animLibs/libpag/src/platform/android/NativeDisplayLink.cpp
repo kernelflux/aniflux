@@ -25,13 +25,13 @@ static jmethodID DisplayLink_start;
 static jmethodID DisplayLink_stop;
 
 void NativeDisplayLink::InitJNI(JNIEnv* env) {
-  DisplayLinkClass = env->FindClass("org/libpag/DisplayLink");
+  DisplayLinkClass = env->FindClass("com/kernelflux/pag/DisplayLink");
   if (DisplayLinkClass.get() == nullptr) {
     LOGE("Could not run NativeDisplayLink.InitJNI(), DisplayLinkClass is not found!");
     return;
   }
   DisplayLink_Create =
-      env->GetStaticMethodID(DisplayLinkClass.get(), "Create", "(J)Lorg/libpag/DisplayLink;");
+      env->GetStaticMethodID(DisplayLinkClass.get(), "Create", "(J)Lcom/kernelflux/pag/DisplayLink;");
   DisplayLink_start = env->GetMethodID(DisplayLinkClass.get(), "start", "()V");
   DisplayLink_stop = env->GetMethodID(DisplayLinkClass.get(), "stop", "()V");
 }
@@ -84,7 +84,7 @@ void NativeDisplayLink::update() {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_DisplayLink_onUpdate(JNIEnv*, jobject, jlong context) {
+PAG_API void Java_com_kernelflux_pag_DisplayLink_onUpdate(JNIEnv*, jobject, jlong context) {
   auto displayLink = reinterpret_cast<pag::NativeDisplayLink*>(context);
   if (displayLink == nullptr) {
     return;

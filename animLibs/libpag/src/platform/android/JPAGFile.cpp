@@ -39,15 +39,15 @@ std::shared_ptr<pag::PAGFile> getPAGFile(JNIEnv* env, jobject thiz) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGFile_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGFile_nativeInit(JNIEnv* env, jclass clazz) {
   PAGFile_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
 }
 
-PAG_API jint Java_org_libpag_PAGFile_MaxSupportedTagLevel(JNIEnv*, jclass) {
+PAG_API jint Java_com_kernelflux_pag_PAGFile_MaxSupportedTagLevel(JNIEnv*, jclass) {
   return pag::PAGFile::MaxSupportedTagLevel();
 }
 
-PAG_API jobject Java_org_libpag_PAGFile_LoadFromPath(JNIEnv* env, jclass, jstring pathObj) {
+PAG_API jobject Java_com_kernelflux_pag_PAGFile_LoadFromPath(JNIEnv* env, jclass, jstring pathObj) {
   if (pathObj == nullptr) {
     LOGE("PAGFile.LoadFromPath() Invalid path specified.");
     return NULL;
@@ -65,7 +65,7 @@ PAG_API jobject Java_org_libpag_PAGFile_LoadFromPath(JNIEnv* env, jclass, jstrin
   return ToPAGLayerJavaObject(env, pagFile);
 }
 
-PAG_API jobject Java_org_libpag_PAGFile_LoadFromBytes(JNIEnv* env, jclass, jbyteArray bytes,
+PAG_API jobject Java_com_kernelflux_pag_PAGFile_LoadFromBytes(JNIEnv* env, jclass, jbyteArray bytes,
                                                       jint length, jstring jpath) {
   if (bytes == nullptr) {
     LOGE("PAGFile.LoadFromBytes() Invalid pag file bytes specified.");
@@ -82,7 +82,7 @@ PAG_API jobject Java_org_libpag_PAGFile_LoadFromBytes(JNIEnv* env, jclass, jbyte
   return ToPAGLayerJavaObject(env, pagFile);
 }
 
-PAG_API jobject Java_org_libpag_PAGFile_LoadFromAssets(JNIEnv* env, jclass, jobject managerObj,
+PAG_API jobject Java_com_kernelflux_pag_PAGFile_LoadFromAssets(JNIEnv* env, jclass, jobject managerObj,
                                                        jstring pathObj) {
   auto path = SafeConvertToStdString(env, pathObj);
   auto byteData = ReadBytesFromAssets(env, managerObj, pathObj);
@@ -99,7 +99,7 @@ PAG_API jobject Java_org_libpag_PAGFile_LoadFromAssets(JNIEnv* env, jclass, jobj
   return ToPAGLayerJavaObject(env, pagFile);
 }
 
-PAG_API jint Java_org_libpag_PAGFile_tagLevel(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGFile_tagLevel(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return 0;
@@ -107,7 +107,7 @@ PAG_API jint Java_org_libpag_PAGFile_tagLevel(JNIEnv* env, jobject thiz) {
   return pagFile->tagLevel();
 }
 
-PAG_API jint Java_org_libpag_PAGFile_numTexts(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGFile_numTexts(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return 0;
@@ -115,7 +115,7 @@ PAG_API jint Java_org_libpag_PAGFile_numTexts(JNIEnv* env, jobject thiz) {
   return pagFile->numTexts();
 }
 
-PAG_API jint Java_org_libpag_PAGFile_numImages(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGFile_numImages(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return 0;
@@ -123,7 +123,7 @@ PAG_API jint Java_org_libpag_PAGFile_numImages(JNIEnv* env, jobject thiz) {
   return pagFile->numImages();
 }
 
-PAG_API jint Java_org_libpag_PAGFile_numVideos(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGFile_numVideos(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return 0;
@@ -131,7 +131,7 @@ PAG_API jint Java_org_libpag_PAGFile_numVideos(JNIEnv* env, jobject thiz) {
   return pagFile->numVideos();
 }
 
-PAG_API jstring Java_org_libpag_PAGFile_path(JNIEnv* env, jobject thiz) {
+PAG_API jstring Java_com_kernelflux_pag_PAGFile_path(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return 0;
@@ -140,7 +140,7 @@ PAG_API jstring Java_org_libpag_PAGFile_path(JNIEnv* env, jobject thiz) {
   return SafeConvertToJString(env, path);
 }
 
-PAG_API jobject Java_org_libpag_PAGFile_getTextData(JNIEnv* env, jobject thiz, jint index) {
+PAG_API jobject Java_com_kernelflux_pag_PAGFile_getTextData(JNIEnv* env, jobject thiz, jint index) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return nullptr;
@@ -149,7 +149,7 @@ PAG_API jobject Java_org_libpag_PAGFile_getTextData(JNIEnv* env, jobject thiz, j
   return ToPAGTextObject(env, textDocument);
 }
 
-PAG_API void Java_org_libpag_PAGFile_replaceText(JNIEnv* env, jobject thiz, jint index,
+PAG_API void Java_com_kernelflux_pag_PAGFile_replaceText(JNIEnv* env, jobject thiz, jint index,
                                                  jobject textData) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
@@ -159,7 +159,7 @@ PAG_API void Java_org_libpag_PAGFile_replaceText(JNIEnv* env, jobject thiz, jint
   pagFile->replaceText(index, textDocument);
 }
 
-PAG_API void Java_org_libpag_PAGFile_nativeReplaceImage(JNIEnv* env, jobject thiz, jint index,
+PAG_API void Java_com_kernelflux_pag_PAGFile_nativeReplaceImage(JNIEnv* env, jobject thiz, jint index,
                                                         jlong imageObject) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
@@ -173,7 +173,7 @@ PAG_API void Java_org_libpag_PAGFile_nativeReplaceImage(JNIEnv* env, jobject thi
   }
 }
 
-PAG_API void Java_org_libpag_PAGFile_nativeReplaceImageByName(JNIEnv* env, jobject thiz,
+PAG_API void Java_com_kernelflux_pag_PAGFile_nativeReplaceImageByName(JNIEnv* env, jobject thiz,
                                                               jstring layerName, long imageObject) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
@@ -191,7 +191,7 @@ PAG_API void Java_org_libpag_PAGFile_nativeReplaceImageByName(JNIEnv* env, jobje
   }
 }
 
-PAG_API jobjectArray Java_org_libpag_PAGFile_getLayersByEditableIndex(JNIEnv* env, jobject thiz,
+PAG_API jobjectArray Java_com_kernelflux_pag_PAGFile_getLayersByEditableIndex(JNIEnv* env, jobject thiz,
                                                                       jint editableIndex,
                                                                       jint layerType) {
   auto pagFile = getPAGFile(env, thiz);
@@ -203,7 +203,7 @@ PAG_API jobjectArray Java_org_libpag_PAGFile_getLayersByEditableIndex(JNIEnv* en
   return ToPAGLayerJavaObjectList(env, layers);
 }
 
-PAG_API jintArray Java_org_libpag_PAGFile_getEditableIndices(JNIEnv* env, jobject thiz,
+PAG_API jintArray Java_com_kernelflux_pag_PAGFile_getEditableIndices(JNIEnv* env, jobject thiz,
                                                              jint layerType) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
@@ -215,7 +215,7 @@ PAG_API jintArray Java_org_libpag_PAGFile_getEditableIndices(JNIEnv* env, jobjec
   return result;
 }
 
-PAG_API jint Java_org_libpag_PAGFile_timeStretchMode(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGFile_timeStretchMode(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return 0;
@@ -223,7 +223,7 @@ PAG_API jint Java_org_libpag_PAGFile_timeStretchMode(JNIEnv* env, jobject thiz) 
   return static_cast<jint>(pagFile->timeStretchMode());
 }
 
-PAG_API void Java_org_libpag_PAGFile_setTimeStretchMode(JNIEnv* env, jobject thiz, jint mode) {
+PAG_API void Java_com_kernelflux_pag_PAGFile_setTimeStretchMode(JNIEnv* env, jobject thiz, jint mode) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return;
@@ -231,7 +231,7 @@ PAG_API void Java_org_libpag_PAGFile_setTimeStretchMode(JNIEnv* env, jobject thi
   pagFile->setTimeStretchMode(static_cast<PAGTimeStretchMode>(mode));
 }
 
-PAG_API void Java_org_libpag_PAGFile_setDuration(JNIEnv* env, jobject thiz, jlong duration) {
+PAG_API void Java_com_kernelflux_pag_PAGFile_setDuration(JNIEnv* env, jobject thiz, jlong duration) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return;
@@ -239,7 +239,7 @@ PAG_API void Java_org_libpag_PAGFile_setDuration(JNIEnv* env, jobject thiz, jlon
   pagFile->setDuration(duration);
 }
 
-PAG_API jobject Java_org_libpag_PAGFile_copyOriginal(JNIEnv* env, jobject thiz) {
+PAG_API jobject Java_com_kernelflux_pag_PAGFile_copyOriginal(JNIEnv* env, jobject thiz) {
   auto pagFile = getPAGFile(env, thiz);
   if (pagFile == nullptr) {
     return NULL;

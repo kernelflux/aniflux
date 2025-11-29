@@ -45,11 +45,11 @@ std::shared_ptr<PAGSurface> getPAGSurface(JNIEnv* env, jobject thiz) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGSurface_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGSurface_nativeInit(JNIEnv* env, jclass clazz) {
   PAGSurface_nativeSurface = env->GetFieldID(clazz, "nativeSurface", "J");
 }
 
-PAG_API void Java_org_libpag_PAGSurface_nativeRelease(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGSurface_nativeRelease(JNIEnv* env, jobject thiz) {
   auto jPAGSurface =
       reinterpret_cast<JPAGSurface*>(env->GetLongField(thiz, PAGSurface_nativeSurface));
   if (jPAGSurface != nullptr) {
@@ -57,13 +57,13 @@ PAG_API void Java_org_libpag_PAGSurface_nativeRelease(JNIEnv* env, jobject thiz)
   }
 }
 
-PAG_API void Java_org_libpag_PAGSurface_nativeFinalize(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGSurface_nativeFinalize(JNIEnv* env, jobject thiz) {
   auto old = reinterpret_cast<JPAGSurface*>(env->GetLongField(thiz, PAGSurface_nativeSurface));
   delete old;
   env->SetLongField(thiz, PAGSurface_nativeSurface, (jlong)thiz);
 }
 
-PAG_API jint Java_org_libpag_PAGSurface_width(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGSurface_width(JNIEnv* env, jobject thiz) {
   auto surface = getPAGSurface(env, thiz);
   if (surface == nullptr) {
     return 0;
@@ -71,7 +71,7 @@ PAG_API jint Java_org_libpag_PAGSurface_width(JNIEnv* env, jobject thiz) {
   return surface->width();
 }
 
-PAG_API jint Java_org_libpag_PAGSurface_height(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGSurface_height(JNIEnv* env, jobject thiz) {
   auto surface = getPAGSurface(env, thiz);
   if (surface == nullptr) {
     return 0;
@@ -79,7 +79,7 @@ PAG_API jint Java_org_libpag_PAGSurface_height(JNIEnv* env, jobject thiz) {
   return surface->height();
 }
 
-PAG_API void Java_org_libpag_PAGSurface_updateSize(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGSurface_updateSize(JNIEnv* env, jobject thiz) {
   auto surface = getPAGSurface(env, thiz);
   if (surface == nullptr) {
     return;
@@ -87,7 +87,7 @@ PAG_API void Java_org_libpag_PAGSurface_updateSize(JNIEnv* env, jobject thiz) {
   surface->updateSize();
 }
 
-PAG_API jboolean Java_org_libpag_PAGSurface_clearAll(JNIEnv* env, jobject thiz) {
+PAG_API jboolean Java_com_kernelflux_pag_PAGSurface_clearAll(JNIEnv* env, jobject thiz) {
   auto surface = getPAGSurface(env, thiz);
   if (surface == nullptr) {
     return static_cast<jboolean>(false);
@@ -96,7 +96,7 @@ PAG_API jboolean Java_org_libpag_PAGSurface_clearAll(JNIEnv* env, jobject thiz) 
   return changed;
 }
 
-PAG_API void Java_org_libpag_PAGSurface_freeCache(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGSurface_freeCache(JNIEnv* env, jobject thiz) {
   auto surface = getPAGSurface(env, thiz);
   if (surface == nullptr) {
     return;
@@ -104,7 +104,7 @@ PAG_API void Java_org_libpag_PAGSurface_freeCache(JNIEnv* env, jobject thiz) {
   surface->freeCache();
 }
 
-PAG_API jlong Java_org_libpag_PAGSurface_SetupFromSurfaceWithGLContext(JNIEnv* env, jclass,
+PAG_API jlong Java_com_kernelflux_pag_PAGSurface_SetupFromSurfaceWithGLContext(JNIEnv* env, jclass,
                                                                        jobject surface,
                                                                        jlong shareContext) {
   if (surface == nullptr) {
@@ -121,7 +121,7 @@ PAG_API jlong Java_org_libpag_PAGSurface_SetupFromSurfaceWithGLContext(JNIEnv* e
   return reinterpret_cast<jlong>(new JPAGSurface(pagSurface));
 }
 
-PAG_API jlong Java_org_libpag_PAGSurface_SetupFromTexture(JNIEnv*, jclass, jint textureID,
+PAG_API jlong Java_com_kernelflux_pag_PAGSurface_SetupFromTexture(JNIEnv*, jclass, jint textureID,
                                                           jint width, jint height, jboolean flipY,
                                                           jboolean forAsyncThread) {
   GLTextureInfo glInfo = {};
@@ -139,7 +139,7 @@ PAG_API jlong Java_org_libpag_PAGSurface_SetupFromTexture(JNIEnv*, jclass, jint 
   return reinterpret_cast<jlong>(new JPAGSurface(surface));
 }
 
-PAG_API jlong JNICALL Java_org_libpag_PAGSurface_SetupOffscreen(JNIEnv*, jclass, jint width,
+PAG_API jlong JNICALL Java_com_kernelflux_pag_PAGSurface_SetupOffscreen(JNIEnv*, jclass, jint width,
                                                                 jint height) {
   auto surface = PAGSurface::MakeOffscreen(width, height);
   if (surface == nullptr) {
@@ -149,7 +149,7 @@ PAG_API jlong JNICALL Java_org_libpag_PAGSurface_SetupOffscreen(JNIEnv*, jclass,
   return reinterpret_cast<jlong>(new JPAGSurface(surface));
 }
 
-PAG_API jboolean JNICALL Java_org_libpag_PAGSurface_copyPixelsTo(JNIEnv* env, jobject thiz,
+PAG_API jboolean JNICALL Java_com_kernelflux_pag_PAGSurface_copyPixelsTo(JNIEnv* env, jobject thiz,
                                                                  jobject bitmapObject) {
   if (thiz == nullptr || bitmapObject == nullptr) {
     return false;

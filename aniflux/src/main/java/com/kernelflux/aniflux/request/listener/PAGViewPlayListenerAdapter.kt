@@ -1,6 +1,6 @@
 package com.kernelflux.aniflux.request.listener
 
-import org.libpag.PAGView
+import com.kernelflux.pag.PAGView
 import kotlin.math.roundToInt
 
 /**

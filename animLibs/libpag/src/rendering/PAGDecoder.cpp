@@ -26,6 +26,7 @@
 #include "rendering/layers/ContentVersion.h"
 #include "rendering/utils/BitmapBuffer.h"
 #include "rendering/utils/LockGuard.h"
+#include "tgfx/platform/HardwareBuffer.h"
 
 namespace pag {
 
@@ -172,6 +173,16 @@ bool PAGDecoder::readFrameInternal(int index, std::shared_ptr<BitmapBuffer> bitm
     LOGE("PAGDecoder::readFrame() The specified bitmap buffer is invalid!");
     return false;
   }
+  
+  // 关键修复：检查 bitmap 的 HardwareBuffer 是否有效
+  auto hardwareBuffer = bitmap->getHardwareBuffer();
+  if (hardwareBuffer != nullptr) {
+    if (!tgfx::HardwareBufferCheck(hardwareBuffer)) {
+      LOGE("PAGDecoder::readFrame() HardwareBuffer is invalid!");
+      return false;
+    }
+  }
+  
   auto composition = getComposition();
   checkCompositionChange(composition);
   if (index < 0 || index >= _numFrames) {
@@ -189,6 +200,8 @@ bool PAGDecoder::readFrameInternal(int index, std::shared_ptr<BitmapBuffer> bitm
       if (!success) {
         LOGE("PAGDecoder::readFrame() Failed to write frame to SequenceFile!");
       }
+    } else {
+      LOGE("PAGDecoder::readFrame() Failed to render frame!");
     }
   }
   if (sequenceFile->isComplete() && composition != nullptr) {

@@ -1,6 +1,6 @@
 package com.kernelflux.aniflux.request.listener
 
-import org.libpag.PAGImageView
+import com.kernelflux.pag.PAGImageView
 
 /**
  * PAG动画播放监听器适配器

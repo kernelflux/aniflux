@@ -20,13 +20,13 @@
 #include "pag/pag.h"
 
 extern "C" {
-PAG_API void Java_org_libpag_VideoDecoder_RegisterSoftwareDecoderFactory(JNIEnv*, jclass,
+PAG_API void Java_com_kernelflux_pag_VideoDecoder_RegisterSoftwareDecoderFactory(JNIEnv*, jclass,
                                                                          jlong factory) {
   pag::PAGVideoDecoder::RegisterSoftwareDecoderFactory(
       reinterpret_cast<pag::SoftwareDecoderFactory*>(factory));
 }
 
-PAG_API void Java_org_libpag_VideoDecoder_SetMaxHardwareDecoderCount(JNIEnv*, jclass,
+PAG_API void Java_com_kernelflux_pag_VideoDecoder_SetMaxHardwareDecoderCount(JNIEnv*, jclass,
                                                                      jint maxCount) {
   pag::PAGVideoDecoder::SetMaxHardwareDecoderCount(maxCount);
 }

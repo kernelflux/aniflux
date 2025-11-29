@@ -28,51 +28,71 @@
     *;
 }
 
--keeppackagenames org.libpag.**
+# ============================================
+# PAG 库自混淆配置（包名：com.kernelflux.pag）
+# 用户无需在应用层添加混淆规则
+# ============================================
 
--keeppackagenames org.extra.**
+# 保持 PAG 库所有类不被混淆
+-keep class com.kernelflux.pag.** {*;}
 
+# 保持 androidx.exifinterface 不被混淆（PAG 依赖）
+-keep class androidx.exifinterface.** {*;}
+
+# 保持包名不被混淆
+-keeppackagenames com.kernelflux.pag.**
+
+# 保持所有 native 方法
 -keepclasseswithmembers class ** {
     native <methods>;
 }
 
--keepclasseswithmembers public class org.libpag.** {
+# 保持 PAG 类的公共方法和字段
+-keepclasseswithmembers public class com.kernelflux.pag.** {
     public <methods>;
 }
 
--keepclasseswithmembers public class org.libpag.** {
+-keepclasseswithmembers public class com.kernelflux.pag.** {
     public <fields>;
 }
 
--keepclasseswithmembers class org.libpag.** {
+# 保持 nativeContext 字段（JNI 使用）
+-keepclasseswithmembers class com.kernelflux.pag.** {
     long nativeContext;
 }
 
--keepclasseswithmembers class org.libpag.** {
+# 保持 nativeSurface 字段（JNI 使用）
+-keepclasseswithmembers class com.kernelflux.pag.** {
     long nativeSurface;
 }
 
--keepclasseswithmembers class org.libpag.PAGFile {
+# 保持 PAGFile 的私有构造函数（JNI 使用）
+-keepclasseswithmembers class com.kernelflux.pag.PAGFile {
    private <init>(long);
 }
 
--keepclasseswithmembers class org.libpag.PAGFont {
+# 保持 PAGFont 的静态方法（JNI 使用）
+-keepclasseswithmembers class com.kernelflux.pag.PAGFont {
     private static void RegisterFallbackFonts();
 }
 
--keepclasseswithmembers class org.libpag.PAGDiskCache {
+# 保持 PAGDiskCache 的静态方法（JNI 使用）
+-keepclasseswithmembers class com.kernelflux.pag.PAGDiskCache {
     private static java.lang.String GetCacheDir();
 }
 
--keepclasseswithmembers class org.libpag.VideoSurface {
+# 保持 VideoSurface 的所有方法
+-keepclasseswithmembers class com.kernelflux.pag.VideoSurface {
     <methods>;
 }
 
--keepclasseswithmembers class org.libpag.DisplayLink {
+# 保持 DisplayLink 的所有方法
+-keepclasseswithmembers class com.kernelflux.pag.DisplayLink {
     <methods>;
 }
 
--keepclasseswithmembers class org.libpag.PAGAnimator {
+# 保持 PAGAnimator 的回调方法（JNI 使用）
+-keepclasseswithmembers class com.kernelflux.pag.PAGAnimator {
     private void onAnimationStart();
     private void onAnimationEnd();
     private void onAnimationCancel();

@@ -3,13 +3,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'com.kernelflux.maven.publish' version '1.0.3'
+    id 'com.kernelflux.maven.publish' version '1.0.4'
 }
 
 // 发布配置
 ext {
     publishArtifactId = "aniflux-vap"
-    publishVersion = "1.0.4"
+    publishVersion = "1.0.6"
     publishBundleName = "aniflux_vap_bundle_v${publishVersion}"
 }
 

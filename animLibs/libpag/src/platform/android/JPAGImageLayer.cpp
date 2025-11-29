@@ -35,11 +35,11 @@ std::shared_ptr<PAGImageLayer> GetPAGImageLayer(JNIEnv* env, jobject thiz) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGImageLayer_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGImageLayer_nativeInit(JNIEnv* env, jclass clazz) {
   PAGImageLayer_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
 }
 
-PAG_API jlong Java_org_libpag_PAGImageLayer_nativeMake(JNIEnv*, jclass, jint width, jint height,
+PAG_API jlong Java_com_kernelflux_pag_PAGImageLayer_nativeMake(JNIEnv*, jclass, jint width, jint height,
                                                        jlong duration) {
   if (width <= 0 || height <= 0 || duration <= 0) {
     return 0;
@@ -51,8 +51,8 @@ PAG_API jlong Java_org_libpag_PAGImageLayer_nativeMake(JNIEnv*, jclass, jint wid
   return reinterpret_cast<jlong>(new JPAGLayerHandle(pagImageLayer));
 }
 
-PAG_API jobjectArray Java_org_libpag_PAGImageLayer_getVideoRanges(JNIEnv* env, jobject thiz) {
-  static Global<jclass> PAGVideoRange_Class = env->FindClass("org/libpag/PAGVideoRange");
+PAG_API jobjectArray Java_com_kernelflux_pag_PAGImageLayer_getVideoRanges(JNIEnv* env, jobject thiz) {
+  static Global<jclass> PAGVideoRange_Class = env->FindClass("com/kernelflux/pag/PAGVideoRange");
   auto pagLayer = GetPAGImageLayer(env, thiz);
   if (pagLayer == nullptr) {
     return env->NewObjectArray(0, PAGVideoRange_Class.get(), nullptr);
@@ -70,7 +70,7 @@ PAG_API jobjectArray Java_org_libpag_PAGImageLayer_getVideoRanges(JNIEnv* env, j
   return rangeArray;
 }
 
-PAG_API void Java_org_libpag_PAGImageLayer_replaceImage(JNIEnv* env, jobject thiz,
+PAG_API void Java_com_kernelflux_pag_PAGImageLayer_replaceImage(JNIEnv* env, jobject thiz,
                                                         jlong imageObject) {
   auto pagLayer = GetPAGImageLayer(env, thiz);
   if (pagLayer == nullptr) {
@@ -80,7 +80,7 @@ PAG_API void Java_org_libpag_PAGImageLayer_replaceImage(JNIEnv* env, jobject thi
   pagLayer->replaceImage(image == nullptr ? nullptr : image->get());
 }
 
-PAG_API void Java_org_libpag_PAGImageLayer_setImage(JNIEnv* env, jobject thiz, jlong imageObject) {
+PAG_API void Java_com_kernelflux_pag_PAGImageLayer_setImage(JNIEnv* env, jobject thiz, jlong imageObject) {
   auto pagLayer = GetPAGImageLayer(env, thiz);
   if (pagLayer == nullptr) {
     return;
@@ -89,7 +89,7 @@ PAG_API void Java_org_libpag_PAGImageLayer_setImage(JNIEnv* env, jobject thiz, j
   pagLayer->setImage(image == nullptr ? nullptr : image->get());
 }
 
-PAG_API jlong Java_org_libpag_PAGImageLayer_contentDuration(JNIEnv* env, jobject thiz) {
+PAG_API jlong Java_com_kernelflux_pag_PAGImageLayer_contentDuration(JNIEnv* env, jobject thiz) {
   auto pagLayer = GetPAGImageLayer(env, thiz);
   if (pagLayer == nullptr) {
     return 0;
@@ -97,7 +97,7 @@ PAG_API jlong Java_org_libpag_PAGImageLayer_contentDuration(JNIEnv* env, jobject
   return pagLayer->contentDuration();
 }
 
-PAG_API jobject Java_org_libpag_PAGImageLayer_imageBytes(JNIEnv* env, jobject thiz) {
+PAG_API jobject Java_com_kernelflux_pag_PAGImageLayer_imageBytes(JNIEnv* env, jobject thiz) {
   auto pagLayer = GetPAGImageLayer(env, thiz);
   if (pagLayer == nullptr || pagLayer->imageBytes() == nullptr) {
     return nullptr;

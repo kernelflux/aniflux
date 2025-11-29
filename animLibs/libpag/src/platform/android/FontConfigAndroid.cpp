@@ -26,7 +26,7 @@ static jmethodID PAGFont_RegisterFallbackFonts;
 extern "C" {
 
 void FontConfigAndroid::InitJNI(JNIEnv* env) {
-  PAGFontClass = env->FindClass("org/libpag/PAGFont");
+  PAGFontClass = env->FindClass("com/kernelflux/pag/PAGFont");
   if (PAGFontClass.get() == nullptr) {
     LOGE("Could not run PAGFont.RegisterFallbackFonts(), class is not found!");
     return;

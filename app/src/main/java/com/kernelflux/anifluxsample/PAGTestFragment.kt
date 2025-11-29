@@ -3,6 +3,7 @@ package com.kernelflux.anifluxsample
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +11,8 @@ import android.widget.TextView
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.into
-import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-import org.libpag.PAGImageView
-import org.libpag.PAGView
+import com.kernelflux.pag.PAGImageView
+import com.kernelflux.pag.PAGView
 
 /**
  * PAG 动画测试 Fragment
@@ -21,7 +21,7 @@ import org.libpag.PAGView
 class PAGTestFragment : BaseLazyFragment() {
 
     private lateinit var pagView: PAGView
-    private lateinit var pagView2: PAGView
+    private lateinit var pagView2: org.libpag.PAGView
     private lateinit var pagView3: PAGImageView
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
@@ -111,12 +111,18 @@ class PAGTestFragment : BaseLazyFragment() {
             .retainLastFrame(false)
             .into(pagView)
 
-        AniFlux.with(requireContext())
-            .asPAG()
-            .load(pagUrl)
-            .cacheStrategy(AnimationCacheStrategy.NONE)
-            .retainLastFrame(false)
-            .into(pagView2)
+
+        Thread({
+            val pagFile = org.libpag.PAGFile.Load(pagUrl)
+            Handler(Looper.getMainLooper()).post {
+                Log.i("xxx_tag", "or.lib.PAGView setPathAsync:${pagFile}")
+                pagView2.apply {
+                    setRepeatCount(-1)
+                    composition= pagFile.copyOriginal()
+                    play()
+                }
+            }
+        }).start()
 
         AniFlux.with(requireContext())
             .asPAG()

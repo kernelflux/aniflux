@@ -2,7 +2,7 @@ package com.kernelflux.aniflux.load
 
 import android.content.Context
 import com.kernelflux.aniflux.util.AnimationTypeDetector
-import org.libpag.PAGFile
+import com.kernelflux.pag.PAGFile
 import java.io.File
 import java.io.InputStream
 

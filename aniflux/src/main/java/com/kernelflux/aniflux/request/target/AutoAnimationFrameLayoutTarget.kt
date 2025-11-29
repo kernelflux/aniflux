@@ -10,11 +10,11 @@ import com.kernelflux.aniflux.request.listener.AnimationPlayListenerSetupHelper
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
+import com.kernelflux.pag.PAGFile
+import com.kernelflux.pag.PAGImageView
 import com.kernelflux.svga.SVGADrawable
 import com.kernelflux.svga.SVGAImageView
 import com.kernelflux.vap.AnimView
-import org.libpag.PAGFile
-import org.libpag.PAGImageView
 
 /**
  * 通用的动画容器 FrameLayout Target

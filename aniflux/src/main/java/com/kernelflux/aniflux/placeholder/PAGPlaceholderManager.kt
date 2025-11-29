@@ -3,10 +3,10 @@ package com.kernelflux.aniflux.placeholder
 import android.graphics.Bitmap
 import android.view.View
 import androidx.lifecycle.Lifecycle
-import org.libpag.PAGFile
-import org.libpag.PAGImage
-import org.libpag.PAGImageView
-import org.libpag.PAGLayer
+import com.kernelflux.pag.PAGFile
+import com.kernelflux.pag.PAGImage
+import com.kernelflux.pag.PAGImageView
+import com.kernelflux.pag.PAGLayer
 
 /**
  * PAG 占位图管理器
@@ -26,9 +26,6 @@ class PAGPlaceholderManager(
     private val keyToIndexMap = mutableMapOf<String, Int>()
     
     override fun applyReplacements() {
-        // 安全检查：如果View类型不匹配，直接返回，不抛出异常
-        val pagView = view as? PAGImageView ?: return
-        
         // 获取所有可编辑的图片图层索引
         val editableIndices = try {
             pagFile.getEditableIndices(PAGLayer.LayerTypeImage)

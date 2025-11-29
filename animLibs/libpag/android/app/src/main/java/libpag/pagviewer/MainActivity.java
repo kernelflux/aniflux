@@ -25,12 +25,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.libpag.PAGDiskCache;
-import org.libpag.PAGFile;
-import org.libpag.PAGImage;
-import org.libpag.PAGImageView;
-import org.libpag.PAGText;
-import org.libpag.PAGView;
+import com.kernelflux.pag.PAGDiskCache;
+import com.kernelflux.pag.PAGFile;
+import com.kernelflux.pag.PAGImage;
+import com.kernelflux.pag.PAGImageView;
+import com.kernelflux.pag.PAGText;
+import com.kernelflux.pag.PAGView;
 
 import java.io.IOException;
 import java.io.InputStream;

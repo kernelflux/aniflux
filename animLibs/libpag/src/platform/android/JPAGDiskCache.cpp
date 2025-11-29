@@ -24,7 +24,7 @@ static Global<jclass> PAGClass;
 static jmethodID PAG_GetCacheDir;
 
 void JPAGDiskCache::InitJNI(JNIEnv* env) {
-  PAGClass = env->FindClass("org/libpag/PAGDiskCache");
+  PAGClass = env->FindClass("com/kernelflux/pag/PAGDiskCache");
   if (PAGClass.get() == nullptr) {
     LOGE("Could not run PAGDiskCache.InitJNI(), PAGClass is not found!");
     return;
@@ -48,19 +48,19 @@ std::string JPAGDiskCache::GetCacheDir() {
 }  // namespace pag
 
 extern "C" {
-PAG_API jlong JNICALL Java_org_libpag_PAGDiskCache_MaxDiskSize(JNIEnv*, jclass) {
+PAG_API jlong JNICALL Java_com_kernelflux_pag_PAGDiskCache_MaxDiskSize(JNIEnv*, jclass) {
   return static_cast<jlong>(pag::PAGDiskCache::MaxDiskSize());
 }
 
-PAG_API void JNICALL Java_org_libpag_PAGDiskCache_SetMaxDiskSize(JNIEnv*, jclass, jlong size) {
+PAG_API void JNICALL Java_com_kernelflux_pag_PAGDiskCache_SetMaxDiskSize(JNIEnv*, jclass, jlong size) {
   pag::PAGDiskCache::SetMaxDiskSize(size);
 }
 
-PAG_API void JNICALL Java_org_libpag_PAGDiskCache_RemoveAll(JNIEnv*, jclass) {
+PAG_API void JNICALL Java_com_kernelflux_pag_PAGDiskCache_RemoveAll(JNIEnv*, jclass) {
   pag::PAGDiskCache::RemoveAll();
 }
 
-PAG_API jbyteArray JNICALL Java_org_libpag_PAGDiskCache_ReadFile(JNIEnv* env, jclass, jstring key) {
+PAG_API jbyteArray JNICALL Java_com_kernelflux_pag_PAGDiskCache_ReadFile(JNIEnv* env, jclass, jstring key) {
   auto data = pag::DiskCache::ReadFile(pag::SafeConvertToStdString(env, key));
   if (data == nullptr) {
     return nullptr;
@@ -70,7 +70,7 @@ PAG_API jbyteArray JNICALL Java_org_libpag_PAGDiskCache_ReadFile(JNIEnv* env, jc
   return bytes;
 }
 
-PAG_API jboolean JNICALL Java_org_libpag_PAGDiskCache_WriteFile(JNIEnv* env, jclass, jstring jkey,
+PAG_API jboolean JNICALL Java_com_kernelflux_pag_PAGDiskCache_WriteFile(JNIEnv* env, jclass, jstring jkey,
                                                                 jbyteArray bytes) {
   auto key = pag::SafeConvertToStdString(env, jkey);
   if (bytes == nullptr || key.empty()) {

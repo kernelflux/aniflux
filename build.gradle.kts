@@ -6,6 +6,18 @@ plugins {
 
 }
 
+// 全局加载 private.properties 文件（如果存在）
+val privatePropsFile = rootProject.file("private.properties")
+if (privatePropsFile.exists()) {
+    val privateProps = java.util.Properties()
+    privateProps.load(java.io.FileInputStream(privatePropsFile))
+    privateProps.forEach { (key, value) ->
+        if (!rootProject.hasProperty(key.toString())) {
+            rootProject.ext.set(key.toString(), value)
+        }
+    }
+}
+
 // 全局依赖解析策略：强制使用支持 API 21 的版本
 subprojects {
     configurations.all {

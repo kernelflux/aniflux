@@ -9,12 +9,12 @@ import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.gif.AnimationListener
 import com.kernelflux.gif.GifDrawable
 import com.kernelflux.gif.GifImageView
+import com.kernelflux.pag.PAGFile
+import com.kernelflux.pag.PAGImageView
+import com.kernelflux.pag.PAGView
 import com.kernelflux.svga.SVGADrawable
 import com.kernelflux.svga.SVGAImageView
 import com.kernelflux.vap.AnimView
-import org.libpag.PAGFile
-import org.libpag.PAGImageView
-import org.libpag.PAGView
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -179,7 +179,7 @@ object AnimationPlayListenerSetupHelper {
             val (_, listeners) = cached
             listeners.forEach { listener ->
                 when {
-                    listener is org.libpag.PAGView.PAGViewListener && currentView is PAGView -> {
+                    listener is PAGView.PAGViewListener && currentView is PAGView -> {
                         // 从当前View中移除旧的监听器（防止重复添加）
                         currentView.removeListener(listener)
                         android.util.Log.d(
@@ -188,7 +188,7 @@ object AnimationPlayListenerSetupHelper {
                         )
                     }
 
-                    listener is org.libpag.PAGImageView.PAGImageViewListener && currentView is PAGImageView -> {
+                    listener is PAGImageView.PAGImageViewListener && currentView is PAGImageView -> {
                         // 从当前View中移除旧的监听器（防止重复添加）
                         currentView.removeListener(listener)
                         android.util.Log.d(
@@ -203,12 +203,12 @@ object AnimationPlayListenerSetupHelper {
             val (oldView, listeners) = cached
             listeners.forEach { listener ->
                 when {
-                    listener is org.libpag.PAGView.PAGViewListener && oldView is PAGView -> {
+                    listener is PAGView.PAGViewListener && oldView is PAGView -> {
                         oldView.removeListener(listener)
                         android.util.Log.d(TAG, "Removed PAGView listener from old view")
                     }
 
-                    listener is org.libpag.PAGImageView.PAGImageViewListener && oldView is PAGImageView -> {
+                    listener is PAGImageView.PAGImageViewListener && oldView is PAGImageView -> {
                         oldView.removeListener(listener)
                         android.util.Log.d(TAG, "Removed PAGImageView listener from old view")
                     }

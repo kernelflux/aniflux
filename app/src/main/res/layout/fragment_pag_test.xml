@@ -32,7 +32,7 @@
         app:layout_constraintTop_toBottomOf="@id/tv_title"
         tools:ignore="HardcodedText" />
 
-    <org.libpag.PAGView
+    <com.kernelflux.pag.PAGView
         android:id="@+id/pag_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -50,7 +50,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/pag_view" />
 
-    <org.libpag.PAGImageView
+    <com.kernelflux.pag.PAGImageView
         android:id="@+id/pag_image_view"
         android:layout_width="100dp"
         android:layout_height="100dp"

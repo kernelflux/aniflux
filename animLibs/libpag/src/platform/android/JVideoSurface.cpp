@@ -40,7 +40,7 @@ static Global<jclass> VideoSurfaceClass;
 static jmethodID VideoSurface_Make;
 
 void JVideoSurface::InitJNI(JNIEnv* env) {
-  VideoSurfaceClass = env->FindClass("org/libpag/VideoSurface");
+  VideoSurfaceClass = env->FindClass("com/kernelflux/pag/VideoSurface");
   if (VideoSurfaceClass.get() == nullptr) {
     LOGE(
         "JVideoSurface: Could not run JVideoSurface.InitJNI(), VideoSurfaceClass is not "
@@ -49,7 +49,7 @@ void JVideoSurface::InitJNI(JNIEnv* env) {
   }
 
   VideoSurface_Make =
-      env->GetStaticMethodID(VideoSurfaceClass.get(), "Make", "(II)Lorg/libpag/VideoSurface;");
+      env->GetStaticMethodID(VideoSurfaceClass.get(), "Make", "(II)Lcom/kernelflux/pag/VideoSurface;");
 }
 
 jobject JVideoSurface::Make(JNIEnv* env, int width, int height) {
@@ -73,11 +73,11 @@ void setImageStream(JNIEnv* env, jobject thiz, JVideoSurface* surface) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_VideoSurface_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_VideoSurface_nativeInit(JNIEnv* env, jclass clazz) {
   VideoSurface_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
 }
 
-PAG_API void Java_org_libpag_VideoSurface_nativeRelease(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_VideoSurface_nativeRelease(JNIEnv* env, jobject thiz) {
   auto reader =
       reinterpret_cast<JVideoSurface*>(env->GetLongField(thiz, VideoSurface_nativeContext));
   if (reader != nullptr) {
@@ -85,11 +85,11 @@ PAG_API void Java_org_libpag_VideoSurface_nativeRelease(JNIEnv* env, jobject thi
   }
 }
 
-PAG_API void Java_org_libpag_VideoSurface_nativeFinalize(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_VideoSurface_nativeFinalize(JNIEnv* env, jobject thiz) {
   setImageStream(env, thiz, nullptr);
 }
 
-PAG_API void Java_org_libpag_VideoSurface_nativeSetup(JNIEnv* env, jobject thiz, jint width,
+PAG_API void Java_com_kernelflux_pag_VideoSurface_nativeSetup(JNIEnv* env, jobject thiz, jint width,
                                                       jint height) {
   auto imageStream = tgfx::SurfaceTextureReader::Make(width, height, thiz);
   if (imageStream == nullptr) {
@@ -98,7 +98,7 @@ PAG_API void Java_org_libpag_VideoSurface_nativeSetup(JNIEnv* env, jobject thiz,
   setImageStream(env, thiz, new JVideoSurface(imageStream));
 }
 
-PAG_API jobject Java_org_libpag_VideoSurface_getInputSurface(JNIEnv* env, jobject thiz) {
+PAG_API jobject Java_com_kernelflux_pag_VideoSurface_getInputSurface(JNIEnv* env, jobject thiz) {
   auto reader = JVideoSurface::GetImageReader(env, thiz);
   if (reader == nullptr) {
     return nullptr;
@@ -106,7 +106,7 @@ PAG_API jobject Java_org_libpag_VideoSurface_getInputSurface(JNIEnv* env, jobjec
   return reader->getInputSurface();
 }
 
-PAG_API void Java_org_libpag_VideoSurface_notifyFrameAvailable(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_VideoSurface_notifyFrameAvailable(JNIEnv* env, jobject thiz) {
   auto reader = JVideoSurface::GetImageReader(env, thiz);
   if (reader == nullptr) {
     return;

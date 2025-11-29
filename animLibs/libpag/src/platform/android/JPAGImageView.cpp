@@ -23,7 +23,7 @@
 
 extern "C" {
 
-PAG_API jint Java_org_libpag_PAGImageView_ContentVersion(JNIEnv* env, jclass,
+PAG_API jint Java_com_kernelflux_pag_PAGImageView_ContentVersion(JNIEnv* env, jclass,
                                                          jobject jPagComposition) {
   auto composition = pag::ToPAGCompositionNativeObject(env, jPagComposition);
   if (composition == nullptr) {

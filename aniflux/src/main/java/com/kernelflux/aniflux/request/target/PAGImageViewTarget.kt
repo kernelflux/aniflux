@@ -1,12 +1,10 @@
 package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.Lifecycle
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.placeholder.PlaceholderManager
-import org.libpag.PAGFile
-import org.libpag.PAGImageView
-import org.libpag.PAGView
+import com.kernelflux.pag.PAGFile
+import com.kernelflux.pag.PAGImageView
 
 /**
  * PAG动画的专用ViewTarget

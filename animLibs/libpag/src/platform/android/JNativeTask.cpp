@@ -20,7 +20,7 @@
 #include "JNIHelper.h"
 #include "tgfx/core/Task.h"
 
-extern "C" PAG_API void Java_org_libpag_NativeTask_Run(JNIEnv* env, jclass, jobject runnable) {
+extern "C" PAG_API void Java_com_kernelflux_pag_NativeTask_Run(JNIEnv* env, jclass, jobject runnable) {
   static pag::Global<jclass> runnableClass = env->FindClass("java/lang/Runnable");
   if (runnableClass.get() == nullptr || runnable == nullptr) {
     return;

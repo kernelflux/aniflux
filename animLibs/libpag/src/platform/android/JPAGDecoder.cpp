@@ -43,24 +43,24 @@ std::shared_ptr<PAGDecoder> getPAGDecoder(JNIEnv* env, jobject thiz) {
 
 extern "C" {
 
-PAG_API void Java_org_libpag_PAGDecoder_nativeInit(JNIEnv* env, jclass clazz) {
+PAG_API void Java_com_kernelflux_pag_PAGDecoder_nativeInit(JNIEnv* env, jclass clazz) {
   PAGDecoder_nativeContext = env->GetFieldID(clazz, "nativeContext", "J");
 }
 
-PAG_API void Java_org_libpag_PAGDecoder_nativeRelease(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGDecoder_nativeRelease(JNIEnv* env, jobject thiz) {
   auto decoder = reinterpret_cast<JPAGDecoder*>(env->GetLongField(thiz, PAGDecoder_nativeContext));
   if (decoder != nullptr) {
     decoder->clear();
   }
 }
 
-PAG_API void Java_org_libpag_PAGDecoder_nativeFinalize(JNIEnv* env, jobject thiz) {
+PAG_API void Java_com_kernelflux_pag_PAGDecoder_nativeFinalize(JNIEnv* env, jobject thiz) {
   auto old = reinterpret_cast<JPAGDecoder*>(env->GetLongField(thiz, PAGDecoder_nativeContext));
   delete old;
   env->SetLongField(thiz, PAGDecoder_nativeContext, (jlong) nullptr);
 }
 
-PAG_API jlong JNICALL Java_org_libpag_PAGDecoder_MakeFrom(JNIEnv* env, jclass,
+PAG_API jlong JNICALL Java_com_kernelflux_pag_PAGDecoder_MakeFrom(JNIEnv* env, jclass,
                                                           jobject newComposition,
                                                           jfloat maxFrameRate, jfloat scale) {
   auto composition = ToPAGCompositionNativeObject(env, newComposition);
@@ -72,7 +72,7 @@ PAG_API jlong JNICALL Java_org_libpag_PAGDecoder_MakeFrom(JNIEnv* env, jclass,
   return reinterpret_cast<jlong>(new JPAGDecoder(decoder));
 }
 
-PAG_API jint Java_org_libpag_PAGDecoder_width(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGDecoder_width(JNIEnv* env, jobject thiz) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {
     return 0;
@@ -80,7 +80,7 @@ PAG_API jint Java_org_libpag_PAGDecoder_width(JNIEnv* env, jobject thiz) {
   return decoder->width();
 }
 
-PAG_API jint Java_org_libpag_PAGDecoder_height(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGDecoder_height(JNIEnv* env, jobject thiz) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {
     return 0;
@@ -88,7 +88,7 @@ PAG_API jint Java_org_libpag_PAGDecoder_height(JNIEnv* env, jobject thiz) {
   return decoder->height();
 }
 
-PAG_API jint Java_org_libpag_PAGDecoder_numFrames(JNIEnv* env, jobject thiz) {
+PAG_API jint Java_com_kernelflux_pag_PAGDecoder_numFrames(JNIEnv* env, jobject thiz) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {
     return 0;
@@ -96,7 +96,7 @@ PAG_API jint Java_org_libpag_PAGDecoder_numFrames(JNIEnv* env, jobject thiz) {
   return decoder->numFrames();
 }
 
-PAG_API jfloat Java_org_libpag_PAGDecoder_frameRate(JNIEnv* env, jobject thiz) {
+PAG_API jfloat Java_com_kernelflux_pag_PAGDecoder_frameRate(JNIEnv* env, jobject thiz) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {
     return 0;
@@ -104,7 +104,7 @@ PAG_API jfloat Java_org_libpag_PAGDecoder_frameRate(JNIEnv* env, jobject thiz) {
   return decoder->frameRate();
 }
 
-PAG_API jboolean Java_org_libpag_PAGDecoder_checkFrameChanged(JNIEnv* env, jobject thiz,
+PAG_API jboolean Java_com_kernelflux_pag_PAGDecoder_checkFrameChanged(JNIEnv* env, jobject thiz,
                                                               jint index) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {
@@ -113,7 +113,7 @@ PAG_API jboolean Java_org_libpag_PAGDecoder_checkFrameChanged(JNIEnv* env, jobje
   return decoder->checkFrameChanged(index);
 }
 
-PAG_API jboolean Java_org_libpag_PAGDecoder_copyFrameTo(JNIEnv* env, jobject thiz,
+PAG_API jboolean Java_com_kernelflux_pag_PAGDecoder_copyFrameTo(JNIEnv* env, jobject thiz,
                                                         jobject bitmapObject, jint index) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {
@@ -140,7 +140,7 @@ PAG_API jboolean Java_org_libpag_PAGDecoder_copyFrameTo(JNIEnv* env, jobject thi
   return success;
 }
 
-PAG_API jboolean Java_org_libpag_PAGDecoder_readFrame(JNIEnv* env, jobject thiz, jint index,
+PAG_API jboolean Java_com_kernelflux_pag_PAGDecoder_readFrame(JNIEnv* env, jobject thiz, jint index,
                                                       jobject hardwareBufferObject) {
   auto decoder = getPAGDecoder(env, thiz);
   if (decoder == nullptr) {

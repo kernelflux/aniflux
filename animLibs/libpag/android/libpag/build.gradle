@@ -7,8 +7,11 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
+        //noinspection UseTomlInstead,AndroidGradlePluginVersion
         classpath 'com.android.tools.build:gradle:8.13.0'
+        //noinspection UseTomlInstead
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20'
+        //noinspection UseTomlInstead
         classpath 'org.jreleaser:jreleaser-gradle-plugin:1.19.0'
     }
 }
@@ -16,20 +19,16 @@ buildscript {
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'com.kernelflux.maven.publish' version '1.0.3'
+    id 'com.kernelflux.maven.publish' version '1.0.4'
 }
 
 // 发布配置
 ext {
     publishArtifactId = "aniflux-pag"
-    publishVersion = "1.0.4"
+    publishVersion = "1.0.6"
     publishBundleName = "aniflux_pag_bundle_v${publishVersion}"
 }
 
-
-version = '4.5.2.1'
-project.ext.artifactId = 'libpag'
-project.group = 'com.tencent.tav'
 
 // Try to access version catalog, fallback to hardcoded values
 def getVersionCatalog() {
@@ -80,10 +79,13 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // consumerProguardFiles 会将规则打包进 aar，供使用该库的应用使用
+            consumerProguardFiles 'proguard-rules.pro'
         }
         debug {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            consumerProguardFiles 'proguard-rules.pro'
         }
     }
     externalNativeBuild {
@@ -92,24 +94,18 @@ android {
             version = "3.22.1"
         }
     }
-    namespace 'org.libpag'
+    namespace 'com.kernelflux.pag'
 
     publishing {
         singleVariant("release") {}
     }
 
-    libraryVariants.configureEach { variant ->
-        variant.outputs.all { output ->
-            def versionName = project.version
-            def buildType = variant.buildType.name
-            def timestamp = new Date().format('yyyyMMddHHmmss')
-            outputFileName = "libpag-${versionName}-${buildType}-${timestamp}.aar"
-        }
-    }
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    //noinspection UseTomlInstead
     api("androidx.exifinterface:exifinterface:1.4.1")
 }
 

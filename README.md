@@ -33,14 +33,14 @@ Add the AniFlux dependency to your `build.gradle`. The core library includes all
 **Kotlin DSL (build.gradle.kts)**:
 ```kotlin
 dependencies {
-    implementation("com.kernelflux.mobile:aniflux:1.0.4")
+    implementation("com.kernelflux.mobile:aniflux:1.0.6")
 }
 ```
 
 **Groovy DSL (build.gradle)**:
 ```groovy
 dependencies {
-    implementation 'com.kernelflux.mobile:aniflux:1.0.4'
+    implementation 'com.kernelflux.mobile:aniflux:1.0.6'
 }
 ```
 

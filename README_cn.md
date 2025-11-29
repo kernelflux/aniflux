@@ -33,14 +33,14 @@ AniFlux 是一个专为 Android 设计的动画加载框架，灵感来源于 [G
 **Kotlin DSL (build.gradle.kts)**:
 ```kotlin
 dependencies {
-    implementation("com.kernelflux.mobile:aniflux:1.0.4")
+    implementation("com.kernelflux.mobile:aniflux:1.0.6")
 }
 ```
 
 **Groovy DSL (build.gradle)**:
 ```groovy
 dependencies {
-    implementation 'com.kernelflux.mobile:aniflux:1.0.4'
+    implementation 'com.kernelflux.mobile:aniflux:1.0.6'
 }
 ```
 

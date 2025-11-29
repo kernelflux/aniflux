@@ -23,10 +23,32 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
 
         consumerProguardFiles("consumer-rules.pro")
+
+        ndk {
+            if (project.hasProperty("arm64-only")) {
+                abiFilters.add("arm64-v8a")
+            } else {
+                abiFilters.add("armeabi-v7a")
+                abiFilters.add("arm64-v8a")
+            }
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("libs")
+        }
     }
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -34,6 +56,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -72,7 +95,6 @@ dependencies {
     releaseApi("com.kernelflux.mobile:aniflux-svga:1.0.6")
     releaseApi("com.kernelflux.mobile:aniflux-vap:1.0.6")
     releaseApi("com.kernelflux.mobile:aniflux-lottie:1.0.6")
-
 
 
 }

@@ -28,7 +28,7 @@ relinker = "1.4.5"
 #noinspection NewerVersionAvailable
 wireRuntime = "2.3.0-RC1"
 
-mavencentraluploader = "1.0.4"
+mavencentraluploader = "1.0.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

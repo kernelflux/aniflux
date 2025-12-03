@@ -10,7 +10,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
-import com.kernelflux.aniflux.into
+import com.kernelflux.aniflux.svga.asSVGA
+import com.kernelflux.aniflux.svga.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.svga.SVGAImageView
 

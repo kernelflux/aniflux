@@ -1,0 +1,2 @@
+-keep class com.kernelflux.aniflux.pag.** {*;}
+-keep class androidx.exifinterface.** {*;}

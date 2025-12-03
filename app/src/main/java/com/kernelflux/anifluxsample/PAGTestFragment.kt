@@ -10,7 +10,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
-import com.kernelflux.aniflux.into
+import com.kernelflux.aniflux.pag.asPAG
+import com.kernelflux.aniflux.pag.into
 import com.kernelflux.pag.PAGImageView
 import com.kernelflux.pag.PAGView
 

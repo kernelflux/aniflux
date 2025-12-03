@@ -7,10 +7,14 @@ plugins {
 }
 
 // 发布配置
+// 注意：底层 SVGA 库使用 -lib 后缀，避免与上层 aniflux-svga 模块命名冲突
+// 版本号从根项目的 ext.anifluxLibVersion 统一管理
 ext {
-    publishArtifactId = "aniflux-svga"
-    publishVersion = "1.0.6"
-    publishBundleName = "aniflux_svga_bundle_v${publishVersion}"
+    publishArtifactId = "aniflux-svga-lib"
+    publishVersion = rootProject.ext.has("anifluxLibVersion") 
+        ? rootProject.ext.get("anifluxLibVersion") 
+        : "0.0.1"  // 降级方案
+    publishBundleName = "aniflux_svga_lib_bundle_v${publishVersion}"
 }
 
 
@@ -24,8 +28,8 @@ android {
         versionName "1.0"
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
         kotlinOptions.freeCompilerArgs += ['-module-name', "com.kernelflux.svgaplayer"]
     }
     buildTypes {
@@ -55,7 +59,7 @@ android {
 
 tasks.withType(KotlinCompile).configureEach {
     kotlinOptions {
-        jvmTarget = "21"
+        jvmTarget = "11"
     }
 }
 

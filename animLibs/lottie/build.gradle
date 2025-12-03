@@ -4,10 +4,14 @@ plugins {
 }
 
 // 发布配置
+// 注意：底层 Lottie 库使用 -lib 后缀，避免与上层 aniflux-lottie 模块命名冲突
+// 版本号从根项目的 ext.anifluxLibVersion 统一管理
 ext {
-    publishArtifactId = "aniflux-lottie"
-    publishVersion = "1.0.6"
-    publishBundleName = "aniflux_lottie_bundle_v${publishVersion}"
+    publishArtifactId = "aniflux-lottie-lib"
+    publishVersion = rootProject.ext.has("anifluxLibVersion") 
+        ? rootProject.ext.get("anifluxLibVersion") 
+        : "0.0.1"  // 降级方案
+    publishBundleName = "aniflux_lottie_lib_bundle_v${publishVersion}"
 }
 
 android {
@@ -19,8 +23,8 @@ android {
         targetSdkVersion libs.versions.targetSdk.get().toInteger()
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     buildTypes {

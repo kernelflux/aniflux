@@ -6,6 +6,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    //id("com.kernelflux.aniflux.register")
 }
 
 val keystorePropsFile = rootProject.file("keystore.properties")
@@ -69,6 +70,8 @@ android {
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
+        // 跳过元数据版本检查，因为 OkHttp 可能使用较新的 Kotlin 版本编译
+        freeCompilerArgs.add("-Xskip-metadata-version-check")
     }
 }
 
@@ -85,9 +88,21 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    debugImplementation(project(":aniflux"))
-    releaseImplementation(libs.aniflux)
+    // 使用模块化后的依赖：core + 各个格式模块
+    debugImplementation(project(":aniflux-core"))
+    debugImplementation(project(":aniflux-gif"))
+    debugImplementation(project(":aniflux-pag"))
+    debugImplementation(project(":aniflux-lottie"))
+    debugImplementation(project(":aniflux-svga"))
+    debugImplementation(project(":aniflux-vap"))
 
+
+    releaseImplementation(libs.aniflux.core)
+    releaseImplementation(libs.aniflux.gif)
+    releaseImplementation(libs.aniflux.pag)
+    releaseImplementation(libs.aniflux.lottie)
+    releaseImplementation(libs.aniflux.svga)
+    releaseImplementation(libs.aniflux.vap)
 
 
 }

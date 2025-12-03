@@ -9,7 +9,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
-import com.kernelflux.aniflux.into
+import com.kernelflux.aniflux.vap.asVAP
+import com.kernelflux.aniflux.vap.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.vap.AnimView
 
@@ -100,7 +101,7 @@ class VAPTestFragment : BaseLazyFragment() {
         tvStatus.text = "状态：加载中..."
 
         AniFlux.with(requireContext())
-            .asFile()
+            .asVAP()
             .load("asset://vap1.mp4")
             .cacheStrategy(AnimationCacheStrategy.BOTH)
             .retainLastFrame(false)

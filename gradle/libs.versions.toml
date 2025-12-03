@@ -1,10 +1,24 @@
 [versions]
-aniflux = "1.0.6"
+# 上层模块版本（aniflux-core、aniflux-pag、aniflux-gif 等）
+aniflux = "1.1.1"
+# 底层库版本（animLibs 下的库）
+anifluxLib = "0.0.3"
+
+
+asm = "9.9"
 compileSdk = "36"
+exifinterface = "1.4.1"
+fragmentVersion = "1.8.9"
 glide = "5.0.5"
-kotlinStdlibJdk7 = "2.2.20"
+gradle = "8.13.1"
+#noinspection NewerVersionAvailable
+kotlinpoetKsp = "2.0.0"
+#noinspection GradleDependency,NewerVersionAvailable
+kotlinStdlibJdk7 = "2.0.21"
 libpag = "4.5.2"
 lifecycleRuntimeKtx = "2.10.0"
+#noinspection NewerVersionAvailable
+okhttp = "5.1.0"
 targetSdk = "36"
 minSdk = "21"
 ndk = "26.3.11579264"
@@ -13,14 +27,16 @@ ndk = "26.3.11579264"
 #noinspection AndroidGradlePluginVersion
 agp = "8.13.0"
 #noinspection NewerVersionAvailable
-kotlin = "2.2.20"
+kotlin = "2.0.21"
+#noinspection GradleDependency
+ksp = "2.0.21-1.0.28"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
 material = "1.13.0"
 viewpager2 = "1.1.0"
 #noinspection GradleDependency
 fragment = "1.7.1"
-androidxAnnotations="1.9.1"
+androidxAnnotations = "1.9.1"
 #noinspection GradleDependency
 constraintlayout = "2.2.0"
 
@@ -28,21 +44,42 @@ relinker = "1.4.5"
 #noinspection NewerVersionAvailable
 wireRuntime = "2.3.0-RC1"
 
-mavencentraluploader = "1.0.6"
+mavencentraluploader = "1.0.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 aniflux = { module = "com.kernelflux.mobile:aniflux", version.ref = "aniflux" }
+# 上层模块：aniflux-xxx（包含 aniflux-core 依赖和格式扩展）
+aniflux-core = { module = "com.kernelflux.mobile:aniflux-core", version.ref = "aniflux" }
+aniflux-annotations = { module = "com.kernelflux.mobile:aniflux-annotations", version.ref = "aniflux" }
+aniflux-compiler-ksp = { module = "com.kernelflux.mobile:aniflux-compiler-ksp", version.ref = "aniflux" }
+aniflux-pag = { module = "com.kernelflux.mobile:aniflux-pag", version.ref = "aniflux" }
+aniflux-gif = { module = "com.kernelflux.mobile:aniflux-gif", version.ref = "aniflux" }
+aniflux-lottie = { module = "com.kernelflux.mobile:aniflux-lottie", version.ref = "aniflux" }
+aniflux-svga = { module = "com.kernelflux.mobile:aniflux-svga", version.ref = "aniflux" }
+aniflux-vap = { module = "com.kernelflux.mobile:aniflux-vap", version.ref = "aniflux" }
+# 底层库：aniflux-xxx-lib（纯格式库，包含 Java/Kotlin 封装和 native 代码，不依赖 aniflux-core）
+aniflux-pag-lib = { module = "com.kernelflux.mobile:aniflux-pag-lib", version.ref = "anifluxLib" }
+aniflux-gif-lib = { module = "com.kernelflux.mobile:aniflux-gif-lib", version.ref = "anifluxLib" }
+aniflux-lottie-lib = { module = "com.kernelflux.mobile:aniflux-lottie-lib", version.ref = "anifluxLib" }
+aniflux-svga-lib = { module = "com.kernelflux.mobile:aniflux-svga-lib", version.ref = "anifluxLib" }
+aniflux-vap-lib = { module = "com.kernelflux.mobile:aniflux-vap-lib", version.ref = "anifluxLib" }
+
+fragment = { module = "androidx.fragment:fragment", version.ref = "fragmentVersion" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlinStdlibJdk7" }
-libpag = { module = "com.tencent.tav:libpag", version.ref = "libpag" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoetKsp" }
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoetKsp" }
+ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
 androidx-fragment = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotations" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 relinker = { group = "com.getkeepsafe.relinker", name = "relinker", version.ref = "relinker" }
 wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wireRuntime" }
 
@@ -50,6 +87,10 @@ wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wireR
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 maven-central-uploader = { id = "com.kernelflux.maven.publish", version.ref = "mavencentraluploader" }
+
+plugin-publish = "com.gradle.plugin-publish:2.0.0"
 

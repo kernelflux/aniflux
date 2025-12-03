@@ -10,7 +10,7 @@ buildscript {
         //noinspection UseTomlInstead,AndroidGradlePluginVersion
         classpath 'com.android.tools.build:gradle:8.13.0'
         //noinspection UseTomlInstead
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21'
         //noinspection UseTomlInstead
         classpath 'org.jreleaser:jreleaser-gradle-plugin:1.19.0'
     }
@@ -23,10 +23,15 @@ plugins {
 }
 
 // 发布配置
+// 注意：底层 PAG 库使用 -lib 后缀，避免与上层 aniflux-pag 模块命名冲突
+// -lib 表示底层库（包含 Java/Kotlin 封装和 native 代码），区别于上层集成模块
+// 版本号从根项目的 ext.anifluxLibVersion 统一管理
 ext {
-    publishArtifactId = "aniflux-pag"
-    publishVersion = "1.0.6"
-    publishBundleName = "aniflux_pag_bundle_v${publishVersion}"
+    publishArtifactId = "aniflux-pag-lib"
+    publishVersion = rootProject.ext.has("anifluxLibVersion") 
+        ? rootProject.ext.get("anifluxLibVersion") 
+        : "0.0.1"  // 降级方案
+    publishBundleName = "aniflux_pag_lib_bundle_v${publishVersion}"
 }
 
 

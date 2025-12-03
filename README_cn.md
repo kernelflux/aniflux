@@ -1,68 +1,77 @@
 # AniFlux
 
-> **一个强大的 Android 动画加载框架，统一多种动画格式的加载和管理**
+> 采用模块化架构和编译时注册的统一 Android 动画加载框架
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.kernelflux.mobile/aniflux.svg)](https://search.maven.org/artifact/com.kernelflux.mobile/aniflux)
+[![Maven Central](https://img.shields.io/maven-central/v/com.kernelflux.mobile/aniflux-core.svg)](https://search.maven.org/search?q=g:com.kernelflux.mobile)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-blue.svg)](https://kotlinlang.org/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0+-blue.svg)](https://kotlinlang.org/)
 [![Min SDK](https://img.shields.io/badge/Min%20SDK-21-green.svg)](https://developer.android.com/about/versions/android-5.0)
 
-**Languages / 语言**: [English](README.md) | [中文](README_cn.md)
+**Languages**: [English](README.md) | [中文](README_cn.md)
 
-## 📖 简介
+## 简介
 
-AniFlux 是一个专为 Android 设计的动画加载框架，灵感来源于 [Glide](https://github.com/bumptech/glide) 的设计理念，提供统一、简洁的 API 来加载和管理多种动画格式，让动画集成变得简单高效。
+AniFlux 是一个强大的 Android 动画加载框架，灵感来源于 [Glide](https://github.com/bumptech/glide) 的设计理念。它提供统一的 API 来加载和管理多种动画格式（GIF、Lottie、SVGA、PAG、VAP），具备自动生命周期管理、智能缓存，以及自动 Loader 注册。
 
-### 🎯 核心价值
+### 核心特性
 
-- **🎨 多格式支持**: 统一管理 GIF、Lottie、SVGA、PAG、VAP 五种主流动画格式
-- **🔌 统一 API**: 一套链式 API，适配所有动画格式，降低学习成本
-- **🔄 自动生命周期管理**: 自动处理 Activity/Fragment 生命周期，避免内存泄漏
-- **⏸️ 智能暂停/恢复**: 页面不可见时自动暂停动画，节省 CPU 和电池
-- **💾 智能缓存**: 内存缓存 + 磁盘缓存，提升加载性能
-- **📡 多种数据源**: 支持网络 URL、本地文件、Asset、Resource、ByteArray 等
-- **🎵 统一回调接口**: 统一的播放监听器，兼容不同动画库的回调语义
-- **🖼️ 占位图替换**: 支持 SVGA、PAG、Lottie 动画的动态图片替换
+- 🎨 **多格式支持**：GIF、Lottie、SVGA、PAG、VAP
+- 🔌 **统一 API**：一套链式 API 适配所有格式
+- 🔄 **生命周期感知**：自动处理 Activity/Fragment 生命周期
+- ⏸️ **智能暂停/恢复**：页面不可见时自动暂停
+- 💾 **智能缓存**：内存 + 磁盘缓存
+- 🏗️ **模块化架构**：核心模块 + 格式模块
+- ⚡ **自动注册**：通过 Gradle 插件自动注册 Loader
 
-## 🚀 快速开始
+## 快速开始
 
-### 添加依赖
+### 安装
 
-在 `build.gradle` 中添加 AniFlux 依赖。核心库已包含所有动画格式支持（GIF、Lottie、SVGA、PAG、VAP）。
+**方式一：一体化包（推荐，适用于大多数场景）**
 
-**Kotlin DSL (build.gradle.kts)**:
 ```kotlin
 dependencies {
-    implementation("com.kernelflux.mobile:aniflux:1.0.6")
+    implementation("com.kernelflux.mobile:aniflux:1.1.1")
 }
 ```
 
-**Groovy DSL (build.gradle)**:
-```groovy
+**方式二：模块化依赖（用于体积优化）**
+
+```kotlin
+// 在项目根目录的 build.gradle.kts
+plugins {
+    id("com.kernelflux.aniflux.register") version "1.0.0" apply false
+}
+
+// 在 app 模块的 build.gradle.kts
+plugins {
+    id("com.kernelflux.aniflux.register")
+}
+
 dependencies {
-    implementation 'com.kernelflux.mobile:aniflux:1.0.6'
+    // 核心模块（必需）
+    implementation("com.kernelflux.mobile:aniflux-core:1.1.1")
+    
+    // 格式模块（按需添加）
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-svga:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-pag:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-vap:1.1.1")
 }
 ```
 
-> **注意**: `aniflux` 库已包含所有动画格式库，无需单独添加。
-
-**查找最新版本**: [Maven Central](https://search.maven.org/search?q=g:com.kernelflux.mobile)
+**注意**：
+- 一体化包（`aniflux`）已包含所有预注册的 Loader，**不需要注册插件**
+- 使用模块化依赖时，`com.kernelflux.aniflux.register` 插件是**必需的**，用于自动注册依赖中的 Loader
 
 ### 初始化
-
-在 `Application` 中初始化:
 
 ```kotlin
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // 基础初始化
         AniFlux.init(this)
-        
-        // 或带配置初始化（例如：占位图加载器）
-        AniFlux.init(this) {
-            setPlaceholderImageLoader(GlidePlaceholderImageLoader())
-        }
     }
 }
 ```
@@ -70,387 +79,104 @@ class MyApplication : Application() {
 ### 基础用法
 
 ```kotlin
-// 加载 GIF 动画
+// 加载 GIF
 AniFlux.with(context)
     .asGif()
     .load("https://example.com/animation.gif")
     .into(gifImageView)
 
-// 加载 Lottie 动画
+// 加载 Lottie
 AniFlux.with(context)
     .asLottie()
     .load("https://example.com/animation.json")
     .into(lottieAnimationView)
 
-// 加载 SVGA 动画
+// 加载 SVGA
 AniFlux.with(context)
     .asSVGA()
     .load("https://example.com/animation.svga")
     .into(svgaImageView)
-
-// 加载 PAG 动画
-AniFlux.with(context)
-    .asPAG()
-    .load("https://example.com/animation.pag")
-    .into(pagImageView)
-
-// 加载 VAP 动画
-AniFlux.with(context)
-    .asFile()
-    .load("https://example.com/animation.mp4")
-    .into(vapImageView)
 ```
 
-## 📚 核心功能
+## 架构设计
 
-### 1. 统一的链式 API
+### 模块化设计
 
-AniFlux 提供简洁的链式 API，所有动画格式使用相同的调用方式:
+AniFlux 采用模块化架构，便于维护和灵活扩展：
 
-```kotlin
-AniFlux.with(context)
-    .asGif()                          // 指定动画格式
-    .load(url)                        // 加载资源
-    .size(200, 200)                   // 设置尺寸（可选）
-    .cacheStrategy(AnimationCacheStrategy.BOTH)   // 缓存策略
-    .repeatCount(3)                   // 循环次数
-    .retainLastFrame(true)            // 保留最后一帧
-    .autoPlay(true)                   // 自动播放
-    .placeholderReplacements {        // 占位图替换（SVGA/PAG/Lottie）
-        add("user_1", "https://example.com/user1.jpg")
-        add("user_2", File("/sdcard/user2.jpg"))
-    }
-    .playListener(playListener)       // 播放监听
-    .into(imageView)                  // 加载到 View
+```
+aniflux-core          # 核心引擎、缓存、生命周期管理
+├── aniflux-gif       # GIF 格式支持
+├── aniflux-lottie    # Lottie 格式支持
+├── aniflux-svga      # SVGA 格式支持
+├── aniflux-pag       # PAG 格式支持
+└── aniflux-vap       # VAP 格式支持
 ```
 
-### 2. 多种数据源支持
+每个格式模块都是独立的，可按需引入，减少应用体积。
 
-```kotlin
-// 网络 URL
-.load("https://example.com/animation.gif")
+## 核心功能
 
-// 本地文件
-.load(File("/sdcard/animation.gif"))
-
-// Asset 资源
-.load("asset://animations/loading.gif")
-
-// Resource ID
-.load(R.raw.animation)
-
-// ByteArray
-.load(byteArray)
-
-// Uri
-.load(Uri.parse("content://..."))
-```
-
-### 3. 智能缓存策略
-
-AniFlux 为不同场景提供灵活的缓存策略:
-
-```kotlin
-enum class AnimationCacheStrategy {
-    NONE,           // 不缓存（内存和磁盘都不缓存）
-    MEMORY_ONLY,    // 仅内存缓存
-    DISK_ONLY,      // 仅磁盘缓存（内存不缓存）
-    BOTH            // 内存 + 磁盘缓存（默认）
-}
-
-// 使用
-.cacheStrategy(AnimationCacheStrategy.BOTH)  // 默认
-```
-
-**缓存流程**:
-1. **内存缓存检查**: 检查 `activeResources` 和 `memoryCache`
-2. **磁盘缓存检查**: 如果启用，检查磁盘缓存
-3. **网络下载**: 缓存未命中时，下载并缓存
-
-### 4. 占位图替换
-
-AniFlux 支持 SVGA、PAG、Lottie 动画的动态图片替换功能。此功能允许您在运行时将动画中的占位图片替换为自定义内容。
-
-**设置步骤**:
-
-1. 实现 `PlaceholderImageLoader` 接口（例如：使用 Glide、Coil 等）:
-```kotlin
-class GlidePlaceholderImageLoader : PlaceholderImageLoader {
-    override fun load(
-        context: Context,
-        source: Any,
-        width: Int,
-        height: Int,
-        callback: PlaceholderImageLoadCallback
-    ): PlaceholderImageLoadRequest {
-        // 实现图片加载逻辑
-        // 支持：String (URL)、File、Uri、Int (Resource ID)、"asset://xxx.jpg"
-    }
-    
-    override fun cancel(request: PlaceholderImageLoadRequest) {
-        // 取消加载请求
-    }
-}
-```
-
-2. 初始化时设置占位图加载器:
-```kotlin
-AniFlux.init(this) {
-    setPlaceholderImageLoader(GlidePlaceholderImageLoader())
-}
-```
-
-3. 使用占位图替换:
-```kotlin
-AniFlux.with(context)
-    .asSVGA()
-    .load("https://example.com/animation.svga")
-    .placeholderReplacements {
-        add("user_1", "https://example.com/user1.jpg")  // 远程图片
-        add("user_2", File("/sdcard/user2.jpg"))         // 本地文件
-        add("logo", R.drawable.logo)                     // Resource ID
-        add("avatar", "asset://avatar.jpg")              // Asset 资源
-    }
-    .into(svgaImageView)
-```
-
-**支持的格式**:
-- ✅ **SVGA**: 使用 `SVGADynamicEntity` 设置动态图片
-- ✅ **PAG**: 使用 `PAGFile.replaceImage()` 替换图片图层
-- ✅ **Lottie**: 使用 `ImageAssetDelegate` 动态提供图片
-
-**特性**:
-- 异步加载（非阻塞）
-- 生命周期感知（自动清理）
-- 支持请求取消
-- 批量更新以提升性能
-- 安全的错误处理（优雅降级）
-
-### 5. 统一的播放监听器
-
-AniFlux 提供统一的 `AnimationPlayListener` 接口，兼容所有动画格式:
+### 统一链式 API
 
 ```kotlin
 AniFlux.with(context)
     .asGif()
     .load(url)
-    .playListener(object : AnimationPlayListener {
-        override fun onAnimationStart() {
-            // 动画开始播放
-        }
-        
-        override fun onAnimationEnd() {
-            // 动画播放结束
-        }
-        
-        override fun onAnimationRepeat() {
-            // 动画循环重复
-        }
-        
-        override fun onAnimationCancel() {
-            // 动画被取消
-        }
-        
-        override fun onAnimationUpdate(currentFrame: Int, totalFrames: Int) {
-            // 动画帧更新（每帧回调）
-        }
-        
-        override fun onAnimationFailed(error: Throwable?) {
-            // 动画加载/播放失败
-        }
-    })
-    .into(imageView)
-```
-
-### 6. 自动生命周期管理
-
-AniFlux 自动处理 Activity/Fragment 的生命周期:
-
-- **onStart()**: 自动恢复动画请求和播放
-- **onStop()**: 自动暂停动画请求和播放
-- **onDestroy()**: 自动清理所有资源，避免内存泄漏
-
-```kotlin
-// 在 Fragment 中使用
-class MyFragment : Fragment() {
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // AniFlux 会自动绑定 Fragment 的生命周期
-        AniFlux.with(this)
-            .asGif()
-            .load(url)
-            .into(gifImageView)
-        // 无需手动管理生命周期！
-    }
-}
-```
-
-### 7. 自动暂停/恢复机制
-
-AniFlux 实现了智能的自动暂停/恢复机制:
-
-- **页面不可见时**: 自动暂停动画，停止渲染和回调
-- **页面可见时**: 自动恢复动画，从暂停位置继续播放
-- **Fragment 可见性支持**: 在 ViewPager2 + Fragment 场景下也能正确工作
-
-```kotlin
-// 对于特殊场景，可以手动控制 Fragment 可见性
-svgaImageView.setFragmentVisible(false)  // 暂停
-svgaImageView.setFragmentVisible(true)    // 恢复
-```
-
-### 8. 保留最后一帧配置
-
-AniFlux 支持控制动画结束后是否保留最后一帧:
-
-```kotlin
-AniFlux.with(context)
-    .asGif()
-    .load(url)
-    .retainLastFrame(true)   // 保留动画停止时的帧（默认：true）
-    .into(gifImageView)
-
-// 或设置为 false 清空帧
-.retainLastFrame(false)  // 动画结束后清空帧
-```
-
-**支持的格式**:
-- ✅ **GIF**: 保留当前停止位置的帧
-- ✅ **Lottie**: 保留当前停止位置的帧
-- ✅ **SVGA**: 通过 `fillMode` 控制（Forward = 保留，Clear = 清空）
-- ✅ **PAG**: 保留当前停止位置的帧
-- ✅ **VAP**: 通过 `retainLastFrame` 属性控制
-
-> **注意**: `retainLastFrame(true)` 保留的是**当前停止位置的帧**，不一定是动画的最后一帧。如果动画在中间暂停或停止，将保留该帧。
-
-### 9. 统一的循环次数语义
-
-AniFlux 统一了所有动画格式的循环次数语义:
-
-| 用户设置 | 语义 | GIF | Lottie | SVGA | PAG | VAP |
-|---------|------|-----|--------|------|-----|-----|
-| `repeatCount(-1)` | 无限循环 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `repeatCount(0)` | 播放1次 | ✅ | ❌ | ✅ | ✅ | ✅ |
-| `repeatCount(1)` | 播放1次 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `repeatCount(3)` | 播放3次 | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-> **注意**: 不同动画库的底层实现不同，AniFlux 会自动处理转换，确保行为一致。
-
-### 10. 类型推断支持
-
-AniFlux 支持加载动画时的类型推断:
-
-```kotlin
-// 根据 View 类型自动推断
-AniFlux.with(context)
-    .load("https://example.com/animation.svga")
-    .into(svgaImageView)  // 自动推断为 SVGA
-
-AniFlux.with(context)
-    .load("https://example.com/animation.pag")
-    .into(pagImageView)  // 自动推断为 PAG
-```
-
-## 🎨 支持的动画格式
-
-所有动画格式都已包含在 `aniflux` 库中，无需额外依赖。
-
-### GIF
-- **基于**: android-gif-drawable
-- **格式**: `.gif`
-- **特点**: 兼容性好，文件体积较大
-
-### Lottie
-- **基于**: lottie-android
-- **格式**: `.json`
-- **特点**: 矢量动画，文件小，质量高
-- **占位图支持**: ✅ 是
-
-### SVGA
-- **基于**: SVGAPlayer-Android（已增强自动暂停功能）
-- **格式**: `.svga`
-- **特点**: 高性能，支持音频，文件小
-- **占位图支持**: ✅ 是
-
-### PAG
-- **基于**: libpag
-- **格式**: `.pag`
-- **特点**: Adobe After Effects 导出，高性能，功能强大
-- **占位图支持**: ✅ 是
-
-### VAP
-- **基于**: vap
-- **格式**: `.mp4`（特殊格式）
-- **特点**: 视频格式，支持透明度，文件小
-- **占位图支持**: ❌ 否
-
-## 🔧 高级用法
-
-### 自定义配置
-
-```kotlin
-val options = AnimationOptions.create()
+    .size(200, 200)
     .cacheStrategy(AnimationCacheStrategy.BOTH)
     .repeatCount(3)
     .retainLastFrame(true)
     .autoPlay(true)
-
-AniFlux.with(context)
-    .asGif()
-    .load(url)
-    .apply(options)
+    .playListener(listener)
     .into(imageView)
 ```
 
-### 手动管理请求
+### 多种数据源
 
 ```kotlin
-val requestManager = AniFlux.with(context)
-
-// 暂停所有请求
-requestManager.pauseAllRequests()
-
-// 恢复所有请求
-requestManager.resumeRequests()
-
-// 清除所有请求
-requestManager.clearRequests()
+.load("https://example.com/animation.gif")  // URL
+.load(File("/sdcard/animation.gif"))            // 文件
+.load("asset://animations/loading.gif")         // Asset
+.load(R.raw.animation)                           // 资源
+.load(byteArray)                                 // 字节数组
+.load(Uri.parse("content://..."))               // Uri
 ```
 
-### 自定义占位图加载器
+### 智能缓存
 
 ```kotlin
-// 实现 PlaceholderImageLoader 接口
-class MyPlaceholderImageLoader : PlaceholderImageLoader {
-    override fun load(
-        context: Context,
-        source: Any,
-        width: Int,
-        height: Int,
-        callback: PlaceholderImageLoadCallback
-    ): PlaceholderImageLoadRequest {
-        // 您的图片加载逻辑（例如：使用 Glide、Coil 等）
-        // 支持：String (URL)、File、Uri、Int (Resource ID)、"asset://xxx.jpg"
-    }
-    
-    override fun cancel(request: PlaceholderImageLoadRequest) {
-        // 取消加载请求
-    }
-}
-
-// 使用自定义加载器初始化
-AniFlux.init(this) {
-    setPlaceholderImageLoader(MyPlaceholderImageLoader())
+enum class AnimationCacheStrategy {
+    NONE,        // 不缓存
+    MEMORY_ONLY, // 仅内存
+    DISK_ONLY,   // 仅磁盘
+    BOTH         // 内存 + 磁盘（默认）
 }
 ```
 
-## 💡 最佳实践
+### 占位图替换
 
-### 1. 在 Fragment 中使用
+支持 SVGA、PAG 和 Lottie：
+
+```kotlin
+AniFlux.with(context)
+    .asSVGA()
+    .load(url)
+    .placeholderReplacements {
+        add("user_1", "https://example.com/user1.jpg")
+        add("logo", R.drawable.logo)
+    }
+    .into(svgaImageView)
+```
+
+### 生命周期管理
+
+自动处理 Activity/Fragment 生命周期：
 
 ```kotlin
 class MyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // ✅ 在 Fragment 中使用，自动绑定生命周期
+        // 自动绑定 Fragment 生命周期
         AniFlux.with(this)
             .asGif()
             .load(url)
@@ -459,66 +185,58 @@ class MyFragment : Fragment() {
 }
 ```
 
-### 2. 处理可见性变化
+## 支持的格式
+
+| 格式 | 模块 | 特性 |
+|------|------|------|
+| GIF | `aniflux-gif` | 兼容性好，文件体积较大 |
+| Lottie | `aniflux-lottie` | 矢量动画，体积小，质量高，支持占位图 |
+| SVGA | `aniflux-svga` | 高性能，支持音频，支持占位图 |
+| PAG | `aniflux-pag` | Adobe AE 导出，高性能，支持占位图 |
+| VAP | `aniflux-vap` | 视频格式，支持透明度 |
+
+## 高级用法
+
+### 请求管理
 
 ```kotlin
-// ✅ 在 ViewPager2 + Fragment 场景下，手动控制 Fragment 可见性
-override fun onHiddenChanged(hidden: Boolean) {
-    super.onHiddenChanged(hidden)
-    svgaImageView.setFragmentVisible(!hidden)
-}
+val requestManager = AniFlux.with(context)
+
+requestManager.pauseAllRequests()
+requestManager.resumeRequests()
+requestManager.clearRequests()
 ```
 
-### 3. 内存优化
+## 最佳实践
 
-```kotlin
-// ✅ 低内存设备使用合适的缓存策略
-.cacheStrategy(AnimationCacheStrategy.DISK_ONLY)
+1. **选择合适的依赖方式**：大多数场景使用一体化包，需要体积优化时使用模块化依赖
+2. **模块化依赖需要注册插件**：使用模块化依赖时，`com.kernelflux.aniflux.register` 插件是必需的
+3. **生命周期感知**：使用 Fragment/Activity context 实现自动清理
+4. **缓存策略**：根据使用场景选择合适的策略
+5. **占位图替换**：在 SVGA/PAG/Lottie 中使用动态内容
+
+## 许可证
+
+```
+Copyright 2025 KernelFlux
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
-### 4. 性能优化
+## 贡献
 
-- 使用占位图替换实现动态内容
-- 为频繁访问的动画启用缓存
-- 根据使用模式选择合适的缓存策略
-
-## 📝 注意事项
-
-### 1. 循环次数语义
-
-不同动画库的底层实现不同，AniFlux 已统一处理:
-
-- **GIF/Lottie/SVGA/PAG/VAP**: `repeatCount(N)` 都表示总播放 N 次
-- **回调次数**: 对于 `repeatCount(3)`，`onAnimationRepeat()` 会回调 2 次
-
-### 2. 内存管理
-
-- AniFlux 自动管理内存缓存，默认使用 1/8 的可用内存
-- 可通过 `AnimationOptions` 调整缓存策略
-- 在 `onTrimMemory()` 时会自动清理缓存
-
-### 3. 生命周期
-
-- AniFlux 自动处理 Activity/Fragment 生命周期
-- 在 `onDestroy()` 时会自动清理所有资源
-- 无需手动调用 `clear()` 或 `pause()`
-
-### 4. 占位图替换
-
-- 仅支持 SVGA、PAG、Lottie 格式
-- 需要实现 `PlaceholderImageLoader` 接口
-- 异步加载，自动生命周期管理
-- 安全的错误处理（优雅降级）
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-本项目采用 Apache 2.0 许可证。
+欢迎贡献！请随时提交 Pull Request。
 
 ---
 
 **AniFlux** - 让动画加载变得简单统一 🎉
-

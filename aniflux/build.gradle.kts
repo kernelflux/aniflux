@@ -8,11 +8,9 @@ plugins {
     alias(libs.plugins.maven.central.uploader)
 }
 
-
-// 发布配置
+// 版本号从根项目的 ext.anifluxVersion 统一管理
 project.ext.set("publishArtifactId", "aniflux")
-project.ext.set("publishVersion", "1.0.6")
-project.ext.set("publishBundleName", "aniflux_bundle_v${project.ext.get("publishVersion")}")
+project.ext.set("publishVersion", rootProject.ext.get("anifluxVersion") as String)
 
 
 android {
@@ -70,6 +68,8 @@ android {
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
+        // 跳过元数据版本检查，因为 OkHttp 可能使用较新的 Kotlin 版本编译
+        freeCompilerArgs.add("-Xskip-metadata-version-check")
     }
 }
 
@@ -77,10 +77,9 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     api(libs.androidx.core.ktx)
     api(libs.androidx.appcompat)
-    api("androidx.fragment:fragment:1.8.9")
-
-    api("androidx.exifinterface:exifinterface:1.4.1")
-    api("com.squareup.okhttp3:okhttp:5.1.0")
+    api(libs.fragment)
+    api(libs.androidx.exifinterface)
+    api(libs.okhttp)
 
     // 使用本地源码依赖
     debugApi(project(path = ":animLibs:lottie"))
@@ -90,11 +89,11 @@ dependencies {
     debugApi(project(path = ":animLibs:vap"))
 
 
-    releaseApi("com.kernelflux.mobile:aniflux-gif:1.0.6")
-    releaseApi("com.kernelflux.mobile:aniflux-pag:1.0.6")
-    releaseApi("com.kernelflux.mobile:aniflux-svga:1.0.6")
-    releaseApi("com.kernelflux.mobile:aniflux-vap:1.0.6")
-    releaseApi("com.kernelflux.mobile:aniflux-lottie:1.0.6")
+    releaseApi("com.kernelflux.mobile:aniflux-gif-lib:0.0.3")
+    releaseApi("com.kernelflux.mobile:aniflux-pag-lib:0.0.3")
+    releaseApi("com.kernelflux.mobile:aniflux-svga-lib:0.0.3")
+    releaseApi("com.kernelflux.mobile:aniflux-vap-lib:0.0.3")
+    releaseApi("com.kernelflux.mobile:aniflux-lottie-lib:0.0.3")
 
 
 }

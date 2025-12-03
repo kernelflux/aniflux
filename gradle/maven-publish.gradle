@@ -38,97 +38,27 @@ mavenCentralUpload {
     artifactId = sArtifactId
     version = sVersion
 
-    // 直接从 private.properties 文件读取签名配置（避免依赖 rootProject.ext）
-    def signingKeyFileProp = null
-    def signingPassProp = null
-    
+    // 读取签名配置
     def privatePropsFile = project.rootProject.file("private.properties")
     if (privatePropsFile.exists()) {
         def privateProps = new Properties()
         privateProps.load(new FileInputStream(privatePropsFile))
-        signingKeyFileProp = privateProps.getProperty("signingKeyFile")
-        signingPassProp = privateProps.getProperty("signingPass")
+        def signingKeyFileProp = privateProps.getProperty("signingKeyFile")
+        def signingPassProp = privateProps.getProperty("signingPass")
         
-        // 调试信息（可选，需要时可以启用）
-        // if (signingKeyFileProp) {
-        //     println("Maven Central Upload: Found signingKeyFile from private.properties: ${signingKeyFileProp}")
-        // }
-    }
-    
-    // 如果 private.properties 中没有，尝试从 ext 或 properties 获取
-    if (!signingKeyFileProp) {
-        try {
-            def keyFileValue = rootProject.ext.get("signingKeyFile")
-            if (keyFileValue && keyFileValue.toString() && !keyFileValue.toString().contains("extension")) {
-                signingKeyFileProp = keyFileValue
-            }
-        } catch (Exception e) {
-            // 忽略
-        }
-    }
-    
-    if (!signingPassProp) {
-        try {
-            def passValue = rootProject.ext.get("signingPass")
-            if (passValue && passValue.toString() && !passValue.toString().contains("extension")) {
-                signingPassProp = passValue
-            }
-        } catch (Exception e) {
-            // 忽略
-        }
-    }
-    
-    if (signingKeyFileProp) {
-        // 确保路径正确拼接（处理相对路径和绝对路径）
-        // 使用字符串路径拼接，避免 Provider 类型问题
-        def keyFile = signingKeyFileProp.toString()
-        def keyFileObj = new File(keyFile)
-        
-        // 获取根项目目录路径（转换为字符串避免 Provider 问题）
-        def rootDirPathStr = project.rootProject.projectDir.toString()
-        
-        // 如果文件不存在，尝试作为相对路径处理
-        if (!keyFileObj.exists()) {
-            // 尝试从项目根目录查找
-            def normalizedPath = keyFile
-            // 如果路径以 / 开头但不是绝对路径，去掉开头的 /
-            if (keyFile.startsWith("/") && !keyFileObj.isAbsolute()) {
-                normalizedPath = keyFile.substring(1)
-            }
-            
-            // 使用字符串路径拼接
-            def relativePath = new File(rootDirPathStr, normalizedPath).absolutePath
-            def relativeFile = new File(relativePath)
-            if (relativeFile.exists()) {
-                signingKeyFile.set(relativePath)
-            } else {
-                // 如果还是找不到，使用原始路径（可能是绝对路径）
-                def finalPath = keyFileObj.isAbsolute() ? keyFile : new File(rootDirPathStr, keyFile).absolutePath
-                signingKeyFile.set(finalPath)
-            }
-        } else {
-            // 文件存在，使用原始路径
-            def finalPath = keyFileObj.isAbsolute() ? keyFile : new File(rootDirPathStr, keyFile).absolutePath
+        if (signingKeyFileProp) {
+            def keyFile = new File(signingKeyFileProp)
+            def finalPath = keyFile.isAbsolute() 
+                ? signingKeyFileProp 
+                : new File(project.rootProject.projectDir, signingKeyFileProp).absolutePath
             signingKeyFile.set(finalPath)
+            println("Maven Central Upload: signingKeyFile configured: ${finalPath} ✓")
         }
         
-        // 验证签名文件是否存在
-        def signingKeyFileStr = signingKeyFile.get()
-        def signingKeyFileObj = new File(signingKeyFileStr)
-        if (signingKeyFileObj.exists()) {
-            println("Maven Central Upload: signingKeyFile configured: ${signingKeyFileStr} ✓")
-        } else {
-            println("Maven Central Upload: WARNING - signingKeyFile not found: ${signingKeyFileStr}")
+        if (signingPassProp) {
+            signingPass.set(signingPassProp)
+            println("Maven Central Upload: signingPass configured")
         }
-    } else {
-        println("Maven Central Upload: WARNING - signingKeyFile not found!")
-    }
-    
-    if (signingPassProp) {
-        signingPass.set(signingPassProp.toString())
-        println("Maven Central Upload: signingPass configured")
-    } else {
-        println("Maven Central Upload: WARNING - signingPass not found!")
     }
 
     // 在 Groovy DSL 中，需要显式创建 Action 对象
@@ -158,4 +88,5 @@ mavenCentralUpload {
         }
     })
 }
+
 

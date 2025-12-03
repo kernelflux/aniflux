@@ -114,12 +114,12 @@ class PAGTestFragment : BaseLazyFragment() {
 
 
         Thread({
-            val pagFile = org.libpag.PAGFile.Load(pagUrl)
+            val pagFile = org.libpag.PAGFile.Load(pagUrl) ?: return@Thread
             Handler(Looper.getMainLooper()).post {
                 Log.i("xxx_tag", "or.lib.PAGView setPathAsync:${pagFile}")
                 pagView2.apply {
                     setRepeatCount(-1)
-                    composition= pagFile.copyOriginal()
+                    composition = pagFile.copyOriginal()
                     play()
                 }
             }

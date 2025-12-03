@@ -45,19 +45,19 @@ mavenCentralUpload {
         privateProps.load(new FileInputStream(privatePropsFile))
         def signingKeyFileProp = privateProps.getProperty("signingKeyFile")
         def signingPassProp = privateProps.getProperty("signingPass")
-        
-        if (signingKeyFileProp) {
+    
+    if (signingKeyFileProp) {
             def keyFile = new File(signingKeyFileProp)
             def finalPath = keyFile.isAbsolute() 
                 ? signingKeyFileProp 
                 : new File(project.rootProject.projectDir, signingKeyFileProp).absolutePath
             signingKeyFile.set(finalPath)
             println("Maven Central Upload: signingKeyFile configured: ${finalPath} ✓")
-        }
-        
-        if (signingPassProp) {
+    }
+    
+    if (signingPassProp) {
             signingPass.set(signingPassProp)
-            println("Maven Central Upload: signingPass configured")
+        println("Maven Central Upload: signingPass configured")
         }
     }
 

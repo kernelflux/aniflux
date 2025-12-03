@@ -40,7 +40,7 @@ dependencies {
 ```kotlin
 // In your project's build.gradle.kts (project level)
 plugins {
-    id("com.kernelflux.aniflux.register") version "1.0.0" apply false
+    id("com.kernelflux.aniflux.register") version "1.1.1" apply false
 }
 
 // In your app's build.gradle.kts (module level)

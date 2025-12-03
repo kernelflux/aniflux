@@ -40,7 +40,7 @@ dependencies {
 ```kotlin
 // 在项目根目录的 build.gradle.kts
 plugins {
-    id("com.kernelflux.aniflux.register") version "1.0.0" apply false
+    id("com.kernelflux.aniflux.register") version "1.1.1" apply false
 }
 
 // 在 app 模块的 build.gradle.kts

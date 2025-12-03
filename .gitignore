@@ -2,13 +2,13 @@
 .gradle
 local.properties
 private.properties
-/.idea
+.idea
 .DS_Store
 build/
 /captures
 .externalNativeBuild
 .cxx
-/.kotlin
+.kotlin
 /gpg
 # keystore files
 *.jks

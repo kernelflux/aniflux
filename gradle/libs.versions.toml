@@ -1,7 +1,7 @@
 [versions]
-# 上层模块版本（aniflux-core、aniflux-pag、aniflux-gif 等）
+# Upper layer module version (aniflux-core, aniflux-pag, aniflux-gif, etc.)
 aniflux = "1.1.1"
-# 底层库版本（animLibs 下的库）
+# Bottom layer library version (libraries under animLibs)
 anifluxLib = "0.0.3"
 
 
@@ -52,7 +52,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 aniflux = { module = "com.kernelflux.mobile:aniflux", version.ref = "aniflux" }
-# 上层模块：aniflux-xxx（包含 aniflux-core 依赖和格式扩展）
+# Upper layer modules: aniflux-xxx (includes aniflux-core dependency and format extensions)
 aniflux-core = { module = "com.kernelflux.mobile:aniflux-core", version.ref = "aniflux" }
 aniflux-annotations = { module = "com.kernelflux.mobile:aniflux-annotations", version.ref = "aniflux" }
 aniflux-compiler-ksp = { module = "com.kernelflux.mobile:aniflux-compiler-ksp", version.ref = "aniflux" }
@@ -61,7 +61,7 @@ aniflux-gif = { module = "com.kernelflux.mobile:aniflux-gif", version.ref = "ani
 aniflux-lottie = { module = "com.kernelflux.mobile:aniflux-lottie", version.ref = "aniflux" }
 aniflux-svga = { module = "com.kernelflux.mobile:aniflux-svga", version.ref = "aniflux" }
 aniflux-vap = { module = "com.kernelflux.mobile:aniflux-vap", version.ref = "aniflux" }
-# 底层库：aniflux-xxx-lib（纯格式库，包含 Java/Kotlin 封装和 native 代码，不依赖 aniflux-core）
+# Bottom layer libraries: aniflux-xxx-lib (pure format libraries, includes Java/Kotlin wrappers and native code, doesn't depend on aniflux-core)
 aniflux-pag-lib = { module = "com.kernelflux.mobile:aniflux-pag-lib", version.ref = "anifluxLib" }
 aniflux-gif-lib = { module = "com.kernelflux.mobile:aniflux-gif-lib", version.ref = "anifluxLib" }
 aniflux-lottie-lib = { module = "com.kernelflux.mobile:aniflux-lottie-lib", version.ref = "anifluxLib" }
@@ -91,6 +91,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 maven-central-uploader = { id = "com.kernelflux.maven.publish", version.ref = "mavencentraluploader" }
-
+aniflux-register = { id = "com.kernelflux.aniflux.register", version.ref = "aniflux" }
 plugin-publish = "com.gradle.plugin-publish:2.0.0"
 

@@ -1,14 +1,17 @@
 package com.kernelflux.aniflux.request.target
 
 import android.graphics.drawable.Drawable
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.placeholder.PlaceholderManager
 import com.kernelflux.pag.PAGFile
 import com.kernelflux.pag.PAGImageView
 
 /**
- * PAG动画的专用ViewTarget
- * 自动处理PAGFile资源到PAGImageView/PAGView的设置
+ * Dedicated ViewTarget for PAG animation
+ * Automatically handles PAGFile resource setup to PAGImageView/PAGView
  * 
  * @author: kerneflux
  * @date: 2025/11/27
@@ -18,25 +21,28 @@ class PAGImageViewTarget(view: PAGImageView) : CustomViewAnimationTarget<PAGImag
     private var placeholderManager: PlaceholderManager? = null
     
     override fun onResourceReady(resource: PAGFile) {
-        // 先设置监听器（避免错过 onAnimationStart）
+        // Ensure reusable container cache is set when resource is ready
+        onResourceReadyInternal()
+        
+        // Set listener first (avoid missing onAnimationStart)
         setupPlayListeners(resource, view)
-        // 获取配置选项
+        // Get configuration options
         val repeatCount = animationOptions?.repeatCount ?: 0
         val autoPlay = animationOptions?.autoPlay ?: true
         
         view.apply {
-            //防止多个view共用导致的复用问题
+            // Prevent reuse issues caused by multiple views sharing
             composition = resource.copyOriginal()
             setRepeatCount(repeatCount)
-            // 如果设置了自动播放，则调用 play()
+            // If auto play is set, call play()
             if (autoPlay) {
                 play()
             }
         }
         
-        // 处理占位图替换
+        // Handle placeholder replacement
         animationOptions?.placeholderReplacements?.let { replacements ->
-            // 先清理旧的占位图管理器（如果存在）
+            // Clear old placeholder manager first (if exists)
             placeholderManager?.clear()
             placeholderManager = null
             
@@ -58,11 +64,11 @@ class PAGImageViewTarget(view: PAGImageView) : CustomViewAnimationTarget<PAGImag
     }
     
     override fun onLoadFailed(errorDrawable: Drawable?) {
-        // PAG 加载失败的处理
+        // Handle PAG load failure
         try {
             placeholderManager?.clear()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
         placeholderManager = null
     }
@@ -71,13 +77,45 @@ class PAGImageViewTarget(view: PAGImageView) : CustomViewAnimationTarget<PAGImag
         try {
             placeholderManager?.clear()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
         placeholderManager = null
+        clearAnimationFromView()
+    }
+    
+    override fun stopAnimation() {
+        // Only pause, don't release resources
         try {
-            view.composition = null
+            view.pause()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions
+        }
+    }
+    
+    override fun resumeAnimation() {
+        // Resume playback
+        try {
+            if (view.composition != null) {
+                view.play()
+            }
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+    override fun clearAnimationFromView() {
+        // Really release resources
+        if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+            AniFluxLog.d(AniFluxLogCategory.TARGET, "PAGImageViewTarget.clearAnimationFromView() - releasing PAG resources")
+        }
+        try {
+            view.pause()
+            view.composition = null
+            if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+                AniFluxLog.d(AniFluxLogCategory.TARGET, "PAGImageViewTarget.clearAnimationFromView() - resources released successfully")
+            }
+        } catch (e: Exception) {
+            AniFluxLog.e(AniFluxLogCategory.TARGET, "PAGImageViewTarget.clearAnimationFromView() - error during cleanup", e)
         }
     }
 }

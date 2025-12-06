@@ -2,6 +2,8 @@ package com.kernelflux.aniflux.request.listener
 
 import android.annotation.SuppressLint
 import android.view.View
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.lottie.LottieAnimationView
 import com.kernelflux.lottie.LottieDrawable
 import com.kernelflux.aniflux.request.target.CustomAnimationTarget
@@ -19,8 +21,8 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 动画播放监听器设置辅助类
- * 负责将统一的监听器设置到具体的动画对象上
+ * Animation play listener setup helper class
+ * Responsible for setting unified listeners to specific animation objects
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -30,11 +32,11 @@ object AnimationPlayListenerSetupHelper {
     private val adapterCache = ConcurrentHashMap<String, Pair<View?, List<Any>>>()
 
     /**
-     * 为动画资源设置播放监听器
+     * Set play listener for animation resource
      *
-     * @param target 目标对象
-     * @param resource 动画资源
-     * @param view 显示动画的View（可选）
+     * @param target Target object
+     * @param resource Animation resource
+     * @param view View displaying animation (optional)
      */
     @SuppressLint("LongLogTag")
     @Suppress("UNCHECKED_CAST")
@@ -43,53 +45,53 @@ object AnimationPlayListenerSetupHelper {
         resource: Any,
         view: View? = null
     ) {
-        // 直接获取监听器（支持 CustomAnimationTarget 和 CustomViewAnimationTarget）
+        // Get listener directly (supports CustomAnimationTarget and CustomViewAnimationTarget)
         val listener = when (target) {
             is CustomAnimationTarget<*> -> target.playListener
             is CustomViewAnimationTarget<*, *> -> target.playListener
             else -> {
-                android.util.Log.w(
-                    TAG,
+                AniFluxLog.w(
+                    AniFluxLogCategory.GENERAL,
                     "setupListeners: target type not supported: ${target.javaClass.simpleName}"
                 )
                 return
             }
         }
         if (listener == null) {
-            // 没有监听器，不需要设置
-            android.util.Log.d(TAG, "setupListeners: no listener to setup")
+            // No listener, no need to setup
+            AniFluxLog.d(AniFluxLogCategory.GENERAL, "setupListeners: no listener to setup")
             return
         }
 
-        android.util.Log.d(
-            TAG,
+AniFluxLog.d(
+                    AniFluxLogCategory.GENERAL,
             "setupListeners: resource=${resource.javaClass.simpleName}, view=${view?.javaClass?.simpleName}"
         )
 
-        // 关键：统一以View为准（如果view存在）
-        // 因为同一个View可能被多次使用不同的target（每次into()都会创建新的target）
-        // 只有真正没有View的场景（如自定义CustomAnimationTarget实现），才使用target作为key
-        // 没有View参数，尝试从target中获取View
+        // Key: unified use View as basis (if view exists)
+        // Because the same View may be used multiple times with different targets (each into() creates a new target)
+        // Only when there's truly no View scenario (like custom CustomAnimationTarget implementation), use target as key
+        // No View parameter, try to get View from target
         val targetKey = view?.hashCode()?.toString() ?: when (target) {
             is CustomViewAnimationTarget<*, *> -> {
-                // ViewTarget有内部View，使用它
+                // ViewTarget has internal View, use it
                 target.getViewForVisibilityCheck().hashCode().toString()
             }
 
             is CustomAnimationTarget<*> -> {
-                // 真正的CustomAnimationTarget实现（没有View），使用target作为key
+                // True CustomAnimationTarget implementation (no View), use target as key
                 target.hashCode().toString()
             }
 
             else -> target.hashCode().toString()
         }
 
-        android.util.Log.d(
-            TAG,
+AniFluxLog.d(
+                    AniFluxLogCategory.GENERAL,
             "setupListeners: targetKey=$targetKey (based on ${if (view != null) "view param" else "target/view from target"})"
         )
 
-        // 根据资源类型设置监听器
+        // Set listener based on resource type
         when (resource) {
             is PAGFile -> {
                 setupPAGListeners(targetKey, view, listener, target)
@@ -116,7 +118,7 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 设置PAG动画监听器
+     * Set PAG animation listener
      */
     @SuppressLint("LongLogTag")
     private fun setupPAGListeners(
@@ -125,21 +127,21 @@ object AnimationPlayListenerSetupHelper {
         listener: AnimationPlayListener,
         target: Any? = null
     ) {
-        // 移除旧的适配器（如果存在）- 必须从View中真正移除
+        // Remove old adapter (if exists) - must actually remove from View
         removeOldPAGAdapter(targetKey, view)
 
         if (view == null) {
-            android.util.Log.w(TAG, "PAG listener setup failed: view is null")
+            AniFluxLog.w(AniFluxLogCategory.GENERAL, "PAG listener setup failed: view is null")
             return
         }
 
-        // 从 target 获取 retainLastFrame 配置
+        // Get retainLastFrame configuration from target
         val retainLastFrame = when (target) {
             is CustomViewAnimationTarget<*, *> -> {
                 target.animationOptions?.retainLastFrame ?: true
             }
 
-            else -> true // 默认保留
+            else -> true // Default retain
         }
 
         when (view) {
@@ -148,7 +150,7 @@ object AnimationPlayListenerSetupHelper {
                 val pagListener = adapter.createAnimatorListener()
                 view.addListener(pagListener)
                 adapterCache[targetKey] = Pair(view, listOf(pagListener))
-                android.util.Log.d(TAG, "PAGView listener set")
+                AniFluxLog.d(AniFluxLogCategory.GENERAL, "PAGView listener set")
             }
 
             is PAGImageView -> {
@@ -156,12 +158,12 @@ object AnimationPlayListenerSetupHelper {
                 val pagListener = adapter.createAnimatorListener()
                 view.addListener(pagListener)
                 adapterCache[targetKey] = Pair(view, listOf(pagListener))
-                android.util.Log.d(TAG, "PAGImageView listener set")
+                AniFluxLog.d(AniFluxLogCategory.GENERAL, "PAGImageView listener set")
             }
 
             else -> {
-                android.util.Log.w(
-                    TAG,
+                AniFluxLog.w(
+                    AniFluxLogCategory.GENERAL,
                     "PAG listener setup failed: view is not PAGView or PAGImageView, type=${view.javaClass.simpleName}"
                 )
             }
@@ -169,8 +171,8 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 移除旧的PAG监听器（从View中真正移除）
-     * 关键：如果currentView不为null，直接从currentView中移除，因为targetKey基于View
+     * Remove old PAG listener (actually remove from View)
+     * Key: if currentView is not null, remove directly from currentView, because targetKey is based on View
      */
     @SuppressLint("LongLogTag")
     private fun removeOldPAGAdapter(targetKey: String, currentView: View?) {
@@ -180,37 +182,37 @@ object AnimationPlayListenerSetupHelper {
             listeners.forEach { listener ->
                 when {
                     listener is PAGView.PAGViewListener && currentView is PAGView -> {
-                        // 从当前View中移除旧的监听器（防止重复添加）
+                        // Remove old listener from current View (prevent duplicate addition)
                         currentView.removeListener(listener)
-                        android.util.Log.d(
-                            TAG,
+                        AniFluxLog.d(
+                            AniFluxLogCategory.GENERAL,
                             "Removed PAGView listener from current view (key=$targetKey)"
                         )
                     }
 
                     listener is PAGImageView.PAGImageViewListener && currentView is PAGImageView -> {
-                        // 从当前View中移除旧的监听器（防止重复添加）
+                        // Remove old listener from current View (prevent duplicate addition)
                         currentView.removeListener(listener)
-                        android.util.Log.d(
-                            TAG,
+                        AniFluxLog.d(
+                            AniFluxLogCategory.GENERAL,
                             "Removed PAGImageView listener from current view (key=$targetKey)"
                         )
                     }
                 }
             }
         } else if (cached != null) {
-            // 如果没有currentView，从oldView中移除（清理场景）
+            // If no currentView, remove from oldView (cleanup scenario)
             val (oldView, listeners) = cached
             listeners.forEach { listener ->
                 when {
                     listener is PAGView.PAGViewListener && oldView is PAGView -> {
                         oldView.removeListener(listener)
-                        android.util.Log.d(TAG, "Removed PAGView listener from old view")
+                        AniFluxLog.d(AniFluxLogCategory.GENERAL, "Removed PAGView listener from old view")
                     }
 
                     listener is PAGImageView.PAGImageViewListener && oldView is PAGImageView -> {
                         oldView.removeListener(listener)
-                        android.util.Log.d(TAG, "Removed PAGImageView listener from old view")
+                        AniFluxLog.d(AniFluxLogCategory.GENERAL, "Removed PAGImageView listener from old view")
                     }
                 }
             }
@@ -218,7 +220,7 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 设置Lottie动画监听器
+     * Set Lottie animation listener
      */
     private fun setupLottieListeners(
         targetKey: String,
@@ -227,32 +229,32 @@ object AnimationPlayListenerSetupHelper {
         listener: AnimationPlayListener,
         target: Any? = null
     ) {
-        // 移除旧的适配器（如果存在）
+        // Remove old adapter (if exists)
         removeOldLottieAdapter(targetKey, view, lottieDrawable)
 
-        // 从 target 获取 retainLastFrame 配置
+        // Get retainLastFrame configuration from target
         val retainLastFrame = when (target) {
             is CustomViewAnimationTarget<*, *> -> {
                 target.animationOptions?.retainLastFrame ?: true
             }
 
-            else -> true // 默认保留
+            else -> true // Default retain
         }
 
         val lottieView = view as? LottieAnimationView
         val adapter = LottiePlayListenerAdapter(listener, lottieView, retainLastFrame)
         
-        // 获取用户的原始 repeatCount（总播放次数）
+        // Get user's original repeatCount (total play count)
         val userRepeatCount = when (target) {
             is CustomViewAnimationTarget<*, *> -> {
                 target.animationOptions?.repeatCount ?: -1
             }
-            else -> -1  // 默认无限循环
+            else -> -1  // Default infinite loop
         }
         
-        // 传递给 adapter：用户期望的总播放次数
-        // 注意：LottieViewTarget 会将用户的 repeatCount 转换为 Lottie 的语义
-        // 但 adapter 需要知道用户期望的总播放次数，而不是 Lottie 的 repeatCount
+        // Pass to adapter: user's expected total play count
+        // Note: LottieViewTarget will convert user's repeatCount to Lottie's semantics
+        // But adapter needs to know user's expected total play count, not Lottie's repeatCount
         val animatorListener = adapter.createAnimatorListener(userRepeatCount)
 
         if (lottieView != null) {
@@ -265,7 +267,7 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 移除旧的Lottie监听器
+     * Remove old Lottie listener
      */
     private fun removeOldLottieAdapter(
         targetKey: String,
@@ -277,22 +279,22 @@ object AnimationPlayListenerSetupHelper {
             val (oldView, listeners) = cached
             listeners.forEach { listener ->
                 if (listener is android.animation.Animator.AnimatorListener) {
-                    // 从旧的View或Drawable中移除
+                    // Remove from old View or Drawable
                     when {
                         oldView is LottieAnimationView -> {
                             oldView.removeAnimatorListener(listener)
                         }
-                        // 如果新旧View相同，也需要移除（防止重复添加）
+                        // If old and new View are the same, also need to remove (prevent duplicate addition)
                         currentView is LottieAnimationView && oldView == currentView -> {
                             currentView.removeAnimatorListener(listener)
                         }
 
                         else -> {
-                            // 尝试从Drawable中移除
+                            // Try to remove from Drawable
                             try {
                                 currentDrawable.removeAnimatorListener(listener)
                             } catch (e: Exception) {
-                                // Drawable可能不支持移除，忽略
+                                // Drawable may not support removal, ignore
                             }
                         }
                     }
@@ -302,8 +304,8 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 设置SVGA动画监听器
-     * 注意：SVGA内部使用Animator，需要通过反射获取内部的Animator来添加监听器
+     * Set SVGA animation listener
+     * Note: SVGA internally uses Animator, need to get internal Animator via reflection to add listener
      */
     @SuppressLint("LongLogTag")
     private fun setupSVGAListeners(
@@ -326,7 +328,7 @@ object AnimationPlayListenerSetupHelper {
 
 
     /**
-     * 设置VAP动画监听器
+     * Set VAP animation listener
      */
     private fun setupVAPListeners(
         targetKey: String,
@@ -334,19 +336,19 @@ object AnimationPlayListenerSetupHelper {
         listener: AnimationPlayListener,
         target: Any? = null
     ) {
-        // 移除旧的适配器（如果存在）
+        // Remove old adapter (if exists)
         val cached = adapterCache.remove(targetKey)
         if (cached != null) {
             view.setAnimListener(null)
         }
 
-        // 从 target 获取 retainLastFrame 配置
+        // Get retainLastFrame configuration from target
         val retainLastFrame = when (target) {
             is CustomViewAnimationTarget<*, *> -> {
                 target.animationOptions?.retainLastFrame ?: true
             }
 
-            else -> true // 默认保留
+            else -> true // Default retain
         }
 
         val adapter = VapPlayListenerAdapter(listener, view, retainLastFrame)
@@ -357,7 +359,7 @@ object AnimationPlayListenerSetupHelper {
 
 
     /**
-     * 设置GIF动画监听器
+     * Set GIF animation listener
      */
     private fun setupGifListeners(
         targetKey: String,
@@ -366,16 +368,16 @@ object AnimationPlayListenerSetupHelper {
         listener: AnimationPlayListener,
         target: Any? = null
     ) {
-        // 移除旧的适配器（如果存在）
+        // Remove old adapter (if exists)
         removeOldGifAdapter(targetKey, gifDrawable)
 
-        // 从 target 获取 retainLastFrame 配置
+        // Get retainLastFrame configuration from target
         val retainLastFrame = when (target) {
             is CustomViewAnimationTarget<*, *> -> {
                 target.animationOptions?.retainLastFrame ?: true
             }
 
-            else -> true // 默认保留
+            else -> true // Default retain
         }
 
         val adapter =
@@ -387,7 +389,7 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 移除旧的GIF监听器
+     * Remove old GIF listener
      */
     private fun removeOldGifAdapter(targetKey: String, currentDrawable: GifDrawable) {
         val cached = adapterCache.remove(targetKey)
@@ -398,7 +400,7 @@ object AnimationPlayListenerSetupHelper {
                     try {
                         currentDrawable.removeAnimationListener(listener)
                     } catch (e: Exception) {
-                        // 忽略移除失败的情况
+                        // Ignore removal failure
                     }
                 }
             }
@@ -407,19 +409,19 @@ object AnimationPlayListenerSetupHelper {
 
 
     /**
-     * 清理指定target的适配器
-     * 需要真正从View/Drawable中移除监听器，而不是只从缓存中移除
+     * Cleanup adapter for specified target
+     * Need to actually remove listener from View/Drawable, not just remove from cache
      */
     fun cleanup(target: Any) {
         val targetKey = getTargetKey(target)
         val cached = adapterCache.remove(targetKey)
 
-        // 从实际的View/Drawable中移除监听器
+        // Remove listener from actual View/Drawable
         if (cached != null) {
             val (view, listeners) = cached
             listeners.forEach { listener ->
                 when {
-                    // PAG监听器
+                    // PAG listener
                     listener is PAGView.PAGViewListener && view is PAGView -> {
                         view.removeListener(listener)
                     }
@@ -427,11 +429,11 @@ object AnimationPlayListenerSetupHelper {
                     listener is PAGImageView.PAGImageViewListener && view is PAGImageView -> {
                         view.removeListener(listener)
                     }
-                    // Lottie监听器
+                    // Lottie listener
                     listener is android.animation.Animator.AnimatorListener && view is LottieAnimationView -> {
                         view.removeAnimatorListener(listener)
                     }
-                    // SVGA监听器（需要反射）
+                    // SVGA listener (needs reflection)
                     listener is android.animation.Animator.AnimatorListener && view is SVGAImageView -> {
                         try {
                             val animatorField =
@@ -441,7 +443,7 @@ object AnimationPlayListenerSetupHelper {
                                 animatorField.get(view) as? android.animation.ValueAnimator
                             animator?.removeListener(listener)
                         } catch (e: Exception) {
-                            // 忽略反射失败
+                            // Ignore reflection failure
                         }
                     }
                 }
@@ -450,19 +452,19 @@ object AnimationPlayListenerSetupHelper {
     }
 
     /**
-     * 获取target的唯一标识（用于cleanup等场景）
-     * 优先使用View，如果没有View才使用target
+     * Get unique identifier for target (for cleanup and other scenarios)
+     * Prefer View, only use target if no View
      */
     private fun getTargetKey(target: Any): String {
         return when (target) {
             is CustomViewAnimationTarget<*, *> -> {
-                // ViewTarget始终有View，使用View作为key
+                // ViewTarget always has View, use View as key
                 target.getViewForVisibilityCheck().hashCode().toString()
             }
 
             is CustomAnimationTarget<*> -> {
-                // CustomAnimationTarget：如果是AutoAnimationFrameLayoutTarget，尝试获取container
-                // 其他情况使用target作为key（真正的自定义实现）
+                // CustomAnimationTarget: if AutoAnimationFrameLayoutTarget, try to get container
+                // Other cases use target as key (true custom implementation)
                 try {
                     val field = target.javaClass.getDeclaredField("container")
                     field.isAccessible = true
@@ -473,7 +475,7 @@ object AnimationPlayListenerSetupHelper {
                         target.hashCode().toString()
                     }
                 } catch (e: Exception) {
-                    // 没有container字段，使用target作为key
+                    // No container field, use target as key
                     target.hashCode().toString()
                 }
             }

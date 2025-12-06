@@ -15,8 +15,8 @@ import com.kernelflux.aniflux.AnimationRequestManager
 import com.kernelflux.aniflux.util.Util
 
 /**
- * 动画请求管理器检索器
- * 支持细粒度的Context/Activity/Fragment管理
+ * Animation request manager retriever
+ * Supports fine-grained Context/Activity/Fragment management
  */
 class AnimationRequestManagerRetriever(
     sFactory: AnimationRequestManagerFactory? = null
@@ -33,7 +33,7 @@ class AnimationRequestManagerRetriever(
         LifecycleAnimationRequestManagerRetriever(this.factory)
 
     /**
-     * 获取应用级别的RequestManager
+     * Get application-level RequestManager
      */
     @Synchronized
     private fun getApplicationManager(context: Context): AnimationRequestManager {
@@ -53,7 +53,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 获取RequestManager - Context版本
+     * Get RequestManager - Context version
      */
     fun get(context: Context?): AnimationRequestManager {
         if (context == null) {
@@ -62,7 +62,7 @@ class AnimationRequestManagerRetriever(
             when (context) {
                 is FragmentActivity -> return get(context)
                 is ContextWrapper -> {
-                    // 只有当baseContext有非null的application context时才unwrap
+                    // Only unwrap when baseContext has non-null application context
                     val baseContext = context.baseContext
                     if (baseContext.applicationContext != null) {
                         return get(baseContext)
@@ -74,7 +74,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 获取RequestManager - FragmentActivity版本
+     * Get RequestManager - FragmentActivity version
      */
     fun get(activity: FragmentActivity): AnimationRequestManager {
         if (Util.isOnBackgroundThread()) {
@@ -95,7 +95,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 获取RequestManager - Fragment版本
+     * Get RequestManager - Fragment version
      */
     fun get(fragment: Fragment): AnimationRequestManager {
         val context = fragment.context
@@ -105,10 +105,10 @@ class AnimationRequestManagerRetriever(
             return get(context.applicationContext)
         }
 
-        // 如果Fragment没有hosted by activity，使用application context
+        // If Fragment is not hosted by activity, use application context
         val activity = fragment.activity
         if (activity != null) {
-            // 注册frame waiter等逻辑可以在这里添加
+            // Register frame waiter and other logic can be added here
         }
 
         val childFragmentManager = fragment.childFragmentManager
@@ -124,7 +124,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 获取RequestManager - View版本
+     * Get RequestManager - View version
      */
     fun get(view: View): AnimationRequestManager {
         if (Util.isOnBackgroundThread()) {
@@ -136,23 +136,23 @@ class AnimationRequestManagerRetriever(
             ?: throw IllegalArgumentException("Unable to obtain a request manager for a view without a Context")
 
         val activity = findActivity(context)
-        // View可能在service等其他地方
+        // View may be in service or other places
         if (activity == null) {
             return get(context.applicationContext)
         }
 
-        // 支持Fragment
+        // Support Fragment
         if (activity is FragmentActivity) {
             val fragment = findSupportFragment(view, activity)
             return if (fragment != null) get(fragment) else get(activity)
         }
 
-        // 标准Fragment
+        // Standard Fragment
         return get(context.applicationContext)
     }
 
     /**
-     * 查找所有支持Fragment及其子Fragment
+     * Find all support Fragments and their child Fragments
      */
     private fun findAllSupportFragmentsWithViews(
         topLevelFragments: Collection<Fragment>?,
@@ -172,7 +172,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 查找包含指定View的支持Fragment
+     * Find support Fragment containing specified View
      */
     private fun findSupportFragment(target: View, activity: FragmentActivity): Fragment? {
         tempViewToSupportFragment.clear()
@@ -200,7 +200,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 从Context中查找Activity
+     * Find Activity from Context
      */
     private fun findActivity(context: Context): Activity? {
         return when (context) {
@@ -211,7 +211,7 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 检查Activity是否已销毁
+     * Check if Activity is destroyed
      */
     @SuppressLint("ObsoleteSdkInt")
     private fun assertNotDestroyed(activity: Activity) {
@@ -221,17 +221,17 @@ class AnimationRequestManagerRetriever(
     }
 
     /**
-     * 检查Activity是否可见
+     * Check if Activity is visible
      */
     private fun isActivityVisible(context: Context): Boolean {
-        // 这是一个简单的启发式方法，但这是我们能做的全部
-        // 我们宁愿在可见性方面出错并开始请求，也不愿在不可见性方面出错并忽略有效请求
+        // This is a simple heuristic, but it's all we can do
+        // We'd rather err on the side of visibility and start requests than err on the side of invisibility and ignore valid requests
         val activity = findActivity(context)
         return activity == null || !activity.isFinishing
     }
 
     /**
-     * 用于创建RequestManager的工厂接口
+     * Factory interface for creating RequestManager
      */
     fun interface AnimationRequestManagerFactory {
         fun build(

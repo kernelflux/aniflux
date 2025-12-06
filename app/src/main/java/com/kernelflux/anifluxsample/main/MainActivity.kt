@@ -1,4 +1,4 @@
-package com.kernelflux.anifluxsample
+package com.kernelflux.anifluxsample.main
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.kernelflux.anifluxsample.R
 
 /**
  * MainActivity with Tab + Fragment 切换测试场景
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         // 使用带 Tab 的布局
         setContentView(R.layout.activity_main)
         
-        AniFluxLogger.i("MainActivity onCreate")
+        com.kernelflux.anifluxsample.util.AniFluxLogger.i("MainActivity onCreate")
 
         val viewPager = findViewById<ViewPager2>(R.id.view_pager)
         val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
@@ -38,18 +39,18 @@ class MainActivity : AppCompatActivity() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                AniFluxLogger.i("MainActivity ViewPager 切换到页面: $position")
+                com.kernelflux.anifluxsample.util.AniFluxLogger.i("MainActivity ViewPager 切换到页面: $position")
             }
         })
     }
 
     override fun onResume() {
         super.onResume()
-        AniFluxLogger.i("MainActivity onResume")
+        com.kernelflux.anifluxsample.util.AniFluxLogger.i("MainActivity onResume")
     }
 
     override fun onPause() {
         super.onPause()
-        AniFluxLogger.i("MainActivity onPause")
+        com.kernelflux.anifluxsample.util.AniFluxLogger.i("MainActivity onPause")
     }
 }

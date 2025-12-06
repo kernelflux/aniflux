@@ -1,18 +1,18 @@
 /**
- * 通用的 Maven Central 发布配置脚本
+ * Common Maven Central publishing configuration script
  * 
- * 使用方法：
- * 1. 在 build.gradle 中 apply 此脚本：
+ * Usage:
+ * 1. Apply this script in build.gradle:
  *    apply from: rootProject.file('gradle/maven-publish.gradle')
  * 
- * 2. 在 apply 之前定义以下变量：
+ * 2. Define the following variables before applying:
  *    ext {
- *        publishArtifactId = "aniflux-xxx"  // 必需：artifact ID
- *        publishVersion = "1.0.0"            // 必需：版本号
- *        publishBundleName = "aniflux_xxx_bundle_v${publishVersion}"  // 可选：默认使用 artifactId
+ *        publishArtifactId = "aniflux-xxx"  // Required: artifact ID
+ *        publishVersion = "1.0.0"            // Required: version number
+ *        publishBundleName = "aniflux_xxx_bundle_v${publishVersion}"  // Optional: defaults to artifactId
  *    }
  */
-// 检查必需的配置
+// Check required configuration
 if (!project.hasProperty('publishArtifactId')) {
     throw new GradleException("publishArtifactId must be defined before applying maven-publish.gradle")
 }
@@ -20,7 +20,7 @@ if (!project.hasProperty('publishVersion')) {
     throw new GradleException("publishVersion must be defined before applying maven-publish.gradle")
 }
 
-// 默认配置
+// Default configuration
 def sGroupId = "com.kernelflux.mobile"
 def sArtifactId = project.ext.publishArtifactId
 def sVersion = project.ext.publishVersion
@@ -28,7 +28,7 @@ def sBundleName = project.hasProperty('publishBundleName')
     ? project.ext.publishBundleName 
     : "${sArtifactId.replace('-', '_')}_bundle_v${sVersion}"
 
-// 配置 mavenCentralUpload
+// Configure mavenCentralUpload
 mavenCentralUpload {
     uploadBundleName = sBundleName
     username = findProperty("sonatypeUsername")
@@ -38,7 +38,7 @@ mavenCentralUpload {
     artifactId = sArtifactId
     version = sVersion
 
-    // 读取签名配置
+    // Read signing configuration
     def privatePropsFile = project.rootProject.file("private.properties")
     if (privatePropsFile.exists()) {
         def privateProps = new Properties()
@@ -61,7 +61,7 @@ mavenCentralUpload {
         }
     }
 
-    // 在 Groovy DSL 中，需要显式创建 Action 对象
+    // In Groovy DSL, need to explicitly create Action object
     pom.set(new Action<MavenPom>() {
         @Override
         void execute(MavenPom mavenPom) {

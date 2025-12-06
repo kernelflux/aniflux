@@ -1,5 +1,6 @@
-package com.kernelflux.anifluxsample
+package com.kernelflux.anifluxsample.main.fragment
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -8,55 +9,51 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.kernelflux.aniflux.AniFlux
+import com.kernelflux.anifluxsample.util.AniFluxLogger
+import com.kernelflux.anifluxsample.main.BaseLazyFragment
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
-import com.kernelflux.aniflux.vap.asVAP
-import com.kernelflux.aniflux.vap.into
+import com.kernelflux.aniflux.svga.asSVGA
+import com.kernelflux.aniflux.svga.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-import com.kernelflux.vap.AnimView
+import com.kernelflux.anifluxsample.R
+import com.kernelflux.svga.SVGAImageView
 
 /**
- * VAP 动画测试 Fragment
+ * SVGA 动画测试 Fragment
  * 用于测试 Tab 切换时动画是否自动暂停
  */
-class VAPTestFragment : BaseLazyFragment() {
-
-    private lateinit var vapImageView: AnimView
+class SVGATestFragment : BaseLazyFragment() {
+    private lateinit var svgaImageView: SVGAImageView
     private lateinit var tvStatus: TextView
     private lateinit var tvVisibility: TextView
     private val handler = Handler(Looper.getMainLooper())
     private var visibilityCheckRunnable: Runnable? = null
-
     private val tabName: String by lazy {
         arguments?.getString(ARG_TAB_NAME) ?: "Tab"
     }
-
-    private val vapUrl: String by lazy {
-        arguments?.getString(ARG_VAP_URL)
-            ?: "http://imgcom.static.suishenyun.net/c6a3e39be73229d8a2ca2be5662b5a49.gif"
+    private val svgaUrl: String by lazy {
+        arguments?.getString(ARG_SVGA_URL)
+            ?: "asset://123.svga"
     }
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_vap_test, container, false)
-
-        vapImageView = view.findViewById(R.id.vap_image_view)
+        val view = inflater.inflate(R.layout.fragment_svga_test, container, false)
+        svgaImageView = view.findViewById(R.id.svga_image_view)
         tvStatus = view.findViewById(R.id.tv_status)
         tvVisibility = view.findViewById(R.id.tv_visibility)
-
         // 设置标题
         view.findViewById<TextView>(R.id.tv_title).text = tabName
-
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         AniFluxLogger.i("[$tabName] onViewCreated")
-
         // 启动可见性监控（不在这里加载动画，等懒加载）
         startVisibilityMonitoring()
     }
@@ -64,7 +61,7 @@ class VAPTestFragment : BaseLazyFragment() {
     override fun onLoadData() {
         // ✅ 懒加载：只有在 Fragment 真正可见时才加载动画
         AniFluxLogger.i("[$tabName] onLoadData - Fragment 可见，开始加载动画")
-        loadVapAnimation()
+        loadSVGAAnimation()
     }
 
     override fun onInvisible() {
@@ -74,20 +71,18 @@ class VAPTestFragment : BaseLazyFragment() {
 
     override fun onResume() {
         super.onResume()
-        AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${vapImageView.isAttachedToWindow}, isShown: ${vapImageView.isShown()}")
+        AniFluxLogger.i("[$tabName] Fragment onResume - isAttachedToWindow: ${svgaImageView.isAttachedToWindow}, isShown: ${svgaImageView.isShown()}")
         updateVisibilityStatus()
     }
 
     override fun onPause() {
         super.onPause()
-        AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${vapImageView.isAttachedToWindow}, isShown: ${vapImageView.isShown()}")
-        updateVisibilityStatus()
+        AniFluxLogger.i("[$tabName] Fragment onPause - isAttachedToWindow: ${svgaImageView.isAttachedToWindow}, isShown: ${svgaImageView.isShown()}")
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${vapImageView.isAttachedToWindow}, isShown: ${vapImageView.isShown()}")
-        updateVisibilityStatus()
+        AniFluxLogger.i("[$tabName] Fragment onHiddenChanged: hidden=$hidden - isAttachedToWindow: ${svgaImageView.isAttachedToWindow}, isShown: ${svgaImageView.isShown()}")
     }
 
     override fun onDestroyView() {
@@ -96,59 +91,56 @@ class VAPTestFragment : BaseLazyFragment() {
         stopVisibilityMonitoring()
     }
 
-    private fun loadVapAnimation() {
-        AniFluxLogger.i("[$tabName] 开始加载 VAP 动画: $vapUrl")
+    private fun loadSVGAAnimation() {
+        AniFluxLogger.i("[$tabName] 开始加载 SVGA 动画: $svgaUrl")
         tvStatus.text = "状态：加载中..."
-
         AniFlux.with(requireContext())
-            .asVAP()
-            .load("asset://vap1.mp4")
+            .asSVGA()
+            .load(svgaUrl)
             .cacheStrategy(AnimationCacheStrategy.BOTH)
-            .retainLastFrame(false)
+            .placeholderReplacements {
+                // 使用新的占位图 API，支持本地 assets 资源
+                add("user_1", "asset://user1.jpg")
+                add("user_2", "asset://user2.jpg")
+            }
             .playListener(object : AnimationPlayListener {
                 override fun onAnimationStart() {
-                    AniFluxLogger.i("[$tabName] VAP动画开始播放")
+                    AniFluxLogger.i("[$tabName] SVGA动画开始播放")
                     handler.post {
                         tvStatus.text = "状态：播放中"
                     }
                 }
 
                 override fun onAnimationEnd() {
-                    AniFluxLogger.i("[$tabName] VAP动画播放结束")
-                    handler.post {
-                        tvStatus.text = "状态：播放结束"
-                    }
+                    AniFluxLogger.i("[$tabName] SVGA动画播放结束")
+                    tvStatus.text = "状态：播放结束"
                 }
 
                 override fun onAnimationCancel() {
-                    AniFluxLogger.i("[$tabName] VAP动画播放取消")
-                    handler.post {
-                        tvStatus.text = "状态：已取消"
-                    }
+                    AniFluxLogger.i("[$tabName] SVGA动画播放取消")
+                    tvStatus.text = "状态：已取消"
                 }
 
                 override fun onAnimationRepeat() {
-                    AniFluxLogger.i("[$tabName] VAP动画重复播放 ⚠️")
-                    handler.post {
-                        tvStatus.text = "状态：重复播放中"
-                    }
+                    AniFluxLogger.i("[$tabName] SVGA动画重复播放 ⚠️")
+                    tvStatus.text = "状态：重复播放中"
                 }
 
                 override fun onAnimationFailed(error: Throwable?) {
-                    AniFluxLogger.i("[$tabName] VAP动画播放失败: ${error?.message}")
-                    handler.post {
-                        tvStatus.text = "状态：加载失败"
-                    }
+                    AniFluxLogger.i("[$tabName] SVGA动画播放失败: ${error?.message}")
+                    tvStatus.text = "状态：加载失败"
                 }
-            })
-            .into(vapImageView)
+            }).into(svgaImageView)
     }
 
     private fun startVisibilityMonitoring() {
         visibilityCheckRunnable = object : Runnable {
             override fun run() {
                 updateVisibilityStatus()
-                handler.postDelayed(this, 1000) // 每秒更新一次
+                handler.postDelayed(
+                    this,
+                    1000
+                ) // 每秒更新一次
             }
         }
         handler.post(visibilityCheckRunnable!!)
@@ -157,45 +149,48 @@ class VAPTestFragment : BaseLazyFragment() {
     private fun stopVisibilityMonitoring() {
         visibilityCheckRunnable?.let {
             handler.removeCallbacks(it)
+            visibilityCheckRunnable = null
         }
-        visibilityCheckRunnable = null
     }
 
     private fun updateVisibilityStatus() {
-        if (!::vapImageView.isInitialized || !::tvVisibility.isInitialized) {
+        if (!::svgaImageView.isInitialized || !::tvVisibility.isInitialized) {
             return
         }
-
-        val isAttached = vapImageView.isAttachedToWindow
-        val isShown = vapImageView.isShown()
-        val visibility = when (vapImageView.visibility) {
+        val isAttached = svgaImageView.isAttachedToWindow
+        val isShown = svgaImageView.isShown
+        val visibility = when (svgaImageView.visibility) {
             View.VISIBLE -> "VISIBLE"
             View.INVISIBLE -> "INVISIBLE"
             View.GONE -> "GONE"
             else -> "UNKNOWN"
         }
-
         val status = "可见性：attached=$isAttached, shown=$isShown, visibility=$visibility"
-        tvVisibility.text = status
 
-        // 如果不可见，记录日志
-        if (!isAttached || !isShown) {
-            //   AniFluxLogger.i("[$tabName] View不可见: $status")
-        }
+        tvVisibility.text = status
     }
 
     companion object {
         private const val ARG_TAB_NAME = "tab_name"
-        private const val ARG_VAP_URL = "vap_url"
+        private const val ARG_SVGA_URL = "svga_url"
 
-        fun newInstance(tabName: String, pagUrl: String): VAPTestFragment {
-            return VAPTestFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_TAB_NAME, tabName)
-                    putString(ARG_VAP_URL, pagUrl)
-                }
+        fun newInstance(
+            tabName: String,
+            pagUrl: String
+        ): SVGATestFragment {
+            return SVGATestFragment().apply {
+                arguments =
+                    Bundle().apply {
+                        putString(
+                            ARG_TAB_NAME,
+                            tabName
+                        )
+                        putString(
+                            ARG_SVGA_URL,
+                            pagUrl
+                        )
+                    }
             }
         }
     }
 }
-

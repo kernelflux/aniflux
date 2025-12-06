@@ -1,6 +1,10 @@
 package com.kernelflux.aniflux.pag
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import android.view.View
 import com.kernelflux.aniflux.request.target.CustomViewAnimationTarget
 import com.kernelflux.pag.PAGFile
@@ -9,8 +13,9 @@ import com.kernelflux.pag.PAGView
 /**
  * @author: kerneflux
  * @date: 2025/11/2
- * PAGView的专用Target（用于PAGView，而非PAGImageView）
+ * Dedicated Target for PAGView (for PAGView, not PAGImageView)
  */
+@SuppressLint("LongLogTag")
 class PAGViewTarget(view: PAGView) : CustomViewAnimationTarget<PAGView, PAGFile>(view) {
 
     private var currentAdapter: PAGViewPlayListenerAdapter? = null
@@ -20,40 +25,40 @@ class PAGViewTarget(view: PAGView) : CustomViewAnimationTarget<PAGView, PAGFile>
         val pagView = view as? PAGView ?: return
         val listener = playListener ?: return
         
-        // 移除旧的监听器
+        // Remove old listener
         currentListener?.let { oldListener ->
             try {
                 pagView.removeListener(oldListener)
             } catch (e: Exception) {
-                // 忽略移除时的异常
+                // Ignore exceptions when removing
             }
         }
         
-        // 获取 retainLastFrame 配置
+        // Get retainLastFrame configuration
         val retainLastFrame = animationOptions?.retainLastFrame ?: true
         
-        // 创建新的适配器
+        // Create new adapter
         val adapter = PAGViewPlayListenerAdapter(listener, pagView, retainLastFrame)
         val pagListener = adapter.createAnimatorListener()
         pagView.addListener(pagListener)
         
-        // 保存引用以便清理
+        // Save reference for cleanup
         currentAdapter = adapter
         currentListener = pagListener
     }
 
     override fun onResourceReady(resource: PAGFile) {
-        // 先设置监听器（避免错过 onAnimationStart）
+        // Set listener first (avoid missing onAnimationStart)
         setupPlayListeners(resource, view)
 
-        // 获取配置选项
+        // Get configuration options
         val repeatCount = animationOptions?.repeatCount ?: -1
         val autoPlay = animationOptions?.autoPlay ?: true
         view.apply {
-            //防止多个view共用导致的复用问题
+            // Prevent reuse issues caused by multiple views sharing
             composition = resource.copyOriginal()
             setRepeatCount(repeatCount)
-            // 如果设置了自动播放，则调用 play()
+            // If auto play is set, call play()
             if (autoPlay) {
                 play()
             }
@@ -61,23 +66,64 @@ class PAGViewTarget(view: PAGView) : CustomViewAnimationTarget<PAGView, PAGFile>
     }
 
     override fun onLoadFailed(errorDrawable: Drawable?) {
-        // PAG 加载失败的处理
+        // Handle PAG load failure
     }
 
     override fun onResourceCleared(placeholder: Drawable?) {
-        // 清理监听器
+        // Clear listener
         currentListener?.let { listener ->
             try {
                 view.removeListener(listener)
             } catch (e: Exception) {
-                // 忽略清理时的异常
+                // Ignore exceptions during cleanup
             }
         }
         currentAdapter?.onClear()
         currentAdapter = null
         currentListener = null
         
-        view.composition = null
+        clearAnimationFromView()
+    }
+    
+    override fun stopAnimation() {
+        // Only pause, don't release resources
+        try {
+            view.pause()
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+    override fun resumeAnimation() {
+        // Resume playback
+        try {
+            if (view.composition != null) {
+                view.play()
+            }
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+
+    @SuppressLint("Range")
+    override fun clearAnimationFromView() {
+        // Really release resources
+        if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+            AniFluxLog.d(AniFluxLogCategory.TARGET, "PAGViewTarget.clearAnimationFromView() - releasing PAG resources")
+        }
+        try {
+            view.pause()
+            view.flush()
+            view.composition = null
+            view.progress = 0.0
+            view.flush()  // Ensure OpenGL resources are released
+            if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+                AniFluxLog.d(AniFluxLogCategory.TARGET, "PAGViewTarget.clearAnimationFromView() - resources released successfully")
+            }
+        } catch (e: Exception) {
+            AniFluxLog.e(AniFluxLogCategory.TARGET, "PAGViewTarget.clearAnimationFromView() - error during cleanup", e)
+        }
     }
 }
 

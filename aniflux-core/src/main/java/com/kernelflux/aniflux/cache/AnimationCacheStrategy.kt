@@ -7,33 +7,33 @@ package com.kernelflux.aniflux.cache
  */
 enum class AnimationCacheStrategy {
     /**
-     * 不缓存（内存和磁盘都不缓存）
-     * - 网络资源：每次都下载，不保存
-     * - 本地资源：每次都加载，不缓存
+     * No cache (neither memory nor disk cache)
+     * - Network resources: download every time, don't save
+     * - Local resources: load every time, don't cache
      */
     NONE,
 
     /**
-     * 仅内存缓存
-     * - 网络资源：下载并解析，只缓存内存对象
-     * - 本地资源：加载并解析，只缓存内存对象
-     * - 适合：低存储空间场景，或频繁访问的热点资源
+     * Memory cache only
+     * - Network resources: download and parse, only cache memory objects
+     * - Local resources: load and parse, only cache memory objects
+     * - Suitable for: low storage space scenarios, or frequently accessed hot resources
      */
     MEMORY_ONLY,
 
     /**
-     * 仅磁盘缓存（内存不缓存）
-     * - 网络资源：下载后保存到磁盘，解析后不缓存内存对象
-     * - 本地资源：保存到磁盘，不缓存内存对象
-     * - 适合：大文件资源，或内存受限场景
+     * Disk cache only (no memory cache)
+     * - Network resources: save to disk after download, don't cache memory objects after parsing
+     * - Local resources: save to disk, don't cache memory objects
+     * - Suitable for: large file resources, or memory-constrained scenarios
      */
     DISK_ONLY,
 
     /**
-     * 内存 + 磁盘缓存（默认）
-     * - 网络资源：下载后保存到磁盘，解析后缓存内存对象
-     * - 本地资源：加载后缓存内存对象（本地资源通常不需要磁盘缓存）
-     * - 适合：大多数场景
+     * Memory + disk cache (default)
+     * - Network resources: save to disk after download, cache memory objects after parsing
+     * - Local resources: cache memory objects after loading (local resources usually don't need disk cache)
+     * - Suitable for: most scenarios
      */
     BOTH
 }

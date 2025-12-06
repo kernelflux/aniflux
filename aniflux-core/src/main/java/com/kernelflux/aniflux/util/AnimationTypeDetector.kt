@@ -4,39 +4,39 @@ import android.content.Context
 import java.io.InputStream
 
 /**
- * 动画资源类型检测器
- * 用于根据文件后缀和文件头特征检测动画资源类型
+ * Animation resource type detector
+ * Used to detect animation resource type based on file extension and file header characteristics
  */
 object AnimationTypeDetector {
 
     /**
-     * 动画资源类型枚举
+     * Animation resource type enum
      */
     enum class AnimationType {
-        GIF,        // GIF动画
-        LOTTIE,     // Lottie动画 (.json)
-        SVGA,       // SVGA动画 (.svga)
-        PAG,        // PAG动画 (.pag)
-        VAP,        // VAP动画 (.mp4)
-        UNKNOWN     // 未知类型
+        GIF,        // GIF animation
+        LOTTIE,     // Lottie animation (.json)
+        SVGA,       // SVGA animation (.svga)
+        PAG,        // PAG animation (.pag)
+        VAP,        // VAP animation (.mp4)
+        UNKNOWN     // Unknown type
     }
 
     /**
-     * 路径类型枚举
+     * Path type enum
      */
     enum class PathType {
-        NETWORK_URL,        // 网络URL: https://example.com/animation.gif
-        LOCAL_FILE,         // 本地文件路径: /storage/emulated/0/animation.gif
-        ASSET_PATH,         // Asset路径: animations/loading.gif
+        NETWORK_URL,        // Network URL: https://example.com/animation.gif
+        LOCAL_FILE,         // Local file path: /storage/emulated/0/animation.gif
+        ASSET_PATH,         // Asset path: animations/loading.gif
         ASSET_URI,          // Asset URI: file:///android_asset/animations/loading.gif
         CONTENT_URI,        // Content URI: content://media/external/images/media/123
-        UNKNOWN             // 未知类型
+        UNKNOWN             // Unknown type
     }
 
     /**
-     * 检测路径类型
-     * @param path 路径字符串
-     * @return 路径类型
+     * Detect path type
+     * @param path Path string
+     * @return Path type
      */
     fun detectPathType(path: String?): PathType {
         if (path.isNullOrEmpty()) return PathType.UNKNOWN
@@ -51,9 +51,9 @@ object AnimationTypeDetector {
     }
 
     /**
-     * 根据文件路径检测动画类型
-     * @param path 文件路径（支持网络URL、本地文件路径、Asset路径、Uri字符串）
-     * @return 动画类型
+     * Detect animation type from file path
+     * @param path File path (supports network URL, local file path, Asset path, Uri string)
+     * @return Animation type
      */
     fun detectFromPath(path: String?): AnimationType {
         if (path.isNullOrEmpty()) return AnimationType.UNKNOWN
@@ -70,10 +70,10 @@ object AnimationTypeDetector {
     }
 
     /**
-     * 根据资源ID检测动画类型
-     * @param context 上下文
-     * @param resourceId 资源ID
-     * @return 动画类型
+     * Detect animation type from resource ID
+     * @param context Context
+     * @param resourceId Resource ID
+     * @return Animation type
      */
     fun detectFromResourceId(context: Context, resourceId: Int): AnimationType {
         return try {
@@ -85,9 +85,9 @@ object AnimationTypeDetector {
     }
 
     /**
-     * 根据输入流检测动画类型
-     * @param inputStream 输入流
-     * @return 动画类型
+     * Detect animation type from input stream
+     * @param inputStream Input stream
+     * @return Animation type
      */
     fun detectFromInputStream(inputStream: InputStream): AnimationType {
         return try {
@@ -104,22 +104,22 @@ object AnimationTypeDetector {
     }
 
     /**
-     * 根据字节数组检测动画类型
-     * @param bytes 字节数组
-     * @param length 有效长度
-     * @return 动画类型
+     * Detect animation type from byte array
+     * @param bytes Byte array
+     * @param length Valid length
+     * @return Animation type
      */
     fun detectFromBytes(bytes: ByteArray, length: Int): AnimationType {
         if (length < 4) return AnimationType.UNKNOWN
 
-        // 检测GIF文件头
+        // Detect GIF file header
         if (bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() &&
             bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte()
         ) {
             return AnimationType.GIF
         }
 
-        // 检测JSON文件（Lottie）
+        // Detect JSON file (Lottie)
         val content = String(bytes, 0, minOf(length, 1024))
         if (content.trimStart().startsWith("{") &&
             (content.contains("\"v\":") || content.contains("\"assets\":") || content.contains("\"layers\":"))
@@ -127,9 +127,9 @@ object AnimationTypeDetector {
             return AnimationType.LOTTIE
         }
 
-        // 检测SVGA文件头（SVGA文件通常以特定字节序列开始）
+        // Detect SVGA file header (SVGA files usually start with specific byte sequence)
         if (length >= 8) {
-            // SVGA文件通常以特定的魔数开始
+            // SVGA files usually start with specific magic number
             if (bytes[0] == 0x53.toByte() && bytes[1] == 0x56.toByte() &&
                 bytes[2] == 0x47.toByte() && bytes[3] == 0x41.toByte()
             ) {
@@ -137,9 +137,9 @@ object AnimationTypeDetector {
             }
         }
 
-        // 检测PAG文件头（PAG文件通常以特定字节序列开始）
+        // Detect PAG file header (PAG files usually start with specific byte sequence)
         if (length >= 8) {
-            // PAG文件通常以特定的魔数开始
+            // PAG files usually start with specific magic number
             if (bytes[0] == 0x50.toByte() && bytes[1] == 0x41.toByte() &&
                 bytes[2] == 0x47.toByte() && bytes[3] == 0x00.toByte()
             ) {

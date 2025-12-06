@@ -2,7 +2,8 @@ package com.kernelflux.aniflux.engine
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.cache.AnimationDiskCache
 import com.kernelflux.aniflux.load.AnimationDownloader
@@ -11,7 +12,7 @@ import com.kernelflux.aniflux.util.AnimationKey
 import java.io.File
 
 /**
- * AnimationJob 的下载和缓存辅助类
+ * Download and cache helper class for AnimationJob
  */
 internal class AnimationJobDownloadHelper(
     private val context: Context,
@@ -25,40 +26,40 @@ internal class AnimationJobDownloadHelper(
     }
     
     /**
-     * 下载网络资源并保存到磁盘缓存（如果需要）
-     * @param url 网络 URL
-     * @return Pair(下载的文件, 是否来自缓存)
+     * Download network resource and save to disk cache (if needed)
+     * @param url Network URL
+     * @return Pair(downloaded file, whether from cache)
      */
     @SuppressLint("LongLogTag")
     fun downloadAndCache(url: String): Pair<File?, Boolean> {
         return try {
-            // 1. 先尝试从磁盘缓存获取
+            // 1. First try to get from disk cache
             if (animationDiskCache != null && shouldUseDiskCache()) {
                 val cachedFile = animationDiskCache.get(key.toCacheKey())
                 if (cachedFile != null && cachedFile.exists()) {
-                    Log.d(TAG, "Using cached file: ${cachedFile.absolutePath}")
+                    AniFluxLog.d(AniFluxLogCategory.ENGINE, "Using cached file: ${cachedFile.absolutePath}")
                     return Pair(cachedFile, true)
                 }
             }
             
-            // 2. 网络下载
+            // 2. Network download
             val downloadedFile = downloader.download(context, url)
             
-            // 3. 如果需要磁盘缓存，保存到缓存
+            // 3. If disk cache needed, save to cache
             if (animationDiskCache != null && shouldUseDiskCache()) {
                 animationDiskCache.put(key.toCacheKey(), downloadedFile)
-                Log.d(TAG, "Cached downloaded file: ${downloadedFile.absolutePath}")
+                AniFluxLog.d(AniFluxLogCategory.ENGINE, "Cached downloaded file: ${downloadedFile.absolutePath}")
             }
             
             Pair(downloadedFile, false)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to download and cache: $url", e)
+            AniFluxLog.e(AniFluxLogCategory.ENGINE, "Failed to download and cache: $url", e)
             Pair(null, false)
         }
     }
     
     /**
-     * 判断是否应该使用磁盘缓存
+     * Determine whether to use disk cache
      */
     private fun shouldUseDiskCache(): Boolean {
         return key.cacheStrategy == AnimationCacheStrategy.DISK_ONLY ||

@@ -6,8 +6,8 @@ import com.kernelflux.pag.PAGView
 import kotlin.math.roundToInt
 
 /**
- * PAG动画播放监听器适配器
- * 将PAG的监听接口适配到统一的AnimationPlayListener
+ * PAG animation play listener adapter
+ * Adapts PAG's listener interface to unified AnimationPlayListener
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -29,21 +29,21 @@ class PAGViewPlayListenerAdapter(
                     val view = p0 ?: pagView
                     view?.apply {
                         try {
-                            // ✅ 清空显示：
-                            // 1. 先停止动画
+                            // ✅ Clear display:
+                            // 1. Stop animation first
                             view.pause()
-                            // 2. 清空 PAGView（使用 TextureView + OpenGL）
+                            // 2. Clear PAGView (uses TextureView + OpenGL)
                             execute({
-                                // PAGView 使用 TextureView + OpenGL 渲染
-                                // 设置 composition = null 并重置进度到开始位置，然后刷新
+                                // PAGView uses TextureView + OpenGL rendering
+                                // Set composition = null and reset progress to start position, then refresh
                                 view.composition = null
                                 view.progress = 0.0
                                 view.flush()
-                                // 强制刷新视图
+                                // Force refresh view
                                 view.postInvalidate()
                             })
                         } catch (t: Throwable) {
-                            // 忽略错误
+                            // Ignore errors
                         }
                     }
                 }
@@ -65,7 +65,7 @@ class PAGViewPlayListenerAdapter(
                     val composition = pagView.composition
                     var totalFrames = 0
                     if (composition != null) {
-                        val duration = composition.duration() // 微秒
+                        val duration = composition.duration() // microseconds
                         val frameRate = composition.frameRate() // FPS
                         totalFrames = ((duration / 1000000.0) * frameRate).roundToInt()
                     }

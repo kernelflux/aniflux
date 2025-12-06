@@ -30,8 +30,8 @@ import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * 动画请求管理器
- * 负责管理动画请求的生命周期，避免内存泄漏
+ * Animation request manager
+ * Responsible for managing the lifecycle of animation requests, avoiding memory leaks
  */
 class AnimationRequestManager(
     private val aniFlux: AniFlux,
@@ -39,7 +39,7 @@ class AnimationRequestManager(
     private val treeNode: AnimationRequestManagerTreeNode,
     private val context: Context,
     private val requestTracker: AnimationRequestTracker = AnimationRequestTracker(),
-    private val factory: AnimationConnectivityMonitorFactory = aniFlux.getConnectivityMonitorFactory()
+    factory: AnimationConnectivityMonitorFactory = aniFlux.getConnectivityMonitorFactory()
 ) : AnimationLifecycleListener, ComponentCallbacks2 {
     private val targetTracker = AnimationTargetTracker()
     private val addSelfToLifecycle = {
@@ -153,7 +153,7 @@ class AnimationRequestManager(
     }
 
 
-    //////////////////////////////////////// 基础业务API START //////////////////////////////////////////////////
+    //////////////////////////////////////// Basic Business API START //////////////////////////////////////////////////
 
     @CheckResult
     fun <ResourceType> `as`(
@@ -164,7 +164,7 @@ class AnimationRequestManager(
 
 
     /**
-     * 指定加载 PAG 动画
+     * Specify loading PAG animation
      */
     @CheckResult
     fun asFile(): AnimationRequestBuilder<File> {
@@ -173,7 +173,7 @@ class AnimationRequestManager(
 
 
     /**
-     * 指定加载 PAG 动画
+     * Specify loading PAG animation
      */
     @CheckResult
     fun asPAG(): AnimationRequestBuilder<PAGFile> {
@@ -181,7 +181,7 @@ class AnimationRequestManager(
     }
 
     /**
-     * 指定加载 Lottie 动画
+     * Specify loading Lottie animation
      */
     @CheckResult
     fun asLottie(): AnimationRequestBuilder<LottieDrawable> {
@@ -189,7 +189,7 @@ class AnimationRequestManager(
     }
 
     /**
-     * 指定加载 SVGA 动画
+     * Specify loading SVGA animation
      */
     @CheckResult
     fun asSVGA(): AnimationRequestBuilder<SVGADrawable> {
@@ -197,7 +197,7 @@ class AnimationRequestManager(
     }
 
     /**
-     * 指定加载 GIF 动画
+     * Specify loading GIF animation
      */
     @CheckResult
     fun asGif(): AnimationRequestBuilder<GifDrawable> {
@@ -205,13 +205,13 @@ class AnimationRequestManager(
     }
 
     /**
-     * 根据动画类型创建对应的 Builder 并加载模型
-     * 统一的处理逻辑，消除重复代码
+     * Create corresponding Builder based on animation type and load model
+     * Unified processing logic, eliminates duplicate code
      *
-     * @param animationType 检测到的动画类型
-     * @param loadAction 加载动作（根据不同的 model 类型调用不同的 load 方法）
-     * @param errorMessage 检测失败时的错误消息
-     * @param allowUnknown 是否允许返回 UNKNOWN 类型的 Builder（用于 URL/URI 的降级处理）
+     * @param animationType Detected animation type
+     * @param loadAction Load action (calls different load methods based on different model types)
+     * @param errorMessage Error message when detection fails
+     * @param allowUnknown Whether to allow returning UNKNOWN type Builder (for URL/URI fallback handling)
      */
     private fun createBuilderForType(
         animationType: AnimationTypeDetector.AnimationType,
@@ -221,12 +221,12 @@ class AnimationRequestManager(
     ): AnimationRequestBuilder<*> {
         if (animationType == AnimationTypeDetector.AnimationType.UNKNOWN) {
             if (allowUnknown) {
-                // 允许返回 UNKNOWN 类型的 Builder，在 into() 时根据 View 推断
+                // Allow returning UNKNOWN type Builder, infer from View in into()
                 return loadAction(AnimationRequestBuilder(aniFlux, this, context, Any::class.java))
             } else {
                 throw IllegalArgumentException(
                     errorMessage
-                        ?: "无法自动检测动画类型\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型"
+                        ?: "Cannot automatically detect animation type\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type"
                 )
             }
         }
@@ -238,14 +238,14 @@ class AnimationRequestManager(
             AnimationTypeDetector.AnimationType.SVGA -> loadAction(asSVGA())
             AnimationTypeDetector.AnimationType.VAP -> loadAction(asFile())
             AnimationTypeDetector.AnimationType.UNKNOWN -> throw IllegalArgumentException(
-                errorMessage ?: "无法自动检测动画类型"
+                errorMessage ?: "Cannot automatically detect animation type"
             )
         }
     }
 
     /**
-     * 从URL字符串加载（自动检测动画类型）
-     * 如果检测失败，请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型
+     * Load from URL string (auto-detect animation type)
+     * If detection fails, please use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type
      */
     @CheckResult
     fun load(path: String): AnimationRequestBuilder<*> {
@@ -256,13 +256,13 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(path) },
-            errorMessage = "无法自动检测动画类型，URL: $path\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型",
+            errorMessage = "Cannot automatically detect animation type, URL: $path\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
             allowUnknown = true
         )
     }
 
     /**
-     * 从资源ID加载（自动检测动画类型）
+     * Load from resource ID (auto-detect animation type)
      */
     @CheckResult
     fun load(@androidx.annotation.DrawableRes @androidx.annotation.RawRes resourceId: Int): AnimationRequestBuilder<*> {
@@ -270,13 +270,13 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(resourceId) },
-            errorMessage = "无法自动检测动画类型，ResourceId: $resourceId\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型",
+            errorMessage = "Cannot automatically detect animation type, ResourceId: $resourceId\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
             allowUnknown = false
         )
     }
 
     /**
-     * 从文件加载（自动检测动画类型）
+     * Load from file (auto-detect animation type)
      */
     @CheckResult
     fun load(file: java.io.File): AnimationRequestBuilder<*> {
@@ -285,27 +285,27 @@ class AnimationRequestManager(
         }
         var animationType = AnimationTypeDetector.detectFromPath(file.absolutePath)
 
-        // 如果从路径检测失败，尝试从文件头检测
+        // If detection from path fails, try detecting from file header
         if (animationType == AnimationTypeDetector.AnimationType.UNKNOWN) {
             try {
                 val bytes = ByteArray(1024)
                 file.inputStream().use { it.read(bytes) }
                 animationType = AnimationTypeDetector.detectFromBytes(bytes, bytes.size)
             } catch (e: Exception) {
-                // 读取失败，继续使用 UNKNOWN
+                // Read failed, continue using UNKNOWN
             }
         }
 
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(file) },
-            errorMessage = "无法自动检测动画类型，File: ${file.absolutePath}\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型",
+            errorMessage = "Cannot automatically detect animation type, File: ${file.absolutePath}\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
             allowUnknown = false
         )
     }
 
     /**
-     * 从Uri加载（自动检测动画类型）
+     * Load from Uri (auto-detect animation type)
      */
     @CheckResult
     fun load(uri: android.net.Uri): AnimationRequestBuilder<*> {
@@ -313,13 +313,13 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(uri) },
-            errorMessage = "无法自动检测动画类型，Uri: $uri\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型",
+            errorMessage = "Cannot automatically detect animation type, Uri: $uri\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
             allowUnknown = true
         )
     }
 
     /**
-     * 从字节数组加载（自动检测动画类型）
+     * Load from byte array (auto-detect animation type)
      */
     @CheckResult
     fun load(byteArray: ByteArray): AnimationRequestBuilder<*> {
@@ -330,12 +330,12 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(byteArray) },
-            errorMessage = "无法自动检测动画类型（字节数组头部特征不匹配）\n请使用 asPAG()/asGif()/asLottie()/asSVGA() 显式指定类型",
+            errorMessage = "Cannot automatically detect animation type (byte array header signature mismatch)\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
             allowUnknown = false
         )
     }
 
-    //////////////////////////////////////// 基础业务API END  //////////////////////////////////////////////////
+    //////////////////////////////////////// Basic Business API END  //////////////////////////////////////////////////
 
 
     @Suppress("DEPRECATION")
@@ -359,7 +359,7 @@ class AnimationRequestManager(
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        // 配置变化时不需要特殊处理
+        // No special handling needed when configuration changes
     }
 
 
@@ -396,7 +396,7 @@ class AnimationRequestManager(
             targetTracker.untrack(target)
             target.setRequest(null)
 
-            // 清除target上的播放监听器（避免监听器泄漏和重复回调）
+            // Clear play listener on target (avoid listener leaks and duplicate callbacks)
             when (target) {
                 is com.kernelflux.aniflux.request.target.CustomAnimationTarget<*> -> {
                     target.clearPlayListener()
@@ -419,12 +419,12 @@ class AnimationRequestManager(
         requestTracker.runRequest(request)
     }
 
-    // 获取Engine实例
+    // Get Engine instance
     private fun getEngine(): AnimationEngine {
         return aniFlux.getEngine()
     }
 
-    // 通过Engine加载动画
+    // Load animation via Engine
     fun <T> load(
         context: Context,
         model: Any?,
@@ -459,6 +459,14 @@ class AnimationRequestManager(
 
         override fun onResourceReady(resource: Any) {
             // Do nothing.
+        }
+        
+        override fun stopAnimation() {
+            // Do nothing, ClearTarget doesn't manage animation playback
+        }
+        
+        override fun clearAnimationFromView() {
+            // Do nothing, ClearTarget doesn't manage animation resources
         }
     }
 

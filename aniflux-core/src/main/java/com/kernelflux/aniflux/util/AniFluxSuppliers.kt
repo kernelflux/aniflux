@@ -3,24 +3,24 @@ package com.kernelflux.aniflux.util
 object AniFluxSuppliers {
 
     /**
-     * 类似Java 8的Supplier接口，用于延迟获取对象
-     * @param T 数据类型
+     * Similar to Java 8's Supplier interface, used for lazy object retrieval
+     * @param T Data type
      */
     fun interface AniFluxSupplier<T> {
         /**
-         * 获取对象实例
-         * @return 非空的T类型对象
+         * Get object instance
+         * @return Non-null T type object
          */
         fun get(): T
     }
 
 
     /**
-     * 将普通的Supplier包装成带记忆化缓存的Supplier
-     * 使用双重检查锁定模式确保线程安全
+     * Wrap a regular Supplier into a memoized cached Supplier
+     * Uses double-checked locking pattern to ensure thread safety
      *
-     * @param supplier 原始的Supplier
-     * @return 带缓存的Supplier
+     * @param supplier Original Supplier
+     * @return Cached Supplier
      */
     @JvmStatic
     fun <T> memorize(supplier: AniFluxSupplier<T>): AniFluxSupplier<T> {

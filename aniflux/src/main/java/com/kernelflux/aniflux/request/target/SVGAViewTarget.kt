@@ -2,14 +2,17 @@ package com.kernelflux.aniflux.request.target
 
 import android.animation.ValueAnimator
 import android.graphics.drawable.Drawable
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.placeholder.PlaceholderManager
 import com.kernelflux.svga.SVGADrawable
 import com.kernelflux.svga.SVGAImageView
 
 /**
- * SVGA动画的专用ViewTarget
- * 自动处理SVGADrawable资源到SVGAImageView的设置
+ * Dedicated ViewTarget for SVGA animation
+ * Automatically handles SVGADrawable resource setup to SVGAImageView
  *
  * @author: kerneflux
  * @date: 2025/11/27
@@ -20,10 +23,13 @@ class SVGAViewTarget(view: SVGAImageView) :
     private var placeholderManager: PlaceholderManager? = null
 
     override fun onResourceReady(resource: SVGADrawable) {
-        // 先设置监听器（避免错过 onAnimationStart）
+        // Ensure reusable container cache is set when resource is ready
+        onResourceReadyInternal()
+        
+        // Set listener first (avoid missing onAnimationStart)
         setupPlayListeners(resource, view)
 
-        // 获取配置选项
+        // Get configuration options
         val repeatCount = animationOptions?.repeatCount ?: -1
         val autoPlay = animationOptions?.autoPlay ?: true
         val retainLastFrame = animationOptions?.retainLastFrame ?: true
@@ -33,25 +39,25 @@ class SVGAViewTarget(view: SVGAImageView) :
             setPlayRepeatCount(
                 when {
                     repeatCount < 0 -> ValueAnimator.INFINITE  // -1
-                    repeatCount == 0 -> 0  // 播放1次
-                    else -> repeatCount  // ✅ 直接使用总播放次数，让 SVGAImageView.play() 统一转换为 ValueAnimator 的重复次数
+                    repeatCount == 0 -> 0  // Play once
+                    else -> repeatCount  // ✅ Directly use total play count, let SVGAImageView.play() uniformly convert to ValueAnimator's repeat count
                 }
             )
-            // ✅ 根据 retainLastFrame 配置设置 fillMode
+            // ✅ Set fillMode based on retainLastFrame configuration
             fillMode = if (retainLastFrame) {
-                SVGAImageView.FillMode.Forward  // 保留最后一帧
+                SVGAImageView.FillMode.Forward  // Retain last frame
             } else {
-                SVGAImageView.FillMode.Clear    // 清空
+                SVGAImageView.FillMode.Clear    // Clear
             }
-            // 如果设置了自动播放，则调用 startAnimation()
+            // If auto play is set, call startAnimation()
             if (autoPlay) {
                 startAnimation()
             }
         }
 
-        // 处理占位图替换
+        // Handle placeholder replacement
         animationOptions?.placeholderReplacements?.let { replacements ->
-            // 先清理旧的占位图管理器（如果存在）
+            // Clear old placeholder manager first (if exists)
             placeholderManager?.clear()
             placeholderManager = null
             
@@ -73,11 +79,11 @@ class SVGAViewTarget(view: SVGAImageView) :
     }
 
     override fun onLoadFailed(errorDrawable: Drawable?) {
-        // SVGA 加载失败的处理
+        // Handle SVGA load failure
         try {
             placeholderManager?.clear()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
         placeholderManager = null
     }
@@ -86,14 +92,47 @@ class SVGAViewTarget(view: SVGAImageView) :
         try {
             placeholderManager?.clear()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
         placeholderManager = null
+        clearAnimationFromView()
+    }
+    
+    override fun stopAnimation() {
+        // Only stop, don't release resources
+        try {
+            view.stopAnimation()
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+    override fun resumeAnimation() {
+        // Resume playback
+        try {
+            // Check if drawable exists by checking if the view has a SVGADrawable
+            val drawable = view.drawable as? SVGADrawable
+            if (drawable != null && drawable.videoItem != null) {
+                view.startAnimation()
+            }
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+    override fun clearAnimationFromView() {
+        // Really release resources
+        if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+            AniFluxLog.d(AniFluxLogCategory.TARGET, "SVGAViewTarget.clearAnimationFromView() - releasing SVGA resources")
+        }
         try {
             view.stopAnimation()
             view.setVideoItem(null)
+            if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+                AniFluxLog.d(AniFluxLogCategory.TARGET, "SVGAViewTarget.clearAnimationFromView() - resources released successfully")
+            }
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            AniFluxLog.e(AniFluxLogCategory.TARGET, "SVGAViewTarget.clearAnimationFromView() - error during cleanup", e)
         }
     }
 }

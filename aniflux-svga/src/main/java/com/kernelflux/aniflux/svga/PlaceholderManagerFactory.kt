@@ -8,22 +8,22 @@ import com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap
 import com.kernelflux.svga.SVGADrawable
 
 /**
- * SVGA 占位图管理器工厂
- * 提供创建 SVGAPlaceholderManager 的工厂方法
+ * SVGA placeholder manager factory
+ * Provides factory method to create SVGAPlaceholderManager
  * 
  * @author: kerneflux
  * @date: 2025/11/27
  */
 object PlaceholderManagerFactory {
     /**
-     * 创建 SVGA 占位图管理器
+     * Create SVGA placeholder manager
      * 
-     * @param view 显示动画的 View
-     * @param resource SVGADrawable 资源
-     * @param replacements 占位图替换映射
-     * @param imageLoader 图片加载器
-     * @param lifecycle 生命周期（可选）
-     * @return PlaceholderManager 实例，如果参数无效返回 null
+     * @param view View displaying animation
+     * @param resource SVGADrawable resource
+     * @param replacements Placeholder replacement map
+     * @param imageLoader Image loader
+     * @param lifecycle Lifecycle (optional)
+     * @return PlaceholderManager instance, returns null if parameters are invalid
      */
     @JvmStatic
     fun create(

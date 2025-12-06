@@ -17,8 +17,8 @@ import com.kernelflux.svga.SVGAImageView
 import com.kernelflux.vap.AnimView
 
 /**
- * 通用的动画容器 FrameLayout Target
- * 自动根据动画类型创建并显示对应的动画 View
+ * Universal animation container FrameLayout Target
+ * Automatically creates and displays corresponding animation View based on animation type
  * 
  * @author: kerneflux
  * @date: 2025/01/XX
@@ -31,7 +31,7 @@ class AutoAnimationFrameLayoutTarget(
     private var currentAnimationType: AnimationTypeDetector.AnimationType? = null
     
     /**
-     * 根据动画类型创建对应的 View
+     * Create corresponding View based on animation type
      */
     private fun createAnimationView(type: AnimationTypeDetector.AnimationType): View {
         val context = container.context
@@ -85,25 +85,25 @@ class AutoAnimationFrameLayoutTarget(
     }
     
     /**
-     * 显示指定的动画 View，隐藏其他的
+     * Show specified animation View, hide others
      */
     private fun showAnimationView(view: View, type: AnimationTypeDetector.AnimationType) {
-        // 如果类型相同且 View 已存在，直接使用
+        // If type is same and View already exists, use directly
         if (currentAnimationType == type && currentAnimationView != null && 
             container.indexOfChild(currentAnimationView) >= 0) {
-            // View 已存在，只需显示
+            // View already exists, just show
             currentAnimationView?.visibility = View.VISIBLE
             return
         }
         
-        // 隐藏所有子 View
+        // Hide all child Views
         for (i in 0 until container.childCount) {
             container.getChildAt(i).visibility = View.GONE
         }
         
-        // 添加新 View 或显示已存在的 View
+        // Add new View or show existing View
         if (container.indexOfChild(view) < 0) {
-            // View 不存在，添加它
+            // View doesn't exist, add it
             container.addView(view)
         }
         view.visibility = View.VISIBLE
@@ -116,14 +116,14 @@ class AutoAnimationFrameLayoutTarget(
         val animationType = detectAnimationType(resource)
         val view = currentAnimationView ?: createAnimationView(animationType)
         
-        // 显示对应的 View
+        // Show corresponding View
         showAnimationView(view, animationType)
         
-        // 获取配置选项
+        // Get configuration options
         val repeatCount = animationOptions?.repeatCount ?: -1
         val autoPlay = animationOptions?.autoPlay ?: true
         
-        // 先设置监听器（避免错过 onAnimationStart）
+        // Set listener first (avoid missing onAnimationStart)
         when {
             resource is PAGFile && view is PAGImageView -> {
                 AnimationPlayListenerSetupHelper.setupListeners(this, resource, view)
@@ -139,7 +139,7 @@ class AutoAnimationFrameLayoutTarget(
             }
         }
         
-        // 根据类型设置资源和配置
+        // Set resource and configuration based on type
         when {
             resource is PAGFile && view is PAGImageView -> {
                 view.apply {
@@ -171,7 +171,7 @@ class AutoAnimationFrameLayoutTarget(
             resource is SVGADrawable && view is SVGAImageView -> {
                 view.apply {
                     setVideoItem(resource.videoItem)
-                    // SVGA 的循环设置
+                    // SVGA loop setting
                     if (repeatCount >= 0) {
                         try {
                             val animatorField = SVGAImageView::class.java.getDeclaredField("mAnimator")
@@ -185,12 +185,12 @@ class AutoAnimationFrameLayoutTarget(
                                         val delayedAnimator = animatorField.get(this) as? android.animation.ValueAnimator
                                         delayedAnimator?.repeatCount = if (repeatCount == 0) 0 else repeatCount
                                     } catch (e: Exception) {
-                                        // 忽略
+                                        // Ignore
                                     }
                                 }
                             }
                         } catch (e: Exception) {
-                            // 忽略
+                            // Ignore
                         }
                     }
                     if (autoPlay) {
@@ -214,23 +214,23 @@ class AutoAnimationFrameLayoutTarget(
     }
     
     override fun onLoadFailed(errorDrawable: Drawable?) {
-        // 加载失败时显示错误占位图
+        // Show error placeholder when load fails
         currentAnimationView?.let { view ->
             when (view) {
                 is GifImageView -> view.setImageDrawable(errorDrawable)
-                // 其他类型暂不支持错误占位图
+                // Other types don't support error placeholder yet
             }
         }
     }
     
     override fun onLoadCleared(placeholder: Drawable?) {
-        // 清理所有动画 View
+        // Clear all animation Views
         currentAnimationView?.let { view ->
             when (view) {
                 is PAGImageView -> view.composition = null
                 is LottieAnimationView -> {
-                    // LottieAnimationView 的 composition 是 val，不能直接设置为 null
-                    // 调用 cancelAnimation() 来清理
+                    // LottieAnimationView's composition is val, cannot set to null directly
+                    // Call cancelAnimation() to clean up
                     view.cancelAnimation()
                 }
                 is SVGAImageView -> {
@@ -241,7 +241,7 @@ class AutoAnimationFrameLayoutTarget(
             }
         }
         
-        // 隐藏所有子 View
+        // Hide all child Views
         for (i in 0 until container.childCount) {
             container.getChildAt(i).visibility = View.GONE
         }
@@ -251,7 +251,7 @@ class AutoAnimationFrameLayoutTarget(
     }
     
     /**
-     * 检测资源类型
+     * Detect resource type
      */
     private fun detectAnimationType(resource: Any): AnimationTypeDetector.AnimationType {
         return when (resource) {

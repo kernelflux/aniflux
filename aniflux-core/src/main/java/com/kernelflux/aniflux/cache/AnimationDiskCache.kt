@@ -3,42 +3,42 @@ package com.kernelflux.aniflux.cache
 import java.io.File
 
 /**
- * 磁盘缓存接口
- * 用于管理动画文件的磁盘缓存
+ * Disk cache interface
+ * Used to manage animation file disk cache
  */
 interface AnimationDiskCache {
     /**
-     * 获取缓存文件
-     * @param key 缓存键
-     * @return 缓存文件，如果不存在返回 null
+     * Get cache file
+     * @param key Cache key
+     * @return Cache file, returns null if not exists
      */
     fun get(key: String): File?
     
     /**
-     * 保存到磁盘缓存
-     * @param key 缓存键
-     * @param file 要缓存的文件
+     * Save to disk cache
+     * @param key Cache key
+     * @param file File to cache
      */
     fun put(key: String, file: File)
     
     /**
-     * 删除缓存
-     * @param key 缓存键
+     * Remove cache
+     * @param key Cache key
      */
     fun remove(key: String)
     
     /**
-     * 清空缓存
+     * Clear cache
      */
     fun clear()
     
     /**
-     * 获取缓存大小（字节）
+     * Get cache size (bytes)
      */
     fun getSize(): Long
     
     /**
-     * 获取最大缓存大小（字节）
+     * Get max cache size (bytes)
      */
     fun getMaxSize(): Long
 }

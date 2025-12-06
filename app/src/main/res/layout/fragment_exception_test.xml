@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tv_info"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Exception Handling Test Info"
+        android:textSize="14sp"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:elevation="2dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.kernelflux.pag.PAGImageView
+        android:id="@+id/pag_image_view"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_info" />
+
+    <Button
+        android:id="@+id/btn_invalid_url"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Test Invalid URL"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pag_image_view" />
+
+    <Button
+        android:id="@+id/btn_null_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Test Null View"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_invalid_url" />
+
+    <Button
+        android:id="@+id/btn_rapid_load"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Test Rapid Load/Unload"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_null_view" />
+
+    <Button
+        android:id="@+id/btn_clear_during_load"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Test Clear During Load"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_rapid_load" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

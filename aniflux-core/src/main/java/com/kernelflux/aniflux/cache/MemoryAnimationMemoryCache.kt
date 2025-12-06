@@ -4,7 +4,7 @@ import android.util.LruCache
 import com.kernelflux.aniflux.engine.AnimationResource
 
 /**
- * 内存动画缓存 - 基于LruCache实现
+ * Memory animation cache - implemented based on LruCache
  */
 class MemoryAnimationMemoryCache(
     maxSize: Int = calculateDefaultMaxSize()
@@ -12,7 +12,7 @@ class MemoryAnimationMemoryCache(
     
     private val cache = object : LruCache<String, AnimationResource<*>>(maxSize) {
         override fun sizeOf(key: String, value: AnimationResource<*>): Int {
-            // 简单的内存计算，实际应该根据资源类型计算
+            // Simple memory calculation, should actually calculate based on resource type
             return 1
         }
         
@@ -22,7 +22,7 @@ class MemoryAnimationMemoryCache(
             oldValue: AnimationResource<*>,
             newValue: AnimationResource<*>?
         ) {
-            // 资源被移除时，回收资源
+            // Recycle resource when removed
             oldValue.recycle()
         }
     }
@@ -54,8 +54,8 @@ class MemoryAnimationMemoryCache(
     companion object {
         private fun calculateDefaultMaxSize(): Int {
             val maxMemory = Runtime.getRuntime().maxMemory()
-            val cacheSize = (maxMemory / 8).toInt() // 使用1/8的内存作为缓存
-            return maxOf(cacheSize, 10 * 1024 * 1024) // 最少10MB
+            val cacheSize = (maxMemory / 8).toInt() // Use 1/8 of memory as cache
+            return maxOf(cacheSize, 10 * 1024 * 1024) // Minimum 10MB
         }
     }
 }

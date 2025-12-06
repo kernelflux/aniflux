@@ -1,8 +1,13 @@
-package com.kernelflux.anifluxsample
+package com.kernelflux.anifluxsample.main
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.kernelflux.anifluxsample.main.fragment.PAGTestFragment
+import com.kernelflux.anifluxsample.main.fragment.SVGATestFragment
+import com.kernelflux.anifluxsample.main.fragment.GIFTestFragment
+import com.kernelflux.anifluxsample.main.fragment.VAPTestFragment
+import com.kernelflux.anifluxsample.main.fragment.LottieTestFragment
 
 /**
  * Tab + ViewPager2 适配器

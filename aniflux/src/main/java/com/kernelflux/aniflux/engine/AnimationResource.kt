@@ -3,8 +3,8 @@ package com.kernelflux.aniflux.engine
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 动画资源包装器
- * 管理资源的生命周期和引用计数
+ * Animation resource wrapper
+ * Manages resource lifecycle and reference counting
  */
 class AnimationResource<T>(
     private val resource: T,
@@ -17,7 +17,7 @@ class AnimationResource<T>(
     private var isRecycled = false
     
     /**
-     * 获取资源
+     * Get resource
      */
     fun get(): T {
         if (isRecycled) {
@@ -27,27 +27,27 @@ class AnimationResource<T>(
     }
     
     /**
-     * 获取资源（不检查回收状态）
+     * Get resource (without checking recycle status)
      */
     fun getUnchecked(): T = resource
     
     /**
-     * 获取引用计数
+     * Get reference count
      */
     fun getAcquiredCount(): Int = acquired.get()
     
     /**
-     * 是否可缓存
+     * Whether cacheable
      */
     fun isCacheable(): Boolean = isCacheable
     
     /**
-     * 是否已回收
+     * Whether recycled
      */
     fun isRecycled(): Boolean = isRecycled
     
     /**
-     * 增加引用计数
+     * Increment reference count
      */
     fun acquire() {
         if (isRecycled) {
@@ -57,7 +57,7 @@ class AnimationResource<T>(
     }
     
     /**
-     * 减少引用计数
+     * Decrement reference count
      */
     fun release() {
         val count = acquired.decrementAndGet()
@@ -66,13 +66,13 @@ class AnimationResource<T>(
         }
         
         if (count == 0) {
-            // 引用计数为0，通知监听器
+            // Reference count is 0, notify listener
             resourceListener.onResourceReleased(key, this)
         }
     }
     
     /**
-     * 回收资源
+     * Recycle resource
      */
     fun recycle() {
         if (isRecycled) {
@@ -82,7 +82,7 @@ class AnimationResource<T>(
     }
     
     /**
-     * 资源监听器
+     * Resource listener
      */
     interface ResourceListener {
         fun onResourceReleased(key: String, resource: AnimationResource<*>)

@@ -1,4 +1,4 @@
-package com.kernelflux.anifluxsample
+package com.kernelflux.anifluxsample.util
 
 import android.annotation.SuppressLint
 import android.content.Context

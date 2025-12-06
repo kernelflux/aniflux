@@ -8,22 +8,22 @@ import com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap
 import com.kernelflux.pag.PAGFile
 
 /**
- * PAG 占位图管理器工厂
- * 提供创建 PAGPlaceholderManager 的工厂方法
+ * PAG placeholder manager factory
+ * Provides factory method to create PAGPlaceholderManager
  * 
  * @author: kerneflux
  * @date: 2025/11/27
  */
 object PlaceholderManagerFactory {
     /**
-     * 创建 PAG 占位图管理器
+     * Create PAG placeholder manager
      * 
-     * @param view 显示动画的 View
-     * @param resource PAGFile 资源
-     * @param replacements 占位图替换映射
-     * @param imageLoader 图片加载器
-     * @param lifecycle 生命周期（可选）
-     * @return PlaceholderManager 实例，如果参数无效返回 null
+     * @param view View displaying animation
+     * @param resource PAGFile resource
+     * @param replacements Placeholder replacement map
+     * @param imageLoader Image loader
+     * @param lifecycle Lifecycle (optional)
+     * @return PlaceholderManager instance, returns null if parameters are invalid
      */
     @JvmStatic
     fun create(

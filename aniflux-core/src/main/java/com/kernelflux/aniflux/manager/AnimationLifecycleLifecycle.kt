@@ -5,8 +5,8 @@ import androidx.lifecycle.LifecycleOwner
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * 包装AndroidX Lifecycle的AnimationLifecycleLifecycle
- * 实现自定义AnimationLifecycle和LifecycleObserver接口
+ * Wrapper for AndroidX Lifecycle's AnimationLifecycleLifecycle
+ * Implements custom AnimationLifecycle and LifecycleObserver interfaces
  */
 class AnimationLifecycleLifecycle(
     lifecycle: androidx.lifecycle.Lifecycle
@@ -35,7 +35,7 @@ class AnimationLifecycleLifecycle(
         listeners.clear()
     }
 
-    // 自定义AnimationLifecycle接口实现
+    // Custom AnimationLifecycle interface implementation
     override fun addListener(listener: AnimationLifecycleListener) {
         listeners.add(listener)
     }

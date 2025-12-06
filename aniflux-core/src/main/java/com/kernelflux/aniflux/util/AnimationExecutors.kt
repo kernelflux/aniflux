@@ -5,33 +5,33 @@ import android.os.Looper
 import java.util.concurrent.Executor
 
 /**
- * 动画请求的线程执行器
+ * Thread executors for animation requests
  */
 object AnimationExecutors {
     
     private val mainThreadHandler = Handler(Looper.getMainLooper())
     
     /**
-     * 主线程执行器 - 确保回调在主线程执行
+     * Main thread executor - ensures callbacks execute on main thread
      */
     val MAIN_THREAD_EXECUTOR = Executor { command ->
         mainThreadHandler.post(command)
     }
     
     /**
-     * 直接执行器 - 在当前线程执行
+     * Direct executor - executes in current thread
      */
     val DIRECT_EXECUTOR = Executor { command ->
         command.run()
     }
     
     /**
-     * 获取主线程执行器
+     * Get main thread executor
      */
     fun mainThreadExecutor(): Executor = MAIN_THREAD_EXECUTOR
     
     /**
-     * 获取直接执行器
+     * Get direct executor
      */
     fun directExecutor(): Executor = DIRECT_EXECUTOR
 }

@@ -1,14 +1,14 @@
 package com.kernelflux.aniflux.placeholder
 
 /**
- * 占位图替换配置
+ * Placeholder replacement configuration
  *
- * @param placeholderKey 占位符key（如 "user_1", "avatar", "logo"）
- *                       对应动画文件中的占位符名称
- * @param imageSource 图片源（业务方定义的类型）
- *                    可以是String（URL）、File、Uri、ResourceId等
- *                    由业务方的PlaceholderImageLoader负责解析和加载
- * @param scaleType 缩放类型（可选，某些格式可能不支持）
+ * @param placeholderKey Placeholder key (e.g., "user_1", "avatar", "logo")
+ *                       Corresponds to placeholder name in animation file
+ * @param imageSource Image source (type defined by business logic)
+ *                    Can be String (URL), File, Uri, ResourceId, etc.
+ *                    Parsed and loaded by business logic's PlaceholderImageLoader
+ * @param scaleType Scale type (optional, some formats may not support)
  *
  * @author: kerneflux
  * @date: 2025/11/27
@@ -20,43 +20,43 @@ data class PlaceholderReplacement(
 )
 
 /**
- * 图片缩放类型
+ * Image scale type
  */
 enum class ImageScaleType {
     /**
-     * 居中缩放，保持宽高比，可能留白
+     * Center scale, maintain aspect ratio, may have padding
      */
     FIT_CENTER,
 
     /**
-     * 填充整个区域，保持宽高比，可能裁剪
+     * Fill entire area, maintain aspect ratio, may crop
      */
     CENTER_CROP,
 
     /**
-     * 拉伸填充，不保持宽高比
+     * Stretch fill, don't maintain aspect ratio
      */
     FIT_XY,
 
     /**
-     * 居中显示，不缩放
+     * Center display, no scaling
      */
     CENTER
 }
 
 /**
- * 占位图替换映射表
- * 支持链式调用
+ * Placeholder replacement map
+ * Supports fluent calls
  */
 class PlaceholderReplacementMap {
     private val replacements = mutableMapOf<String, PlaceholderReplacement>()
 
     /**
-     * 添加占位图替换配置
+     * Add placeholder replacement configuration
      *
-     * @param key 占位符key
-     * @param source 图片源
-     * @return this，支持链式调用
+     * @param key Placeholder key
+     * @param source Image source
+     * @return this, supports fluent calls
      */
     fun add(key: String, source: Any): PlaceholderReplacementMap {
         replacements[key] = PlaceholderReplacement(key, source)
@@ -64,10 +64,10 @@ class PlaceholderReplacementMap {
     }
 
     /**
-     * 添加占位图替换配置（完整配置）
+     * Add placeholder replacement configuration (complete configuration)
      *
-     * @param replacement 占位图替换配置
-     * @return this，支持链式调用
+     * @param replacement Placeholder replacement configuration
+     * @return this, supports fluent calls
      */
     fun add(replacement: PlaceholderReplacement): PlaceholderReplacementMap {
         replacements[replacement.placeholderKey] = replacement
@@ -75,10 +75,10 @@ class PlaceholderReplacementMap {
     }
 
     /**
-     * 批量添加
+     * Batch add
      *
-     * @param map 占位符key到图片源的映射
-     * @return this，支持链式调用
+     * @param map Map from placeholder key to image source
+     * @return this, supports fluent calls
      */
     fun addAll(map: Map<String, Any>): PlaceholderReplacementMap {
         map.forEach { (key, source) ->
@@ -88,27 +88,27 @@ class PlaceholderReplacementMap {
     }
 
     /**
-     * 获取指定key的替换配置
+     * Get replacement configuration for specified key
      */
     fun get(key: String): PlaceholderReplacement? = replacements[key]
 
     /**
-     * 获取所有替换配置
+     * Get all replacement configurations
      */
     fun getAll(): Map<String, PlaceholderReplacement> = replacements.toMap()
 
     /**
-     * 是否为空
+     * Whether empty
      */
     fun isEmpty(): Boolean = replacements.isEmpty()
 
     /**
-     * 是否包含指定key
+     * Whether contains specified key
      */
     fun containsKey(key: String): Boolean = replacements.containsKey(key)
 
     /**
-     * 清空所有配置
+     * Clear all configurations
      */
     fun clear() {
         replacements.clear()

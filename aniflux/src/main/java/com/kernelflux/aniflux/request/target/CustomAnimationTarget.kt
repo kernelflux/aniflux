@@ -19,12 +19,12 @@ abstract class CustomAnimationTarget<T>(
     protected val height: Int
     private var request: AnimationRequest? = null
     
-    // 动画播放监听器（直接持有，无需Manager包装）
+    // Animation play listener (directly held, no Manager wrapper needed)
     @Volatile
     var playListener: AnimationPlayListener? = null
         private set
     
-    // 动画配置选项（用于播放设置）
+    // Animation configuration options (for playback settings)
     @Volatile
     var animationOptions: com.kernelflux.aniflux.util.AnimationOptions? = null
         internal set
@@ -52,7 +52,7 @@ abstract class CustomAnimationTarget<T>(
     }
 
     override fun onDestroy() {
-        // 清理监听器
+        // Clear listeners
         cleanupPlayListeners()
     }
 
@@ -65,7 +65,7 @@ abstract class CustomAnimationTarget<T>(
     }
 
     override fun onLoadCleared(placeholder: Drawable?) {
-        // 清理监听器设置
+        // Clear listener setup
         cleanupPlayListeners()
     }
 
@@ -86,16 +86,16 @@ abstract class CustomAnimationTarget<T>(
     }
     
     /**
-     * 获取目标宽度
-     * 使用width()方法名避免Kotlin的get方法冲突
+     * Gets the target width
+     * Uses width() method name to avoid Kotlin get method conflicts
      */
     fun width(): Int {
         return width
     }
     
     /**
-     * 获取目标高度
-     * 使用height()方法名避免Kotlin的get方法冲突
+     * Gets the target height
+     * Uses height() method name to avoid Kotlin get method conflicts
      */
     fun height(): Int {
         return height
@@ -109,15 +109,15 @@ abstract class CustomAnimationTarget<T>(
     }
 
     /**
-     * 清除监听器
+     * Clears listener
      */
     fun clearPlayListener() {
         playListener = null
     }
 
     /**
-     * 清理监听器设置
-     * 在onLoadCleared时自动调用，也会在onDestroy时调用
+     * Clears listener settings
+     * Automatically called in onLoadCleared, also called in onDestroy
      */
     internal fun cleanupPlayListeners() {
         AnimationPlayListenerSetupHelper.cleanup(this)

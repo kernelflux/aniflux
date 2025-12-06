@@ -8,22 +8,22 @@ import com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap
 import com.kernelflux.lottie.LottieDrawable
 
 /**
- * Lottie 占位图管理器工厂
- * 提供创建 LottiePlaceholderManager 的工厂方法
+ * Lottie placeholder manager factory
+ * Provides factory method to create LottiePlaceholderManager
  * 
  * @author: kerneflux
  * @date: 2025/11/27
  */
 object PlaceholderManagerFactory {
     /**
-     * 创建 Lottie 占位图管理器
+     * Create Lottie placeholder manager
      * 
-     * @param view 显示动画的 View
-     * @param resource LottieDrawable 资源
-     * @param replacements 占位图替换映射
-     * @param imageLoader 图片加载器
-     * @param lifecycle 生命周期（可选）
-     * @return PlaceholderManager 实例，如果参数无效返回 null
+     * @param view View displaying animation
+     * @param resource LottieDrawable resource
+     * @param replacements Placeholder replacement map
+     * @param imageLoader Image loader
+     * @param lifecycle Lifecycle (optional)
+     * @return PlaceholderManager instance, returns null if parameters are invalid
      */
     @JvmStatic
     fun create(

@@ -9,7 +9,7 @@ import com.kernelflux.aniflux.util.Util
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 生命周期感知的AnimationRequestManager检索器
+ * Lifecycle-aware AnimationRequestManager retriever
  */
 class LifecycleAnimationRequestManagerRetriever(
     private val factory: AnimationRequestManagerRetriever.AnimationRequestManagerFactory
@@ -17,7 +17,7 @@ class LifecycleAnimationRequestManagerRetriever(
     private val lifecycleToRequestManager = ConcurrentHashMap<Lifecycle, AnimationRequestManager>()
 
     /**
-     * 获取指定生命周期的RequestManager
+     * Get RequestManager for specified lifecycle
      */
     fun getOnly(lifecycle: Lifecycle): AnimationRequestManager? {
         Util.assertMainThread()
@@ -25,7 +25,7 @@ class LifecycleAnimationRequestManagerRetriever(
     }
 
     /**
-     * 获取或创建RequestManager
+     * Get or create RequestManager
      */
     fun getOrCreate(
         context: Context,
@@ -57,7 +57,7 @@ class LifecycleAnimationRequestManagerRetriever(
                 }
             })
 
-            // 如果父级可见，启动RequestManager
+            // If parent is visible, start RequestManager
             if (isParentVisible) {
                 result.onStart()
             }
@@ -66,7 +66,7 @@ class LifecycleAnimationRequestManagerRetriever(
     }
 
     /**
-     * 支持Fragment的RequestManagerTreeNode实现
+     * Support Fragment RequestManagerTreeNode implementation
      */
     private inner class SupportAnimationRequestManagerTreeNode(
         private val childFragmentManager: FragmentManager

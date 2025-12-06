@@ -23,11 +23,11 @@ import com.kernelflux.aniflux.util.Util
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * 动画请求管理器
- * 负责管理动画请求的生命周期，避免内存泄漏
+ * Animation request manager
+ * Responsible for managing animation request lifecycle to avoid memory leaks
  * 
- * 参考 Glide 设计，放在 core 模块中，只包含核心方法
- * 格式特定的便捷方法（asGif/asLottie 等）通过扩展函数在 aniflux 模块中提供
+ * Inspired by Glide design, placed in core module, only contains core methods
+ * Format-specific convenience methods (asGif/asLottie, etc.) are provided via extension functions in aniflux module
  * 
  * @author: kernelflux
  * @date: 2025/10/8
@@ -152,27 +152,27 @@ class AnimationRequestManager(
     }
 
 
-    //////////////////////////////////////// 核心API START //////////////////////////////////////////////////
+    //////////////////////////////////////// Core API START //////////////////////////////////////////////////
 
     /**
-     * 指定资源类型（泛型方法，参考 Glide 设计）
-     * 格式特定的便捷方法（asGif/asLottie 等）通过扩展函数在 aniflux 模块中提供
+     * Specify resource type (generic method, references Glide design)
+     * Format-specific convenience methods (asGif/asLottie, etc.) are provided via extension functions in aniflux module
      * 
-     * 注意：AnimationRequestBuilder 在 aniflux 模块中，这里返回 Any
-     * 实际实现通过扩展函数在 aniflux 模块中提供类型安全的 API
+     * Note: AnimationRequestBuilder is in aniflux module, here returns Any
+     * Actual implementation provides type-safe API via extension functions in aniflux module
      */
     @CheckResult
     fun <ResourceType> `as`(
         resourceClass: Class<ResourceType>
     ): Any {
-        // AnimationRequestBuilder 在 aniflux 模块中，需要通过扩展函数来创建
-        // 这里抛出异常，提示使用扩展函数
+        // AnimationRequestBuilder is in aniflux module, needs to be created via extension functions
+        // Here throws exception to prompt using extension functions
         throw UnsupportedOperationException(
             "Please use extension functions in aniflux module: asGif(), asLottie(), asPAG(), asSVGA(), etc."
         )
     }
 
-    //////////////////////////////////////// 核心API END  //////////////////////////////////////////////////
+    //////////////////////////////////////// Core API END  //////////////////////////////////////////////////
 
 
     @Suppress("DEPRECATION")
@@ -196,11 +196,11 @@ class AnimationRequestManager(
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        // 配置变化时不需要特殊处理
+        // No special handling needed when configuration changes
     }
 
 
-    // clear(view: View) 方法移到扩展函数文件中，因为它依赖 ClearTarget
+    // clear(view: View) method moved to extension function file, as it depends on ClearTarget
 
     fun clear(target: AnimationTarget<*>?) {
         if (target == null) {
@@ -228,14 +228,14 @@ class AnimationRequestManager(
             targetTracker.untrack(target)
             target.setRequest(null)
 
-            // 清除target上的播放监听器（避免监听器泄漏和重复回调）
-            // 注意：CustomAnimationTarget 和 CustomViewAnimationTarget 在 aniflux 模块中
-            // 这里使用反射或接口来调用 clearPlayListener，或者通过扩展函数处理
+            // Clear play listener on target (avoid listener leaks and duplicate callbacks)
+            // Note: CustomAnimationTarget and CustomViewAnimationTarget are in aniflux module
+            // Here use reflection or interface to call clearPlayListener, or handle via extension functions
             try {
                 val clearMethod = target.javaClass.getMethod("clearPlayListener")
                 clearMethod.invoke(target)
             } catch (e: Exception) {
-                // 方法不存在或调用失败，忽略
+                // Method doesn't exist or call failed, ignore
             }
 
             return true
@@ -250,12 +250,12 @@ class AnimationRequestManager(
         requestTracker.runRequest(request)
     }
 
-    // 获取Engine实例
+    // Get Engine instance
     private fun getEngine(): AnimationEngine {
         return aniFlux.getEngine()
     }
 
-    // 通过Engine加载动画
+    // Load animation via Engine
     fun <T> load(
         context: Context,
         model: Any?,
@@ -279,7 +279,7 @@ class AnimationRequestManager(
         }
     }
 
-    // ClearTarget 移到 aniflux 模块的扩展函数文件中，因为它依赖 CustomViewAnimationTarget
+    // ClearTarget moved to aniflux module's extension function file, as it depends on CustomViewAnimationTarget
 
 
 }

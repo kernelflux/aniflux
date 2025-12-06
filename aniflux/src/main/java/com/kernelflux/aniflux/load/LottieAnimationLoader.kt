@@ -1,6 +1,8 @@
 package com.kernelflux.aniflux.load
 
 import android.content.Context
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.lottie.LottieComposition
 import com.kernelflux.lottie.LottieCompositionFactory
 import com.kernelflux.lottie.LottieDrawable
@@ -12,8 +14,8 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
 /**
- * Lottie动画加载器 - 参考lottie-android库的加载方式
- * 支持从文件路径、文件、资源ID、字节数组、输入流、网络URL加载Lottie
+ * Lottie animation loader - references lottie-android library's loading approach
+ * Supports loading Lottie from file path, file, resource ID, byte array, input stream, network URL
  */
 class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
 
@@ -22,7 +24,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
             val composition = loadLottieCompositionFromPath(context,path)
             composition?.let { createLottieDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e("LottieAnimationLoader", "Failed to load Lottie from path: $path", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load Lottie from path: $path", e)
             null
         }
     }
@@ -32,8 +34,8 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
             val composition = loadLottieCompositionFromFile(file)
             composition?.let { createLottieDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e(
-                "LottieAnimationLoader",
+            AniFluxLog.e(
+                AniFluxLogCategory.LOADER,
                 "Failed to load Lottie from file: ${file.absolutePath}",
                 e
             )
@@ -46,8 +48,8 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
             val composition = loadLottieCompositionFromResource(context, resourceId)
             composition?.let { createLottieDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e(
-                "LottieAnimationLoader",
+            AniFluxLog.e(
+                AniFluxLogCategory.LOADER,
                 "Failed to load Lottie from resource: $resourceId",
                 e
             )
@@ -60,7 +62,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
             val composition = loadLottieCompositionFromBytes(bytes)
             composition?.let { createLottieDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e("LottieAnimationLoader", "Failed to load Lottie from bytes", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load Lottie from bytes", e)
             null
         }
     }
@@ -70,8 +72,8 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
             val composition = loadLottieCompositionFromInputStream(inputStream)
             composition?.let { createLottieDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e(
-                "LottieAnimationLoader",
+            AniFluxLog.e(
+                AniFluxLogCategory.LOADER,
                 "Failed to load Lottie from input stream",
                 e
             )
@@ -85,13 +87,13 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
         downloader: AnimationDownloader
     ): LottieDrawable? {
         return try {
-            // 下载文件
+            // Download file
             val tempFile=downloader.download(context,url)
-            // 从临时文件加载
+            // Load from temporary file
             val result = loadFromFile(context,tempFile)
             result
         } catch (e: Exception) {
-            android.util.Log.e("LottieAnimationLoader", "Failed to load Lottie from URL: $url", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load Lottie from URL: $url", e)
             null
         }
     }
@@ -101,8 +103,8 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
             val composition = loadLottieCompositionFromAssetPath(context, assetPath)
             composition?.let { createLottieDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e(
-                "LottieAnimationLoader",
+            AniFluxLog.e(
+                AniFluxLogCategory.LOADER,
                 "Failed to load Lottie from asset path: $assetPath",
                 e
             )
@@ -111,7 +113,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 从Asset路径加载LottieComposition
+     * Load LottieComposition from Asset path
      */
     private fun loadLottieCompositionFromAssetPath(
         context: Context,
@@ -147,7 +149,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 从文件路径加载LottieComposition
+     * Load LottieComposition from file path
      */
     private fun loadLottieCompositionFromPath(context:Context,path: String): LottieComposition? {
         val latch = CountDownLatch(1)
@@ -176,19 +178,19 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 从文件加载LottieComposition
+     * Load LottieComposition from file
      */
     private fun loadLottieCompositionFromFile(file: File): LottieComposition? {
         val latch = CountDownLatch(1)
         var result: LottieComposition? = null
 
-        // 先读取文件内容到字节数组，避免流关闭问题
+        // Read file content to byte array first, avoid stream closing issues
         val bytes = file.readBytes()
         
-        // 根据文件扩展名判断是 JSON 还是 ZIP 格式
+        // Determine if JSON or ZIP format based on file extension
         val fileName = file.name.lowercase()
         if (fileName.endsWith(".zip") || fileName.endsWith(".lottie")) {
-            // ZIP 格式的 Lottie 文件
+            // ZIP format Lottie file
             val zis = ZipInputStream(bytes.inputStream())
             LottieCompositionFactory.fromZipStream(zis, null)
                 .addListener { comp ->
@@ -200,7 +202,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
                     latch.countDown()
                 }
         } else {
-            // JSON 格式的 Lottie 文件
+            // JSON format Lottie file
             val jsonString = String(bytes)
             LottieCompositionFactory.fromJsonString(jsonString, null)
                 .addListener { comp ->
@@ -227,7 +229,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 从资源ID加载LottieComposition
+     * Load LottieComposition from resource ID
      */
     private fun loadLottieCompositionFromResource(
         context: Context,
@@ -259,7 +261,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 从字节数组加载LottieComposition
+     * Load LottieComposition from byte array
      */
     private fun loadLottieCompositionFromBytes(bytes: ByteArray): LottieComposition? {
         val latch = CountDownLatch(1)
@@ -288,13 +290,13 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 从输入流加载LottieComposition
+     * Load LottieComposition from input stream
      */
     private fun loadLottieCompositionFromInputStream(inputStream: InputStream): LottieComposition? {
         val latch = CountDownLatch(1)
         var result: LottieComposition? = null
 
-        // 先读取输入流内容到字节数组，避免流关闭问题
+        // Read input stream content to byte array first, avoid stream closing issues
         val bytes = inputStream.readBytes()
         val jsonInputStream = bytes.inputStream()
 
@@ -321,7 +323,7 @@ class LottieAnimationLoader : AnimationLoader<LottieDrawable> {
     }
 
     /**
-     * 创建LottieDrawable
+     * Create LottieDrawable
      */
     private fun createLottieDrawable(composition: LottieComposition): LottieDrawable {
         val drawable = LottieDrawable()

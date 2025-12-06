@@ -37,7 +37,11 @@ import com.kernelflux.vap.util.ScaleType
 import com.kernelflux.vap.util.ScaleTypeUtil
 import java.io.File
 
-open class AnimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0):
+open class AnimView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) :
     IAnimView,
     FrameLayout(context, attrs, defStyleAttr),
     TextureView.SurfaceTextureListener {
@@ -45,6 +49,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
     companion object {
         private const val TAG = "${Constant.TAG}.AnimView"
     }
+
     private lateinit var player: AnimPlayer
 
     private val uiHandler by lazy { Handler(Looper.getMainLooper()) }
@@ -53,7 +58,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
     private var innerTextureView: InnerTextureView? = null
     private var lastFile: IFileContainer? = null
     private val scaleTypeUtil = ScaleTypeUtil()
-    
+
     /**
      * 是否保留最后一帧（动画结束时）
      * true: 保留最后一帧，不清空视图和文件
@@ -223,7 +228,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
         player.playLoop = playLoop
     }
 
-    override fun supportMask(isSupport : Boolean, isEdgeBlur : Boolean) {
+    override fun supportMask(isSupport: Boolean, isEdgeBlur: Boolean) {
         player.supportMaskBoolean = isSupport
         player.maskEdgeBlurBoolean = isEdgeBlur
     }
@@ -249,7 +254,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
         player.defaultFps = fps
     }
 
-    override fun setScaleType(type : ScaleType) {
+    override fun setScaleType(type: ScaleType) {
         scaleTypeUtil.currentScaleType = type
     }
 
@@ -270,7 +275,10 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
             val fileContainer = FileContainer(file)
             startPlay(fileContainer)
         } catch (e: Throwable) {
-            animProxyListener.onFailed(Constant.REPORT_ERROR_TYPE_FILE_ERROR, Constant.ERROR_MSG_FILE_ERROR)
+            animProxyListener.onFailed(
+                Constant.REPORT_ERROR_TYPE_FILE_ERROR,
+                Constant.ERROR_MSG_FILE_ERROR
+            )
             animProxyListener.onVideoComplete()
         }
     }
@@ -280,7 +288,10 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
             val fileContainer = AssetsFileContainer(assetManager, assetsPath)
             startPlay(fileContainer)
         } catch (e: Throwable) {
-            animProxyListener.onFailed(Constant.REPORT_ERROR_TYPE_FILE_ERROR, Constant.ERROR_MSG_FILE_ERROR)
+            animProxyListener.onFailed(
+                Constant.REPORT_ERROR_TYPE_FILE_ERROR,
+                Constant.ERROR_MSG_FILE_ERROR
+            )
             animProxyListener.onVideoComplete()
         }
     }
@@ -302,6 +313,22 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
     }
 
 
+    override fun resumePlay() {
+        ui {
+            if (visibility != VISIBLE) {
+                ALog.e(TAG, "AnimView is GONE, can't play")
+                return@ui
+            }
+            if (!player.isRunning()) {
+                lastFile?.also {
+                    player.startPlay(it)
+                } ?: ALog.e(TAG, "LastFile is null, can't resumePlay")
+            } else {
+                ALog.e(TAG, "is running can not start")
+            }
+        }
+    }
+
     override fun stopPlay() {
         player.stopPlay()
     }
@@ -321,7 +348,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
         }
     }
 
-    private fun ui(f:()->Unit) {
+    private fun ui(f: () -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) f() else uiHandler.post { f() }
     }
 

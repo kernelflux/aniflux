@@ -1,4 +1,4 @@
-package com.kernelflux.anifluxsample
+package com.kernelflux.anifluxsample.app
 
 import android.app.Application
 import android.content.Context
@@ -14,7 +14,7 @@ class AntiFluxSampleApp : Application() {
         super.onCreate()
         // 初始化 AniFlux，并设置 Glide 占位图加载器
         AniFlux.init(this) {
-            setPlaceholderImageLoader(GlidePlaceholderImageLoader())
+            setPlaceholderImageLoader(com.kernelflux.anifluxsample.util.GlidePlaceholderImageLoader())
         }
     }
 }

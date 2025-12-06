@@ -15,8 +15,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 /**
- * 动画引擎
- * 负责管理动画请求的生命周期、缓存策略、线程池调度等
+ * Animation engine
+ * Responsible for managing animation request lifecycle, cache strategy, thread pool scheduling, etc.
  */
 class AnimationEngine(
     private val memoryCache: AnimationMemoryCache = MemoryAnimationMemoryCache(),
@@ -26,13 +26,13 @@ class AnimationEngine(
     private val activeResources = ConcurrentHashMap<AnimationKey, AnimationResource<*>>()
 
     /**
-     * 启动动画加载请求
-     * 这是从SingleAnimationRequest调用的核心方法
+     * Start animation load request
+     * This is the core method called from SingleAnimationRequest
      *
-     * 完整的缓存流程：
-     * 1. 内存缓存查询（activeResource + memoryCache）
-     * 2. 磁盘缓存查询（如果启用）
-     * 3. 启动新的加载任务（网络下载或本地加载）
+     * Complete cache flow:
+     * 1. Memory cache query (activeResource + memoryCache)
+     * 2. Disk cache query (if enabled)
+     * 3. Start new load task (network download or local load)
      */
     fun <T> load(
         context: Context,
@@ -44,46 +44,46 @@ class AnimationEngine(
     ): LoadStatus? {
         val key = buildAnimationKey(model, options)
 
-        // 1. 首先尝试从内存中获取资源
+        // 1. First try to get resource from memory
         var memoryResource: AnimationResource<*>?
         synchronized(this) {
             memoryResource = loadFromMemory(key)
             if (memoryResource != null) {
-                // ✅ 找到内存资源，直接返回（注意：loadFromMemory 已经调用了 acquire）
+                // ✅ Found memory resource, return directly (note: loadFromMemory has already called acquire)
                 cb?.onResourceReady(memoryResource, AnimationDataSource.MEMORY_CACHE, false)
                 return null
             }
         }
 
-        // 2. 内存中没有，检查磁盘缓存（如果启用）
+        // 2. Not in memory, check disk cache (if enabled)
         if (animationDiskCache != null &&
             (options.cacheStrategy == AnimationCacheStrategy.DISK_ONLY || options.cacheStrategy == AnimationCacheStrategy.BOTH)
         ) {
             val diskFile = animationDiskCache.get(key.toCacheKey())
             if (diskFile != null && diskFile.exists()) {
-                // 磁盘缓存命中，启动任务从磁盘加载（不需要网络下载）
-                // 注意：这里需要告知 AnimationJob 使用磁盘文件而不是网络下载
+                // Disk cache hit, start task to load from disk (no network download needed)
+                // Note: Need to inform AnimationJob to use disk file instead of network download
                 return startNewJob(context, model, target, options, listener, cb, key, diskFile)
             }
         }
 
-        // 3. 检查是否有正在执行的任务
+        // 3. Check if there's an executing task
         val existingJob = activeJobs[key]
         if (existingJob != null) {
-            //有正在执行的任务，将新的 callback 添加到现有的Job
+            // There's an executing task, add new callback to existing Job
             if (cb != null) {
                 existingJob.addCallback(cb)
             }
             return LoadStatus(cb, existingJob)
         }
 
-        // 4. 启动新的加载任务（网络下载或本地加载）
+        // 4. Start new load task (network download or local load)
         return startNewJob(context, model, target, options, listener, cb, key, null)
     }
 
     /**
-     * 启动新的加载任务
-     * @param diskCachedFile 磁盘缓存文件（如果从磁盘缓存加载）
+     * Start new load task
+     * @param diskCachedFile Disk cache file (if loading from disk cache)
      */
     private fun <T> startNewJob(
         context: Context,
@@ -114,12 +114,12 @@ class AnimationEngine(
     }
 
     private fun loadFromMemory(key: AnimationKey): AnimationResource<*>? {
-        // 检查活跃资源（正在使用的资源）
+        // Check active resources (resources in use)
         val activeResource = loadFromActiveResources(key)
         if (activeResource != null) {
             return activeResource
         }
-        // 检查内存缓存
+        // Check memory cache
         val cachedResource = loadFromMemoryCache(key)
         if (cachedResource != null) {
             return cachedResource
@@ -129,32 +129,32 @@ class AnimationEngine(
 
 
     /**
-     * 从活跃资源中加载
-     * 从活跃资源获取时，需要 acquire（增加引用计数）
+     * Load from active resources
+     * When getting from active resources, need to acquire (increment reference count)
      */
     private fun loadFromActiveResources(key: AnimationKey): AnimationResource<*>? {
         val active = activeResources[key] ?: return null
-        // ✅ 从活跃资源获取时 acquire（Request 持有资源）
+        // ✅ Acquire when getting from active resources (Request holds resource)
         active.acquire()
         return active
     }
 
     /**
-     * 从内存缓存中加载
-     * 从内存缓存获取资源时，需要 acquire 并转移到 activeResources
+     * Load from memory cache
+     * When getting resource from memory cache, need to acquire and transfer to activeResources
      */
     private fun loadFromMemoryCache(key: AnimationKey): AnimationResource<*>? {
         val cached = memoryCache.get(key.toCacheKey()) ?: return null
-        // ✅ 从内存缓存获取时 acquire（Engine 持有资源）
+        // ✅ Acquire when getting from memory cache (Engine holds resource)
         cached.acquire()
-        // ✅ 从内存缓存移除，加入活跃资源（资源流转）
+        // ✅ Remove from memory cache, add to active resources (resource flow)
         memoryCache.remove(key.toCacheKey())
         activeResources[key] = cached
         return cached
     }
 
     /**
-     * 构建动画缓存键
+     * Build animation cache key
      */
     private fun buildAnimationKey(model: Any?, options: AnimationOptions): AnimationKey {
         return AnimationKey(
@@ -164,62 +164,62 @@ class AnimationEngine(
     }
 
     /**
-     * 获取磁盘缓存实例（供 AnimationJob 使用）
+     * Get disk cache instance (for AnimationJob use)
      */
     internal fun getDiskCache(): AnimationDiskCache? = animationDiskCache
 
     /**
-     * 任务完成回调
-     * 当AnimationJob完成时调用
+     * Task completion callback
+     * Called when AnimationJob completes
      */
     internal fun <T> onJobComplete(
         key: AnimationKey,
         resource: AnimationResource<T>?
     ) {
-        // 从活跃任务中移除
+        // Remove from active jobs
         activeJobs.remove(key)
 
         if (resource != null) {
-            // ✅ 任务完成时 acquire（Engine 持有资源）
+            // ✅ Acquire when task completes (Engine holds resource)
             resource.acquire()
-            // 成功：将资源加入活跃资源
+            // Success: add resource to active resources
             activeResources[key] = resource
         }
 
-        // 处理等待该资源的其他任务
+        // Handle other tasks waiting for this resource
         handleWaitingJobs(key, resource)
     }
 
     /**
-     * 资源释放回调
-     * 当AnimationResource引用计数为0时调用
+     * Resource release callback
+     * Called when AnimationResource reference count reaches 0
      */
     internal fun onResourceReleased(key: AnimationKey, resource: AnimationResource<*>) {
-        // 从活跃资源中移除
+        // Remove from active resources
         activeResources.remove(key)
 
-        // ✅ 如果资源可缓存，加入内存缓存（资源流转：activeResources → memoryCache）
+        // ✅ If resource is cacheable, add to memory cache (resource flow: activeResources → memoryCache)
         if (resource.isCacheable() &&
             (key.cacheStrategy == AnimationCacheStrategy.MEMORY_ONLY || key.cacheStrategy == AnimationCacheStrategy.BOTH)
         ) {
             memoryCache.put(key.toCacheKey(), resource)
         } else {
-            // ✅ 不可缓存则回收资源
+            // ✅ If not cacheable, recycle resource
             resource.recycle()
         }
     }
 
     /**
-     * 处理等待该资源的其他任务
-     * 实际上不需要在这里处理，因为 addCallback 已经处理了等待的请求
-     * 但可以保留作为扩展点
+     * Handle other tasks waiting for this resource
+     * Actually don't need to handle here, as addCallback has already handled waiting requests
+     * But can keep as extension point
      */
     private fun handleWaitingJobs(key: AnimationKey, resource: AnimationResource<*>?) {
-        // addCallback 已经处理了等待的请求，这里可以留空或做额外处理
+        // addCallback has already handled waiting requests, can leave empty or do additional processing
     }
 
     /**
-     * 清理资源
+     * Clear resources
      */
     fun clear() {
         activeJobs.clear()

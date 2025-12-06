@@ -1,14 +1,16 @@
 package com.kernelflux.aniflux.load
 
 import android.content.Context
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import com.kernelflux.gif.GifDrawable
 import java.io.File
 import java.io.InputStream
 
 /**
- * GIF动画加载器 - 参考android-gif-drawable库的加载方式
- * 支持从文件路径、文件、资源ID、字节数组、输入流、网络URL加载GIF
+ * GIF animation loader - references android-gif-drawable library's loading approach
+ * Supports loading GIF from file path, file, resource ID, byte array, input stream, network URL
  */
 class GifAnimationLoader : AnimationLoader<GifDrawable> {
     
@@ -16,7 +18,7 @@ class GifAnimationLoader : AnimationLoader<GifDrawable> {
         return try {
             GifDrawable(path)
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from path: $path", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from path: $path", e)
             null
         }
     }
@@ -25,7 +27,7 @@ class GifAnimationLoader : AnimationLoader<GifDrawable> {
         return try {
             GifDrawable(file)
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from file: ${file.absolutePath}", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from file: ${file.absolutePath}", e)
             null
         }
     }
@@ -34,7 +36,7 @@ class GifAnimationLoader : AnimationLoader<GifDrawable> {
         return try {
             GifDrawable(context.resources, resourceId)
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from resource: $resourceId", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from resource: $resourceId", e)
             null
         }
     }
@@ -43,7 +45,7 @@ class GifAnimationLoader : AnimationLoader<GifDrawable> {
         return try {
             GifDrawable(bytes)
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from bytes", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from bytes", e)
             null
         }
     }
@@ -52,22 +54,22 @@ class GifAnimationLoader : AnimationLoader<GifDrawable> {
         return try {
             GifDrawable(inputStream)
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from input stream", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from input stream", e)
             null
         }
     }
     
     override fun loadFromUrl(context: Context,url: String, downloader: AnimationDownloader): GifDrawable? {
         return try {
-            // 下载文件
+            // Download file
             val tempFile = downloader.download(context,url)
             
-            // 从临时文件加载
+            // Load from temporary file
             val result = loadFromFile(context,tempFile)
 
             result
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from URL: $url", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from URL: $url", e)
             null
         }
     }
@@ -76,7 +78,7 @@ class GifAnimationLoader : AnimationLoader<GifDrawable> {
         return try {
             GifDrawable(context.assets, assetPath)
         } catch (e: Exception) {
-            android.util.Log.e("GifAnimationLoader", "Failed to load GIF from asset path: $assetPath", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load GIF from asset path: $assetPath", e)
             null
         }
     }

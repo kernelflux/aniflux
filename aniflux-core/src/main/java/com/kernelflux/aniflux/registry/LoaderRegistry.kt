@@ -5,13 +5,13 @@ import com.kernelflux.aniflux.util.AnimationTypeDetector
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Loader注册表
- * 负责管理所有动画格式的Loader实例
+ * Loader registry
+ * Responsible for managing Loader instances for all animation formats
  * 
- * 设计参考：
- * - Glide的Registry机制
- * - Coil的ComponentRegistry
- * - OkHttp的Interceptor注册
+ * Design references:
+ * - Glide's Registry mechanism
+ * - Coil's ComponentRegistry
+ * - OkHttp's Interceptor registration
  * 
  * @author: kernelflux
  * @date: 2025/01/XX
@@ -19,17 +19,17 @@ import java.util.concurrent.ConcurrentHashMap
 object LoaderRegistry {
     
     /**
-     * Loader存储Map
-     * 使用ConcurrentHashMap保证线程安全
+     * Loader storage Map
+     * Uses ConcurrentHashMap to ensure thread safety
      */
     private val loaders = ConcurrentHashMap<AnimationTypeDetector.AnimationType, AnimationLoader<*>>()
     
     /**
-     * 注册Loader
+     * Register Loader
      * 
-     * @param type 动画类型
-     * @param loader Loader实例
-     * @return 如果之前已注册，返回旧的Loader；否则返回null
+     * @param type Animation type
+     * @param loader Loader instance
+     * @return If previously registered, returns old Loader; otherwise returns null
      */
     @JvmStatic
     fun register(type: AnimationTypeDetector.AnimationType, loader: AnimationLoader<*>): AnimationLoader<*>? {
@@ -37,10 +37,10 @@ object LoaderRegistry {
     }
     
     /**
-     * 获取Loader
+     * Get Loader
      * 
-     * @param type 动画类型
-     * @return Loader实例，如果未注册返回null
+     * @param type Animation type
+     * @return Loader instance, returns null if not registered
      */
     @JvmStatic
     fun get(type: AnimationTypeDetector.AnimationType): AnimationLoader<*>? {
@@ -48,10 +48,10 @@ object LoaderRegistry {
     }
     
     /**
-     * 检查是否已注册
+     * Check if registered
      * 
-     * @param type 动画类型
-     * @return 如果已注册返回true，否则返回false
+     * @param type Animation type
+     * @return Returns true if registered, otherwise false
      */
     @JvmStatic
     fun isRegistered(type: AnimationTypeDetector.AnimationType): Boolean {
@@ -59,10 +59,10 @@ object LoaderRegistry {
     }
     
     /**
-     * 取消注册
+     * Unregister
      * 
-     * @param type 动画类型
-     * @return 被移除的Loader实例，如果未注册返回null
+     * @param type Animation type
+     * @return Removed Loader instance, returns null if not registered
      */
     @JvmStatic
     fun unregister(type: AnimationTypeDetector.AnimationType): AnimationLoader<*>? {
@@ -70,9 +70,9 @@ object LoaderRegistry {
     }
     
     /**
-     * 获取所有已注册的类型
+     * Get all registered types
      * 
-     * @return 已注册的动画类型集合
+     * @return Set of registered animation types
      */
     @JvmStatic
     fun getRegisteredTypes(): Set<AnimationTypeDetector.AnimationType> {
@@ -80,8 +80,8 @@ object LoaderRegistry {
     }
     
     /**
-     * 清空所有注册
-     * 主要用于测试
+     * Clear all registrations
+     * Mainly used for testing
      */
     @JvmStatic
     fun clear() {
@@ -89,9 +89,9 @@ object LoaderRegistry {
     }
     
     /**
-     * 获取注册数量
+     * Get registration count
      * 
-     * @return 已注册的Loader数量
+     * @return Number of registered Loaders
      */
     @JvmStatic
     fun size(): Int {

@@ -6,8 +6,8 @@ import com.kernelflux.gif.GifImageView
 
 
 /**
- * GIF动画播放监听器适配器
- * 将GifDrawable的AnimationListener适配到统一的AnimationPlayListener
+ * GIF animation play listener adapter
+ * Adapts GifDrawable's AnimationListener to unified AnimationPlayListener
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -29,7 +29,7 @@ class GifPlayListenerAdapter(
                 notifyAnimationRepeat()
                 val isLastPlay = totalPlays > 0 && loopNumber >= totalPlays - 1
                 if (isLastPlay) {
-                    // ✅ 保留当前停止位置的帧：不做任何操作，GIF 已经自动停留在当前帧
+                    // ✅ Retain frame at current stop position: do nothing, GIF already automatically stays at current frame
                     if (!retainLastFrame) {
                         gifImageView?.setImageDrawable(null)
                     }

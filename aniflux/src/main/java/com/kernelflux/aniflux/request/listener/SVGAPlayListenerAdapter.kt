@@ -5,8 +5,8 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * SVGA动画播放监听器适配器
- * SVGA内部使用Animator，需要通过反射或包装方式添加监听
+ * SVGA animation play listener adapter
+ * SVGA internally uses Animator, needs to add listener via reflection or wrapper
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -39,10 +39,10 @@ class SVGAPlayListenerAdapter(
             }
 
             /**
-             * 通过 percentage 和 frame 计算总帧数
+             * Calculate total frames from percentage and frame
              */
             fun calculateTotalFrames(currentFrame: Int, percentage: Double): Int? {
-                // 1. 边界检查
+                // 1. Boundary check
                 if (percentage <= 0.0 || percentage > 1.0) {
                     return null
                 }
@@ -50,19 +50,19 @@ class SVGAPlayListenerAdapter(
                     return null
                 }
 
-                // 2. 计算
+                // 2. Calculate
                 val totalFrames = (currentFrame + 1) / percentage
                 val totalFramesInt = totalFrames.roundToInt()
 
-                // 3. 验证：总帧数应该大于当前帧
+                // 3. Validate: total frames should be greater than current frame
                 if (totalFramesInt <= currentFrame) {
                     return null
                 }
 
-                // 4. 验证：反向计算 percentage 是否一致（允许小误差）
+                // 4. Validate: reverse calculate if percentage is consistent (allow small error)
                 val recalculatedPercentage = (currentFrame + 1).toDouble() / totalFramesInt
                 val diff = abs(recalculatedPercentage - percentage)
-                if (diff > 0.01) {  // 允许 1% 的误差
+                if (diff > 0.01) {  // Allow 1% error
                     return null
                 }
 

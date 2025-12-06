@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.request.target
 import android.graphics.drawable.Drawable
 import com.kernelflux.aniflux.request.AnimationRequest
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
-// AnimationPlayListenerSetupHelper 在 aniflux 模块中，格式特定的清理由格式模块处理
+// AnimationPlayListenerSetupHelper is in aniflux module, format-specific cleanup is handled by format modules
 import com.kernelflux.aniflux.util.Util
 
 /**
@@ -19,12 +19,12 @@ abstract class CustomAnimationTarget<T>(
     protected val height: Int
     private var request: AnimationRequest? = null
     
-    // 动画播放监听器（直接持有，无需Manager包装）
+    // Animation play listener (directly held, no Manager wrapper needed)
     @Volatile
     var playListener: AnimationPlayListener? = null
         private set
     
-    // 动画配置选项（用于播放设置）
+    // Animation configuration options (for playback settings)
     @Volatile
     var animationOptions: com.kernelflux.aniflux.util.AnimationOptions? = null
         internal set
@@ -52,7 +52,7 @@ abstract class CustomAnimationTarget<T>(
     }
 
     override fun onDestroy() {
-        // 清理监听器
+        // Clear listeners
         cleanupPlayListeners()
     }
 
@@ -65,7 +65,7 @@ abstract class CustomAnimationTarget<T>(
     }
 
     override fun onLoadCleared(placeholder: Drawable?) {
-        // 清理监听器设置
+        // Clear listener setup
         cleanupPlayListeners()
     }
 
@@ -86,16 +86,16 @@ abstract class CustomAnimationTarget<T>(
     }
     
     /**
-     * 获取目标宽度
-     * 使用width()方法名避免Kotlin的get方法冲突
+     * Get target width
+     * Uses width() method name to avoid Kotlin get method conflicts
      */
     fun width(): Int {
         return width
     }
     
     /**
-     * 获取目标高度
-     * 使用height()方法名避免Kotlin的get方法冲突
+     * Get target height
+     * Uses height() method name to avoid Kotlin get method conflicts
      */
     fun height(): Int {
         return height
@@ -109,22 +109,22 @@ abstract class CustomAnimationTarget<T>(
     }
 
     /**
-     * 清除监听器
+     * Clear listener
      */
     fun clearPlayListener() {
         playListener = null
     }
 
     /**
-     * 清理监听器设置
-     * 在onLoadCleared时自动调用，也会在onDestroy时调用
+     * Cleanup listener setup
+     * Automatically called in onLoadCleared, also called in onDestroy
      * 
-     * 注意：具体的清理逻辑在 aniflux 模块的 AnimationPlayListenerSetupHelper 中
-     * 这里只做基础清理，格式特定的清理由格式模块处理
+     * Note: Specific cleanup logic is in aniflux module's AnimationPlayListenerSetupHelper
+     * Here only does basic cleanup, format-specific cleanup is handled by format modules
      */
     internal fun cleanupPlayListeners() {
-        // 基础清理：清除监听器引用
-        // 格式特定的清理（如移除动画监听器）由格式模块的 AnimationPlayListenerSetupHelper 处理
+        // Basic cleanup: clear listener reference
+        // Format-specific cleanup (e.g., remove animation listeners) is handled by format modules' AnimationPlayListenerSetupHelper
         playListener = null
     }
 }

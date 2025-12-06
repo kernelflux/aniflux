@@ -1,7 +1,9 @@
 package com.kernelflux.aniflux.request
 
 import android.content.Context
-import android.util.Log
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import com.kernelflux.aniflux.engine.AnimationEngine
 import com.kernelflux.aniflux.engine.AnimationResource
 import com.kernelflux.aniflux.engine.AnimationResourceCallback
@@ -19,7 +21,7 @@ import androidx.core.view.isInvisible
 import com.kernelflux.aniflux.util.Util
 
 /**
- * 动画请求的具体实现
+ * Concrete implementation of animation request
  */
 class SingleAnimationRequest<T>(
     private val context: Context,
@@ -37,13 +39,12 @@ class SingleAnimationRequest<T>(
 
     companion object {
         private const val TAG = "AnimationRequest"
-        private val IS_VERBOSE_LOGGABLE = Log.isLoggable(TAG, Log.VERBOSE)
     }
 
-    // 保存LoadStatus用于取消操作
+    // Save LoadStatus for cancel operation
     private var loadStatus: AnimationEngine.LoadStatus? = null
 
-    // 保存已加载的资源，用于请求完成时重用
+    // Save loaded resource for reuse when request completes
     private var resource: AnimationResource<T>? = null
 
     @Volatile
@@ -52,7 +53,7 @@ class SingleAnimationRequest<T>(
     private var width = 0
     private var height = 0
 
-    // 是否正在调用回调，防止重复调用
+    // Whether callbacks are being called, prevent duplicate calls
     private var isCallingCallbacks = false
 
 
@@ -87,7 +88,7 @@ class SingleAnimationRequest<T>(
 
     override fun begin() {
         synchronized(requestLock) {
-            // 状态验证
+            // State validation
             assertNotCallingCallbacks()
 
             if (model == null) {
@@ -102,14 +103,14 @@ class SingleAnimationRequest<T>(
                 return
             }
 
-            // 检查是否正在运行
+            // Check if running
             if (status == Status.RUNNING) {
                 throw IllegalArgumentException("Cannot restart a running request")
             }
 
-            // 如果已完成，重用结果
+            // If completed, reuse result
             if (status == Status.COMPLETE && resource != null) {
-                // ✅ 重用资源时需要 acquire（Target 重新持有资源）
+                // ✅ Need to acquire when reusing resource (Target re-holds resource)
                 resource?.acquire()
                 callbackExecutor.execute {
                     onResourceReady(resource, AnimationDataSource.MEMORY_CACHE, false)
@@ -117,35 +118,35 @@ class SingleAnimationRequest<T>(
                 return
             }
 
-            // 如果target有View且不可见，延迟加载
+            // If target has View and is invisible, delay loading
             val view = when (target) {
                 is CustomViewAnimationTarget<*, *> -> (target as CustomViewAnimationTarget<*, *>).getViewForVisibilityCheck()
                 else -> null
             }
 
             if (view != null && (view.isGone || view.isInvisible)) {
-                // View不可见，延迟加载（等待View变为可见）
-                // 通过getSize来等待，getSize会检查visibility
+                // View is invisible, delay loading (wait for View to become visible)
+                // Wait via getSize, getSize will check visibility
                 status = Status.WAITING_FOR_SIZE
                 target.getSize(this)
                 return
             }
 
-            // 设置状态为等待尺寸
+            // Set status to waiting for size
             status = Status.WAITING_FOR_SIZE
 
-            // 如果提供了有效的尺寸，直接使用
+            // If valid dimensions provided, use directly
             if (Util.isValidDimensions(overrideWidth, overrideHeight)) {
                 onSizeReady(overrideWidth, overrideHeight)
             } else {
-                // 否则获取target的尺寸
+                // Otherwise get target's size
                 target.getSize(this)
             }
         }
     }
 
     /**
-     * 检查是否正在调用回调
+     * Check if callbacks are being called
      */
     private fun assertNotCallingCallbacks() {
         if (isCallingCallbacks) {
@@ -156,18 +157,18 @@ class SingleAnimationRequest<T>(
 
     override fun onSizeReady(width: Int, height: Int) {
         synchronized(requestLock) {
-            // 检查状态，如果已清除或失败，直接返回
+            // Check status, if cleared or failed, return directly
             if (status != Status.WAITING_FOR_SIZE) {
                 return
             }
 
-            // 设置状态为运行中
+            // Set status to running
             status = Status.RUNNING
             this.width = width
             this.height = height
 
 
-            // 通过Engine加载
+            // Load via Engine
             loadStatus = engine.load(
                 context = context,
                 model = model,
@@ -186,18 +187,42 @@ class SingleAnimationRequest<T>(
 
 
     override fun clear() {
+        var toRelease: AnimationResource<T>? = null
         synchronized(requestLock) {
-            status = Status.CLEARED
-
-            // 取消Engine中的加载任务
+            assertNotCallingCallbacks()
+            
+            if (status == Status.CLEARED) {
+                return
+            }
+            
+            // Cancel loading task in Engine
             loadStatus?.cancel()
             loadStatus = null
-
-            // ✅ 清除资源时 release（Target 释放资源）
-            val currentResource = resource
-            resource = null
-            currentResource?.release()
+            
+            // Resource must be released before calling target.onLoadCleared()
+            if (resource != null) {
+                toRelease = resource
+                resource = null
+            }
+            
+            // ✅ Call target.onLoadCleared() when clearing request (following Glide's pattern)
+            // This ensures resources are released when Fragment/Activity is destroyed
+            // Note: We don't have requestCoordinator, so we always call onLoadCleared()
+            // Similar to Glide's canNotifyCleared() which returns true when requestCoordinator is null
+            callbackExecutor.execute {
+                try {
+                    target.onLoadCleared(null)
+                } catch (e: Exception) {
+                    // Log error but don't throw
+                    AniFluxLog.e(AniFluxLogCategory.REQUEST, "Error calling target.onLoadCleared()", e)
+                }
+            }
+            
+            status = Status.CLEARED
         }
+        
+        // Release resource outside of synchronized block
+        toRelease?.release()
     }
 
     override fun pause() {
@@ -243,7 +268,7 @@ class SingleAnimationRequest<T>(
             @Suppress("UNCHECKED_CAST")
             val typedResource = resource as AnimationResource<T>
             this.resource = typedResource
-            // ✅ 设置资源到 Target 时 acquire（Target 持有资源）
+            // ✅ Acquire when setting resource to Target (Target holds resource)
             typedResource.acquire()
             callbackExecutor.execute {
                 @Suppress("UNCHECKED_CAST")
@@ -253,7 +278,7 @@ class SingleAnimationRequest<T>(
     }
 
     /**
-     * 内部资源准备回调
+     * Internal resource ready callback
      */
     private fun onResourceReadyInternal(
         result: T,
@@ -274,9 +299,9 @@ class SingleAnimationRequest<T>(
                     false
                 ) ?: false
 
-                // 如果listener没有处理，则调用target回调
+                // If listener didn't handle, call target callback
                 if (!listenerHandled) {
-                    // 在调用 onResourceReady 之前，设置 options 到 target
+                    // Set options to target before calling onResourceReady
                     when (target) {
                         is CustomViewAnimationTarget<*, *> -> {
                             target.animationOptions = options
@@ -288,7 +313,7 @@ class SingleAnimationRequest<T>(
                     target.onResourceReady(result)
                 }
             } catch (e: Exception) {
-                // 如果回调过程中出现异常，转换为失败处理
+                // If exception occurs during callback, convert to failure handling
                 onLoadFailed(e)
             } finally {
                 isCallingCallbacks = false
@@ -297,7 +322,7 @@ class SingleAnimationRequest<T>(
     }
 
     override fun onLoadFailed(exception: Throwable) {
-        onLoadFailed(exception, Log.WARN)
+        onLoadFailed(exception, AniFluxLogLevel.WARN.priority)
     }
 
     private fun onLoadFailed(exception: Throwable, maxLogLevel: Int) {
@@ -307,7 +332,7 @@ class SingleAnimationRequest<T>(
             }
             loadStatus = null
             status = Status.FAILED
-            // 使用回调执行器处理回调
+            // Use callback executor to handle callbacks
             callbackExecutor.execute {
                 onLoadFailedInternal(exception)
             }
@@ -315,7 +340,7 @@ class SingleAnimationRequest<T>(
     }
 
     /**
-     * 内部加载失败回调
+     * Internal load failure callback
      */
     private fun onLoadFailedInternal(exception: Throwable) {
         synchronized(requestLock) {
@@ -325,7 +350,7 @@ class SingleAnimationRequest<T>(
 
             isCallingCallbacks = true
             try {
-                // 通知listener
+                // Notify listener
                 val listenerHandled = requestListener?.onLoadFailed(
                     exception,
                     model,
@@ -333,13 +358,13 @@ class SingleAnimationRequest<T>(
                     false
                 ) ?: false
 
-                // 如果listener没有处理，则调用target回调
+                // If listener didn't handle, call target callback
                 if (!listenerHandled) {
                     target.onLoadFailed(null)
                 }
             } catch (e: Exception) {
-                // 如果错误回调过程中也出现异常，记录日志但不抛出
-                Log.e(TAG, "Error in error handling", e)
+                // If exception also occurs during error callback, log but don't throw
+                AniFluxLog.e(AniFluxLogCategory.REQUEST, "Error in error handling", e)
             } finally {
                 isCallingCallbacks = false
             }
@@ -351,11 +376,11 @@ class SingleAnimationRequest<T>(
     }
 
     /**
-     * 记录详细日志
+     * Log verbose message
      */
     private fun logV(message: String) {
-        if (IS_VERBOSE_LOGGABLE) {
-            Log.v(TAG, message)
+        if (AniFluxLog.isLoggable(TAG, AniFluxLogLevel.VERBOSE)) {
+            AniFluxLog.v(AniFluxLogCategory.REQUEST, message)
         }
     }
 

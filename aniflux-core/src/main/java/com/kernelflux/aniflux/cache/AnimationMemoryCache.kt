@@ -3,7 +3,7 @@ package com.kernelflux.aniflux.cache
 import com.kernelflux.aniflux.engine.AnimationResource
 
 /**
- * 动画内存缓存接口
+ * Animation memory cache interface
  */
 interface AnimationMemoryCache {
     fun get(key: String): AnimationResource<*>?

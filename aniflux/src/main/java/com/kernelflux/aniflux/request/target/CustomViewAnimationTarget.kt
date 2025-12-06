@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Point
 import android.graphics.drawable.Drawable
-import android.util.Log
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import android.view.View
 import android.view.View.OnAttachStateChangeListener
 import android.view.ViewGroup
@@ -34,7 +36,7 @@ import androidx.core.view.isInvisible
  */
 abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : AnimationTarget<Z> {
     /**
-     * 获取关联的View（返回View类型，用于可见性检查）
+     * Gets the associated View (returns View type, for visibility check)
      */
     fun getViewForVisibilityCheck(): View = view
     private val sizeDeterminer: SizeDeterminer = SizeDeterminer(view)
@@ -42,12 +44,12 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     private var isClearedByUs = false
     private var isAttachStateListenerAdded = false
     
-    // 动画播放监听器（直接持有，无需Manager包装）
+    // Animation play listener (directly held, no Manager wrapper needed)
     @Volatile
     var playListener: AnimationPlayListener? = null
         private set
     
-    // 动画配置选项（用于播放设置）
+    // Animation configuration options (for playback settings)
     @Volatile
     var animationOptions: AnimationOptions? = null
         internal set
@@ -75,14 +77,14 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
 
     override fun onDestroy() {
-        // 清理监听器
+        // Clear listeners
         cleanupPlayListeners()
     }
     
     override fun onLoadCleared(placeholder: Drawable?) {
         sizeDeterminer.clearCallbacksAndListener()
         onResourceCleared(placeholder)
-        // 清理监听器设置
+        // Clear listener setup
         cleanupPlayListeners()
         if (!isClearedByUs) {
             maybeRemoveAttachStateListener()
@@ -90,10 +92,10 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
-     * 添加动画播放监听器（替换旧的）
+     * Adds animation play listener (replaces old one)
      * 
-     * @param listener 监听器实例
-     * @return 是否添加成功
+     * @param listener Listener instance
+     * @return True if added successfully
      */
     fun addPlayListener(listener: AnimationPlayListener?): Boolean {
         if (listener == null) return false
@@ -102,10 +104,10 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
-     * 移除动画播放监听器
+     * Removes animation play listener
      * 
-     * @param listener 监听器实例（用于验证是否为当前监听器）
-     * @return 是否移除成功
+     * @param listener Listener instance (used to verify if it's the current listener)
+     * @return True if removed successfully
      */
     fun removePlayListener(listener: AnimationPlayListener?): Boolean {
         if (listener == null) return false
@@ -117,26 +119,26 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
-     * 清除监听器
+     * Clears listener
      */
     fun clearPlayListener() {
         playListener = null
     }
     
     /**
-     * 设置动画播放监听器到资源
-     * 在onResourceReady中设置资源后调用此方法，会自动将监听器设置到对应的动画对象
+     * Sets animation play listener to resource
+     * Call this method after setting the resource in onResourceReady, it will automatically set the listener to the corresponding animation object
      * 
-     * @param resource 动画资源（PAGFile, LottieDrawable, SVGADrawable, GifDrawable等）
-     * @param view 显示动画的View（可选，用于PAG/Lottie等需要View的动画类型）
+     * @param resource Animation resource (PAGFile, LottieDrawable, SVGADrawable, GifDrawable, etc.)
+     * @param view View displaying the animation (optional, for animation types like PAG/Lottie that require a View)
      */
     fun setupPlayListeners(resource: Any, view: View? = null) {
         AnimationPlayListenerSetupHelper.setupListeners(this, resource, view)
     }
     
     /**
-     * 清理监听器设置
-     * 在onLoadCleared时自动调用，也会在onDestroy时调用
+     * Clears listener settings
+     * Automatically called in onLoadCleared, also called in onDestroy
      */
     internal fun cleanupPlayListeners() {
         AnimationPlayListenerSetupHelper.cleanup(this)
@@ -245,16 +247,16 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
-     * 获取关联的Lifecycle（如果存在）
-     * 通过View找到对应的Activity或Fragment的Lifecycle
+     * Gets the associated Lifecycle (if it exists)
+     * Finds the Lifecycle of the corresponding Activity or Fragment via the View
      */
     protected fun getLifecycle(): androidx.lifecycle.Lifecycle? {
         val context = view.context ?: return null
         
-        // 尝试从Context获取Activity
+        // Try to get Activity from Context
         val activity = findActivity(context) ?: return null
         
-        // 如果是FragmentActivity，尝试找到Fragment
+        // If it's a FragmentActivity, try to find the Fragment
         if (activity is androidx.fragment.app.FragmentActivity) {
             val fragment = findSupportFragment(view, activity)
             if (fragment != null) {
@@ -263,7 +265,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
             return activity.lifecycle
         }
         
-        // 标准Activity（需要AndroidX Activity）
+        // Standard Activity (requires AndroidX Activity)
         if (activity is androidx.lifecycle.LifecycleOwner) {
             return activity.lifecycle
         }
@@ -272,7 +274,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
-     * 查找View所属的Fragment
+     * Finds the Fragment to which the View belongs
      */
     private fun findSupportFragment(view: View, activity: androidx.fragment.app.FragmentActivity): androidx.fragment.app.Fragment? {
         var current: View? = view
@@ -287,7 +289,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
-     * 从Context查找Activity
+     * Finds Activity from Context
      */
     private fun findActivity(context: Context): android.app.Activity? {
         return when (context) {
@@ -331,7 +333,7 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
 
         fun getSize(cb: AnimationSizeReadyCallback) {
             if (view.isGone || view.isInvisible) {
-                // View不可见，添加到回调列表，等待View变为可见
+                // View is invisible, add to callback list, wait for View to become visible
                 if (!cbs.contains(cb)) {
                     cbs.add(cb)
                 }

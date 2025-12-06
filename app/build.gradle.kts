@@ -6,7 +6,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    //id("com.kernelflux.aniflux.register")
+    alias(libs.plugins.aniflux.register)
 }
 
 val keystorePropsFile = rootProject.file("keystore.properties")
@@ -20,8 +20,6 @@ fun propOrEnv(key: String): String? =
 
 android {
     namespace = "com.kernelflux.anifluxsample"
-    compileSdk = 36
-
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -64,13 +62,17 @@ android {
     publishing {
         singleVariant("release") {}
     }
+
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true
+    }
 }
 
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
-        // 跳过元数据版本检查，因为 OkHttp 可能使用较新的 Kotlin 版本编译
         freeCompilerArgs.add("-Xskip-metadata-version-check")
     }
 }
@@ -88,7 +90,6 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    // 使用模块化后的依赖：core + 各个格式模块
     debugImplementation(project(":aniflux-core"))
     debugImplementation(project(":aniflux-gif"))
     debugImplementation(project(":aniflux-pag"))

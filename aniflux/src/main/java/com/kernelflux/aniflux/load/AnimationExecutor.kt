@@ -8,17 +8,17 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 动画加载线程池管理器，提供不同类型的线程池
+ * Animation loading thread pool manager, provides different types of thread pools
  */
 object AnimationExecutor {
     
     private const val TAG = "AnimationExecutor"
     
-    // 默认线程池参数
+    // Default thread pool parameters
     private const val KEEP_ALIVE_TIME_MS = 10L
     private const val MAXIMUM_AUTOMATIC_THREAD_COUNT = 4
     
-    // 线程池实例
+    // Thread pool instances
     @Volatile
     private var sourceExecutor: ExecutorService? = null
     
@@ -29,7 +29,7 @@ object AnimationExecutor {
     private var animationExecutor: ExecutorService? = null
 
     /**
-     * 获取源数据加载线程池（用于网络下载等IO操作）
+     * Get source data loading thread pool (for IO operations like network download)
      */
     fun getSourceExecutor(): ExecutorService {
         return sourceExecutor ?: synchronized(this) {
@@ -38,7 +38,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 获取磁盘缓存线程池（用于文件读写操作）
+     * Get disk cache thread pool (for file read/write operations)
      */
     fun getDiskCacheExecutor(): ExecutorService {
         return diskCacheExecutor ?: synchronized(this) {
@@ -47,7 +47,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 获取动画处理线程池（用于动画解析和渲染）
+     * Get animation processing thread pool (for animation parsing and rendering)
      */
     fun getAnimationExecutor(): ExecutorService {
         return animationExecutor ?: synchronized(this) {
@@ -56,7 +56,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 创建源数据加载线程池
+     * Create source data loading thread pool
      */
     private fun createSourceExecutor(): ExecutorService {
         val threadCount = calculateBestThreadCount()
@@ -71,11 +71,11 @@ object AnimationExecutor {
     }
 
     /**
-     * 创建磁盘缓存线程池
+     * Create disk cache thread pool
      */
     private fun createDiskCacheExecutor(): ExecutorService {
         return ThreadPoolExecutor(
-            1, // 单线程，避免并发读写文件
+            1, // Single thread, avoid concurrent file read/write
             1,
             KEEP_ALIVE_TIME_MS,
             TimeUnit.SECONDS,
@@ -85,7 +85,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 创建动画处理线程池
+     * Create animation processing thread pool
      */
     private fun createAnimationExecutor(): ExecutorService {
         val threadCount = calculateBestThreadCount()
@@ -100,7 +100,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 计算最佳线程数
+     * Calculate optimal thread count
      */
     private fun calculateBestThreadCount(): Int {
         val availableProcessors = Runtime.getRuntime().availableProcessors()
@@ -108,7 +108,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 创建线程工厂
+     * Create thread factory
      */
     private fun createThreadFactory(namePrefix: String): ThreadFactory {
         return object : ThreadFactory {
@@ -124,7 +124,7 @@ object AnimationExecutor {
     }
 
     /**
-     * 关闭所有线程池
+     * Shutdown all thread pools
      */
     fun shutdown() {
         sourceExecutor?.shutdown()

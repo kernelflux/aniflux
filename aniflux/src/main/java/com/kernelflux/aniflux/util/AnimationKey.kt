@@ -6,8 +6,8 @@ import java.io.File
 import java.security.MessageDigest
 
 /**
- * 动画缓存键
- * 用于唯一标识一个动画请求
+ * Animation cache key
+ * Used to uniquely identify an animation request
  */
 data class AnimationKey(
     val model: Any?,
@@ -33,17 +33,17 @@ data class AnimationKey(
     }
 
     /**
-     * 生成缓存键字符串
-     * 用于内存缓存和磁盘缓存的文件名
+     * Generate cache key string
+     * Used for memory cache and disk cache file names
      */
     fun toCacheKey(): String {
         return when (model) {
             is String -> {
                 if (model.startsWith("http://") || model.startsWith("https://")) {
-                    // 网络 URL：使用 MD5 哈希
+                    // Network URL: use MD5 hash
                     md5(model)
                 } else {
-                    // 本地路径：使用路径哈希
+                    // Local path: use path hash
                     model.hashCode().toString(36)
                 }
             }
@@ -57,7 +57,7 @@ data class AnimationKey(
     }
 
     /**
-     * MD5 哈希计算
+     * MD5 hash calculation
      */
     private fun md5(input: String): String {
         return MessageDigest.getInstance("MD5")
@@ -66,7 +66,7 @@ data class AnimationKey(
     }
 
     /**
-     * MD5 哈希计算（字节数组）
+     * MD5 hash calculation (byte array)
      */
     private fun md5(bytes: ByteArray): String {
         return MessageDigest.getInstance("MD5")

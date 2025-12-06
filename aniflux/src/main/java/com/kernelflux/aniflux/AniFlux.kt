@@ -5,7 +5,7 @@ import android.app.Activity
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.res.Configuration
-import android.util.Log
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -18,6 +18,7 @@ import com.kernelflux.aniflux.manager.DefaultAnimationConnectivityMonitorFactory
 import com.kernelflux.aniflux.placeholder.PlaceholderImageLoader
 import com.kernelflux.aniflux.request.AnimationRequestListener
 import com.kernelflux.aniflux.request.target.AnimationTarget
+import com.kernelflux.aniflux.util.AnimationCompatibilityHelper
 import com.kernelflux.aniflux.util.Util
 import java.util.Collections
 
@@ -42,7 +43,8 @@ class AniFlux : ComponentCallbacks2 {
         requestManagerRetriever: AnimationRequestManagerRetriever,
         connectivityMonitorFactory: AnimationConnectivityMonitorFactory,
         logLevel: Int,
-        defaultRequestListeners: List<AnimationRequestListener<Any>>
+        defaultRequestListeners: List<AnimationRequestListener<Any>>,
+        enableAnimationCompatibility: Boolean = true
     ) {
         this.appContext = context.applicationContext
         this.requestManagerRetriever = requestManagerRetriever
@@ -50,12 +52,18 @@ class AniFlux : ComponentCallbacks2 {
         this.defaultRequestListeners = defaultRequestListeners
         this.logLevel = logLevel
         
-        // 初始化磁盘缓存
+        // Initialize disk cache
         val diskCacheDir = File(context.cacheDir, "aniflux_disk_cache")
         val diskCache = LruAnimationDiskCache(diskCacheDir, 100 * 1024 * 1024) // 100MB
         
-        // 初始化Engine（传入磁盘缓存）
+        // Initialize Engine (pass disk cache)
         this.engine = AnimationEngine(animationDiskCache = diskCache)
+        
+        // Initialize animation compatibility (handle system animation settings)
+        // This ensures animations work correctly even when system animations are disabled in developer options
+        if (enableAnimationCompatibility) {
+            AnimationCompatibilityHelper.initialize(context.contentResolver)
+        }
     }
 
 
@@ -85,17 +93,17 @@ class AniFlux : ComponentCallbacks2 {
         }
         
         /**
-         * 带配置的初始化
+         * Initialize with configuration
          * 
-         * @param context 上下文
-         * @param config 配置构建器
+         * @param context Context
+         * @param config Configuration builder
          */
         @JvmStatic
         fun init(context: Context, config: AniFluxConfiguration.() -> Unit) {
             synchronized(AniFlux::class.java) {
                 aniFlux?.let { unInit() }
                 val configuration = AniFluxConfiguration().apply(config)
-                val instance = initializeAniFlux(context)
+                val instance = initializeAniFlux(context, configuration.enableAnimationCompatibility)
                 configuration.placeholderImageLoader?.let {
                     instance.setPlaceholderImageLoader(it)
                 }
@@ -104,18 +112,19 @@ class AniFlux : ComponentCallbacks2 {
         }
 
         @JvmStatic
-        private fun initializeAniFlux(context: Context): AniFlux {
+        private fun initializeAniFlux(context: Context, enableAnimationCompatibility: Boolean = true): AniFlux {
             val appCxt = context.applicationContext
             val connectivityMonitorFactory = DefaultAnimationConnectivityMonitorFactory()
             val defaultRequestListeners = Collections.emptyList<AnimationRequestListener<Any>>()
             val requestManagerRetriever = AnimationRequestManagerRetriever()
-            val logLevel = Log.INFO
+            val logLevel = AniFluxLogLevel.INFO.priority
             val createAniFlux = AniFlux(
                 appCxt,
                 requestManagerRetriever,
                 connectivityMonitorFactory,
                 logLevel,
-                defaultRequestListeners
+                defaultRequestListeners,
+                enableAnimationCompatibility
             )
             appCxt.registerComponentCallbacks(createAniFlux)
             aniFlux = createAniFlux
@@ -128,6 +137,8 @@ class AniFlux : ComponentCallbacks2 {
                 aniFlux?.let {
                     it.appContext.applicationContext.unregisterComponentCallbacks(it)
                 }
+                // Unregister animation settings observer
+                AnimationCompatibilityHelper.unregisterSettingsObserver()
                 aniFlux = null
             }
         }
@@ -179,19 +190,19 @@ class AniFlux : ComponentCallbacks2 {
     fun getEngine(): AnimationEngine = engine
     
     /**
-     * 设置占位图加载器
-     * 业务方需要实现 PlaceholderImageLoader 接口
+     * Sets the placeholder image loader
+     * The business logic needs to implement the PlaceholderImageLoader interface
      * 
-     * @param loader 占位图加载器实现
+     * @param loader Placeholder image loader implementation
      */
     fun setPlaceholderImageLoader(loader: PlaceholderImageLoader) {
         this.placeholderImageLoader = loader
     }
     
     /**
-     * 获取占位图加载器
+     * Gets the placeholder image loader
      * 
-     * @return 占位图加载器，如果未设置则返回null
+     * @return Placeholder image loader, or null if not set
      */
     fun getPlaceholderImageLoader(): PlaceholderImageLoader? = placeholderImageLoader
 
@@ -208,7 +219,7 @@ class AniFlux : ComponentCallbacks2 {
 
 
     /**
-     * 添加RequestManager到全局列表
+     * Adds RequestManager to the global list
      */
     fun registerRequestManager(manager: AnimationRequestManager) {
         synchronized(managers) {
@@ -218,7 +229,7 @@ class AniFlux : ComponentCallbacks2 {
     }
 
     /**
-     * 从全局列表中移除RequestManager
+     * Removes RequestManager from the global list
      */
     @Synchronized
     fun unregisterRequestManager(manager: AnimationRequestManager) {
@@ -229,7 +240,7 @@ class AniFlux : ComponentCallbacks2 {
 
     fun clearMemory() {
         Util.assertMainThread()
-        // 清理Engine缓存
+        // Clear Engine cache
         engine.clear()
     }
 
@@ -241,7 +252,7 @@ class AniFlux : ComponentCallbacks2 {
             }
         }
         
-        // 清理Engine缓存
+        // Clear Engine cache
         engine.clear()
     }
 

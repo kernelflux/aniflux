@@ -4,8 +4,8 @@ import android.animation.Animator
 import com.kernelflux.lottie.LottieAnimationView
 
 /**
- * Lottie动画播放监听器适配器
- * 将Lottie的AnimatorListener适配到统一的AnimationPlayListener
+ * Lottie animation play listener adapter
+ * Adapts Lottie's AnimatorListener to unified AnimationPlayListener
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -23,29 +23,29 @@ class LottiePlayListenerAdapter(
             }
 
             override fun onAnimationEnd(animation: Animator) {
-                android.util.Log.d("LottieAdapter", "Animation ended, notifying onAnimationEnd")
+                AniFluxLog.d(AniFluxLogCategory.TARGET, "Animation ended, notifying onAnimationEnd")
                 if (!retainLastFrame) {
                     lottieView?.let {
-                        // ✅ 清空显示：
-                        // LottieAnimationView 继承自 ImageView
-                        // 要清空画面，必须调用 ImageView 的方法：
-                        // 1. cancelAnimation() - 停止动画
-                        // 2. setImageDrawable(null) - 清空 Drawable（关键！这是唯一能清空画面的方法）
-                        // 注意：setComposition(null) 不支持，必须用 setImageDrawable(null)
+                        // ✅ Clear display:
+                        // LottieAnimationView inherits from ImageView
+                        // To clear display, must call ImageView methods:
+                        // 1. cancelAnimation() - stop animation
+                        // 2. setImageDrawable(null) - clear Drawable (key! This is the only way to clear display)
+                        // Note: setComposition(null) is not supported, must use setImageDrawable(null)
                         it.post {
                             try {
-                                // 先移除监听器，避免 cancelAnimation 触发回调
+                                // Remove listener first, avoid cancelAnimation triggering callback
                                 it.removeAnimatorListener(this)
-                                // 停止动画
+                                // Stop animation
                                 it.cancelAnimation()
-                                // ✅ 清空画面：使用 ImageView 的方法
-                                // LottieAnimationView 继承自 ImageView，setImageDrawable(null) 可以清空显示
+                                // ✅ Clear display: use ImageView method
+                                // LottieAnimationView inherits from ImageView, setImageDrawable(null) can clear display
                                 it.setImageDrawable(null)
-                                // 确保刷新
+                                // Ensure refresh
                                 it.invalidate()
                             } catch (e: Exception) {
-                                android.util.Log.e(
-                                    "LottieAdapter",
+                                AniFluxLog.e(
+                                    AniFluxLogCategory.TARGET,
                                     "Failed to clear Lottie view",
                                     e
                                 )
@@ -53,8 +53,8 @@ class LottiePlayListenerAdapter(
                         }
                     }
                 } else {
-                    // ✅ 保留当前停止位置的帧：不做任何操作，Lottie 已经自动停留在当前帧
-                    // 动画结束时，Lottie 会自动停留在当前播放位置（最后一帧或暂停位置）
+                    // ✅ Retain frame at current stop position: do nothing, Lottie already automatically stays at current frame
+                    // When animation ends, Lottie automatically stays at current playback position (last frame or pause position)
                 }
                 notifyAnimationEnd()
             }

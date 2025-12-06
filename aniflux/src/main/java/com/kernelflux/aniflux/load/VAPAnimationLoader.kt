@@ -1,15 +1,17 @@
 package com.kernelflux.aniflux.load
 
 import android.content.Context
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
 /**
- * VAP动画加载器 - 参考vap库的加载方式
- * 支持从文件路径、文件、资源ID、字节数组、输入流、网络URL加载VAP
- * VAP 库基于 File 和 IFileContainer，所以大部分来源需要先转换为 File
+ * VAP animation loader - references vap library's loading approach
+ * Supports loading VAP from file path, file, resource ID, byte array, input stream, network URL
+ * VAP library is based on File and IFileContainer, so most sources need to be converted to File first
  */
 class VAPAnimationLoader : AnimationLoader<File> {
 
@@ -19,11 +21,11 @@ class VAPAnimationLoader : AnimationLoader<File> {
             if (file.exists() && file.isFile) {
                 file
             } else {
-                android.util.Log.e("VAPAnimationLoader", "File does not exist or is not a file: $path")
+                AniFluxLog.e(AniFluxLogCategory.LOADER, "File does not exist or is not a file: $path")
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from path: $path", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from path: $path", e)
             null
         }
     }
@@ -33,24 +35,24 @@ class VAPAnimationLoader : AnimationLoader<File> {
             if (file.exists() && file.isFile) {
                 file
             } else {
-                android.util.Log.e("VAPAnimationLoader", "File does not exist or is not a file: ${file.absolutePath}")
+                AniFluxLog.e(AniFluxLogCategory.LOADER, "File does not exist or is not a file: ${file.absolutePath}")
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from file: ${file.absolutePath}", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from file: ${file.absolutePath}", e)
             null
         }
     }
 
     override fun loadFromResource(context: Context, resourceId: Int): File? {
         return try {
-            // 从资源读取到临时文件
+            // Read from resource to temporary file
             val inputStream = context.resources.openRawResource(resourceId)
             val tempFile = createTempFileFromInputStream(context, inputStream, "vap_resource_$resourceId")
             inputStream.close()
             tempFile
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from resource: $resourceId", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from resource: $resourceId", e)
             null
         }
     }
@@ -60,7 +62,7 @@ class VAPAnimationLoader : AnimationLoader<File> {
             val inputStream = bytes.inputStream()
             createTempFileFromInputStream(context, inputStream, "vap_bytes_${bytes.hashCode()}")
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from bytes", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from bytes", e)
             null
         }
     }
@@ -69,37 +71,37 @@ class VAPAnimationLoader : AnimationLoader<File> {
         return try {
             createTempFileFromInputStream(context, inputStream, "vap_stream_${inputStream.hashCode()}")
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from input stream", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from input stream", e)
             null
         }
     }
 
     override fun loadFromUrl(context: Context, url: String, downloader: AnimationDownloader): File? {
         return try {
-            // 下载文件
+            // Download file
             val tempFile = downloader.download(context, url)
-            // 验证文件存在
+            // Verify file exists
             if (tempFile.exists() && tempFile.isFile) {
                 tempFile
             } else {
-                android.util.Log.e("VAPAnimationLoader", "Downloaded file is invalid: $url")
+                AniFluxLog.e(AniFluxLogCategory.LOADER, "Downloaded file is invalid: $url")
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from URL: $url", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from URL: $url", e)
             null
         }
     }
 
     override fun loadFromAssetPath(context: Context, assetPath: String): File? {
         return try {
-            // 从 Asset 读取到临时文件
+            // Read from Asset to temporary file
             val inputStream = context.assets.open(assetPath)
             val tempFile = createTempFileFromInputStream(context, inputStream, "vap_asset_${assetPath.replace("/", "_")}")
             inputStream.close()
             tempFile
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to load VAP from asset path: $assetPath", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load VAP from asset path: $assetPath", e)
             null
         }
     }
@@ -109,7 +111,7 @@ class VAPAnimationLoader : AnimationLoader<File> {
     }
 
     /**
-     * 从输入流创建临时文件
+     * Create temporary file from input stream
      */
     private fun createTempFileFromInputStream(
         context: Context,
@@ -117,11 +119,11 @@ class VAPAnimationLoader : AnimationLoader<File> {
         prefix: String
     ): File? {
         return try {
-            // 创建临时文件
+            // Create temporary file
             val tempFile = File.createTempFile(prefix, ".vap", context.cacheDir)
-            tempFile.deleteOnExit() // 应用退出时删除临时文件
+            tempFile.deleteOnExit() // Delete temporary file when app exits
 
-            // 将输入流内容写入临时文件
+            // Write input stream content to temporary file
             FileOutputStream(tempFile).use { outputStream ->
                 inputStream.copyTo(outputStream)
                 outputStream.flush()
@@ -129,7 +131,7 @@ class VAPAnimationLoader : AnimationLoader<File> {
 
             tempFile
         } catch (e: Exception) {
-            android.util.Log.e("VAPAnimationLoader", "Failed to create temp file from input stream", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to create temp file from input stream", e)
             null
         }
     }

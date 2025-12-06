@@ -1,31 +1,32 @@
 package com.kernelflux.aniflux.cache
 
-import android.util.Log
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 
 /**
- * 基于 LRU 策略的磁盘缓存实现
+ * LRU strategy-based disk cache implementation
  * 
- * 使用索引文件记录缓存的元数据（文件名、大小、访问时间），
- * 实现 LRU 策略管理缓存文件
+ * Uses index file to record cache metadata (filename, size, access time),
+ * implements LRU strategy to manage cache files
  */
 class LruAnimationDiskCache(
     private val cacheDir: File,
-    private val maxSize: Long = 100 * 1024 * 1024 // 100MB 默认
+    private val maxSize: Long = 100 * 1024 * 1024 // 100MB default
 ) : AnimationDiskCache {
 
     companion object {
         private const val TAG = "LruDiskCache"
         private const val INDEX_FILE_NAME = "index.json"
-        private const val CLEANUP_THRESHOLD = 0.9 // 当缓存达到 90% 时触发清理
+        private const val CLEANUP_THRESHOLD = 0.9 // Trigger cleanup when cache reaches 90%
     }
 
     private val indexFile = File(cacheDir, INDEX_FILE_NAME)
     
-    // 索引数据：key -> (filename, size, lastAccessTime)
+    // Index data: key -> (filename, size, lastAccessTime)
     private val index: MutableMap<String, CacheEntry> = mutableMapOf()
     
     init {
@@ -40,13 +41,13 @@ class LruAnimationDiskCache(
         
         val file = File(cacheDir, entry.filename)
         if (!file.exists() || !file.isFile) {
-            // 文件不存在，从索引中移除
+            // File doesn't exist, remove from index
             index.remove(key)
             saveIndex()
             return null
         }
         
-        // 更新访问时间
+        // Update access time
         entry.lastAccessTime = System.currentTimeMillis()
         saveIndex()
         
@@ -55,26 +56,26 @@ class LruAnimationDiskCache(
 
     override fun put(key: String, file: File) {
         if (!file.exists() || !file.isFile) {
-            Log.w(TAG, "Cannot cache non-existent file: ${file.absolutePath}")
+            AniFluxLog.w(AniFluxLogCategory.CACHE, "Cannot cache non-existent file: ${file.absolutePath}")
             return
         }
         
         val fileSize = file.length()
         
-        // 检查缓存大小，如果超过限制则清理
+        // Check cache size, cleanup if exceeds limit
         if (getSize() + fileSize > maxSize * CLEANUP_THRESHOLD) {
             evictUntilEnoughSpace(fileSize)
         }
         
-        // 确定缓存文件名
+        // Determine cache filename
         val filename = generateFilename(key, file)
         val cachedFile = File(cacheDir, filename)
         
         try {
-            // 复制文件到缓存目录
+            // Copy file to cache directory
             file.copyTo(cachedFile, overwrite = true)
             
-            // 更新索引
+            // Update index
             index[key] = CacheEntry(
                 filename = filename,
                 size = fileSize,
@@ -82,9 +83,9 @@ class LruAnimationDiskCache(
             )
             saveIndex()
             
-            Log.d(TAG, "Cached file: key=$key, size=$fileSize")
+            AniFluxLog.d(AniFluxLogCategory.CACHE, "Cached file: key=$key, size=$fileSize")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to cache file: key=$key", e)
+            AniFluxLog.e(AniFluxLogCategory.CACHE, "Failed to cache file: key=$key", e)
         }
     }
 
@@ -98,7 +99,7 @@ class LruAnimationDiskCache(
     }
 
     override fun clear() {
-        // 删除所有缓存文件
+        // Delete all cache files
         index.values.forEach { entry ->
             File(cacheDir, entry.filename).delete()
         }
@@ -115,8 +116,8 @@ class LruAnimationDiskCache(
     }
 
     /**
-     * 生成缓存文件名
-     * 格式：{key}.{原文件扩展名}
+     * Generate cache filename
+     * Format: {key}.{original file extension}
      */
     private fun generateFilename(key: String, file: File): String {
         val ext = file.extension
@@ -128,7 +129,7 @@ class LruAnimationDiskCache(
     }
 
     /**
-     * 清理缓存直到有足够空间
+     * Evict cache until enough space
      */
     private fun evictUntilEnoughSpace(requiredSpace: Long) {
         val currentSize = getSize()
@@ -138,7 +139,7 @@ class LruAnimationDiskCache(
             return
         }
         
-        // 按访问时间排序，删除最久未访问的文件
+        // Sort by access time, delete least recently accessed files
         val sortedEntries = index.entries.sortedBy { it.value.lastAccessTime }
         
         var freedSpace = currentSize
@@ -155,11 +156,11 @@ class LruAnimationDiskCache(
         }
         
         saveIndex()
-        Log.d(TAG, "Evicted cache: freed ${currentSize - freedSpace} bytes")
+        AniFluxLog.d(AniFluxLogCategory.CACHE, "Evicted cache: freed ${currentSize - freedSpace} bytes")
     }
 
     /**
-     * 加载索引文件
+     * Load index file
      */
     private fun loadIndex() {
         if (!indexFile.exists()) {
@@ -176,15 +177,15 @@ class LruAnimationDiskCache(
                     lastAccessTime = entryObj.getLong("lastAccessTime")
                 )
             }
-            Log.d(TAG, "Loaded index: ${index.size} entries")
+            AniFluxLog.d(AniFluxLogCategory.CACHE, "Loaded index: ${index.size} entries")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load index", e)
+            AniFluxLog.e(AniFluxLogCategory.CACHE, "Failed to load index", e)
             index.clear()
         }
     }
 
     /**
-     * 保存索引文件
+     * Save index file
      */
     private fun saveIndex() {
         try {
@@ -202,12 +203,12 @@ class LruAnimationDiskCache(
                 writer.write(json.toString())
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to save index", e)
+            AniFluxLog.e(AniFluxLogCategory.CACHE, "Failed to save index", e)
         }
     }
 
     /**
-     * 缓存条目数据类
+     * Cache entry data class
      */
     private data class CacheEntry(
         val filename: String,

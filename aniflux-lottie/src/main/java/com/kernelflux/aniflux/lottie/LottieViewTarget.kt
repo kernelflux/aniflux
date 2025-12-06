@@ -2,6 +2,9 @@ package com.kernelflux.aniflux.lottie
 
 import android.animation.Animator
 import android.graphics.drawable.Drawable
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
+import com.kernelflux.aniflux.log.AniFluxLogLevel
 import android.view.View
 import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.aniflux.placeholder.PlaceholderManager
@@ -10,8 +13,8 @@ import com.kernelflux.lottie.LottieAnimationView
 import com.kernelflux.lottie.LottieDrawable
 
 /**
- * Lottie动画的专用ViewTarget
- * 自动处理LottieDrawable资源到LottieAnimationView的设置
+ * Dedicated ViewTarget for Lottie animation
+ * Automatically handles LottieDrawable resource setup to LottieAnimationView
  *
  * @author: kerneflux
  * @date: 2025/11/27
@@ -27,34 +30,34 @@ class LottieViewTarget(view: LottieAnimationView) :
         val lottieView = view as? LottieAnimationView ?: return
         val listener = playListener ?: return
 
-        // 移除旧的监听器
+        // Remove old listener
         currentListener?.let { oldListener ->
             try {
                 lottieView.removeAnimatorListener(oldListener)
             } catch (e: Exception) {
-                // 忽略移除时的异常
+                // Ignore exceptions when removing
             }
         }
 
-        // 获取 retainLastFrame 配置
+        // Get retainLastFrame configuration
         val retainLastFrame = animationOptions?.retainLastFrame ?: true
 
-        // 创建新的适配器
+        // Create new adapter
         val adapter = LottiePlayListenerAdapter(listener, lottieView, retainLastFrame)
         val userRepeatCount = animationOptions?.repeatCount ?: -1
         val animatorListener = adapter.createAnimatorListener(userRepeatCount)
         lottieView.addAnimatorListener(animatorListener)
 
-        // 保存引用以便清理
+        // Save reference for cleanup
         currentAdapter = adapter
         currentListener = animatorListener
     }
 
     override fun onResourceReady(resource: LottieDrawable) {
-        // 先设置监听器（避免错过 onAnimationStart）
+        // Set listener first (avoid missing onAnimationStart)
         setupPlayListeners(resource, view)
 
-        // 获取配置选项
+        // Get configuration options
         val repeatCount = animationOptions?.repeatCount ?: -1
         val autoPlay = animationOptions?.autoPlay ?: true
 
@@ -62,19 +65,19 @@ class LottieViewTarget(view: LottieAnimationView) :
             resource.composition?.let { setComposition(it) }
             this.repeatCount = when {
                 repeatCount < 0 -> LottieDrawable.INFINITE  // -1
-                repeatCount <= 1 -> 0  // 播放1次（不重复）
-                else -> repeatCount - 1  // 总次数N → 重复次数N-1
+                repeatCount <= 1 -> 0  // Play once (no repeat)
+                else -> repeatCount - 1  // Total count N → repeat count N-1
             }
 
-            // 如果设置了自动播放，则调用 playAnimation()
+            // If auto play is set, call playAnimation()
             if (autoPlay) {
                 playAnimation()
             }
         }
         
-        // 处理占位图替换
+        // Handle placeholder replacement
         animationOptions?.placeholderReplacements?.let { replacements ->
-            // 先清理旧的占位图管理器（如果存在）
+            // Clear old placeholder manager first (if exists)
             placeholderManager?.clear()
             placeholderManager = null
             
@@ -96,22 +99,22 @@ class LottieViewTarget(view: LottieAnimationView) :
     }
 
     override fun onLoadFailed(errorDrawable: Drawable?) {
-        // Lottie 加载失败的处理
+        // Handle Lottie load failure
         try {
             placeholderManager?.clear()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
         placeholderManager = null
     }
 
     override fun onResourceCleared(placeholder: Drawable?) {
-        // 清理监听器
+        // Clear listener
         currentListener?.let { listener ->
             try {
                 view.removeAnimatorListener(listener)
             } catch (e: Exception) {
-                // 忽略清理时的异常
+                // Ignore exceptions during cleanup
             }
         }
         currentAdapter?.onClear()
@@ -121,13 +124,46 @@ class LottieViewTarget(view: LottieAnimationView) :
         try {
             placeholderManager?.clear()
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
         placeholderManager = null
+        
+        clearAnimationFromView()
+    }
+    
+    override fun stopAnimation() {
+        // Only pause, don't release resources
+        try {
+            view.pauseAnimation()
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+    override fun resumeAnimation() {
+        // Resume playback
+        try {
+            if (view.composition != null) {
+                view.resumeAnimation()
+            }
+        } catch (e: Exception) {
+            // Ignore exceptions
+        }
+    }
+    
+    override fun clearAnimationFromView() {
+        // Really release resources
+        if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+            AniFluxLog.d(AniFluxLogCategory.TARGET, "LottieViewTarget.clearAnimationFromView() - releasing Lottie resources")
+        }
         try {
             view.cancelAnimation()
+            view.setImageDrawable(null)
+            if (AniFluxLog.isLoggable(CustomViewAnimationTarget.TAG, AniFluxLogLevel.DEBUG)) {
+                AniFluxLog.d(AniFluxLogCategory.TARGET, "LottieViewTarget.clearAnimationFromView() - resources released successfully")
+            }
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            AniFluxLog.e(AniFluxLogCategory.TARGET, "LottieViewTarget.clearAnimationFromView() - error during cleanup", e)
         }
     }
 }

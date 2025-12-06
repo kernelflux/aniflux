@@ -3,12 +3,12 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.android.library) apply false
-    // 为纯 Kotlin 库（非 Android）提供 kotlin jvm 插件
+    // Provide kotlin jvm plugin for pure Kotlin libraries (non-Android)
     //noinspection NewerVersionAvailable
     id("org.jetbrains.kotlin.jvm") version "2.0.21" apply false
 }
 
-// 全局加载 private.properties 文件（如果存在）
+// Globally load private.properties file (if exists)
 val privatePropsFile = rootProject.file("private.properties")
 if (privatePropsFile.exists()) {
     val privateProps = java.util.Properties()
@@ -38,28 +38,28 @@ if (privatePropsFile.exists()) {
     }
 }
 
-// 统一管理版本号：从 version catalog 读取，设置到 ext 中，供所有子项目（包括 Groovy）使用
-// 底层库版本（animLibs 下的库）
+// Unified version management: read from version catalog, set to ext for all subprojects (including Groovy)
+// Bottom layer library version (libraries under animLibs)
 rootProject.ext.set("anifluxLibVersion", libs.versions.anifluxLib.get())
-// 上层模块版本（aniflux-xxx 模块）
+// Upper layer module version (aniflux-xxx modules)
 rootProject.ext.set("anifluxVersion", libs.versions.aniflux.get())
 
-// 全局依赖解析策略：强制使用支持 API 21 的版本
+// Global dependency resolution strategy: force using versions that support API 21
 subprojects {
     configurations.all {
         resolutionStrategy {
-            // 强制所有 Kotlin 相关依赖使用 2.0.21 版本
+            // Force all Kotlin-related dependencies to use version 2.0.21
             force("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
             force("org.jetbrains.kotlin:kotlin-stdlib-common:2.0.21")
             force("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 
-            // savedstate 库：使用支持 API 21 的版本
+            // savedstate library: use version that supports API 21
             force("androidx.savedstate:savedstate-ktx:1.2.1")
             force("androidx.savedstate:savedstate:1.2.1")
             force("androidx.savedstate:savedstate-android:1.2.1")
-            // lifecycle 库：使用支持 API 21 的版本（2.6.x 支持 API 21）
+            // lifecycle library: use version that supports API 21 (2.6.x supports API 21)
             force("androidx.lifecycle:lifecycle-livedata:2.6.2")
             force("androidx.lifecycle:lifecycle-livedata-core:2.6.2")
             force("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")

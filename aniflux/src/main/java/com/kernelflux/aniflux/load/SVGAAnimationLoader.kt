@@ -1,6 +1,8 @@
 package com.kernelflux.aniflux.load
 
 import android.content.Context
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.aniflux.util.AnimationTypeDetector
 import com.kernelflux.svga.SVGADrawable
 import com.kernelflux.svga.SVGAParser
@@ -12,8 +14,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * SVGA动画加载器 - 参考SVGAPlayer-Android库的加载方式
- * 支持从文件路径、文件、资源ID、字节数组、输入流、网络URL加载SVGA
+ * SVGA animation loader - references SVGAPlayer-Android library's loading approach
+ * Supports loading SVGA from file path, file, resource ID, byte array, input stream, network URL
  */
 class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
 
@@ -28,7 +30,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
             val videoEntity = loadSvgaVideoEntityFromPath(path)
             videoEntity?.let { createSvgaDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e("SvgaAnimationLoader", "Failed to load SVGA from path: $path", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load SVGA from path: $path", e)
             null
         }
     }
@@ -66,7 +68,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
             val videoEntity = loadSvgaVideoEntityFromBytes(bytes)
             videoEntity?.let { createSvgaDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e("SvgaAnimationLoader", "Failed to load SVGA from bytes", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load SVGA from bytes", e)
             null
         }
     }
@@ -76,7 +78,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
             val videoEntity = loadSvgaVideoEntityFromInputStream(inputStream)
             videoEntity?.let { createSvgaDrawable(it) }
         } catch (e: Exception) {
-            android.util.Log.e("SvgaAnimationLoader", "Failed to load SVGA from input stream", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load SVGA from input stream", e)
             null
         }
     }
@@ -87,13 +89,13 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
         downloader: AnimationDownloader
     ): SVGADrawable? {
         return try {
-            // 下载文件
+            // Download file
             val tempFile = downloader.download(context, url)
-            // 从临时文件加载
+            // Load from temporary file
             val result = loadFromFile(context, tempFile)
             result
         } catch (e: Exception) {
-            android.util.Log.e("SvgaAnimationLoader", "Failed to load SVGA from URL: $url", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Failed to load SVGA from URL: $url", e)
             null
         }
     }
@@ -113,7 +115,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
     }
 
     /**
-     * 从Asset路径加载SVGAVideoEntity
+     * Load SVGAVideoEntity from Asset path
      */
     private fun loadSvgaVideoEntityFromAssetPath(
         context: Context,
@@ -152,7 +154,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
     }
 
     /**
-     * 从文件路径加载SVGAVideoEntity
+     * Load SVGAVideoEntity from file path
      */
     private fun loadSvgaVideoEntityFromPath(path: String): SVGAVideoEntity? {
         val context = this.context ?: return null
@@ -175,13 +177,13 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
             latch.await(10, TimeUnit.SECONDS)
             result
         } catch (e: InterruptedException) {
-            android.util.Log.e("SvgaAnimationLoader", "Interrupted while loading SVGA from path", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Interrupted while loading SVGA from path", e)
             null
         }
     }
 
     /**
-     * 从文件加载SVGAVideoEntity
+     * Load SVGAVideoEntity from file
      */
     private fun loadSvgaVideoEntityFromFile(file: File): SVGAVideoEntity? {
         val context = this.context ?: return null
@@ -210,13 +212,13 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
             latch.await(10, TimeUnit.SECONDS)
             result
         } catch (e: InterruptedException) {
-            android.util.Log.e("SvgaAnimationLoader", "Interrupted while loading SVGA from file", e)
+            AniFluxLog.e(AniFluxLogCategory.LOADER, "Interrupted while loading SVGA from file", e)
             null
         }
     }
 
     /**
-     * 从资源ID加载SVGAVideoEntity
+     * Load SVGAVideoEntity from resource ID
      */
     private fun loadSvgaVideoEntityFromResource(
         context: Context,
@@ -227,7 +229,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
         var result: SVGAVideoEntity? = null
 
 
-        // 先读取资源内容到字节数组，避免流关闭问题
+        // Read resource content to byte array first, avoid stream closing issues
         val bytes = context.resources.openRawResource(resourceId).readBytes()
         val cacheKey = "svga-from-file-${resourceId.hashCode()}"
         parser.decodeFromInputStream(
@@ -259,7 +261,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
     }
 
     /**
-     * 从字节数组加载SVGAVideoEntity
+     * Load SVGAVideoEntity from byte array
      */
     private fun loadSvgaVideoEntityFromBytes(bytes: ByteArray): SVGAVideoEntity? {
         val context = this.context ?: return null
@@ -298,7 +300,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
     }
 
     /**
-     * 从输入流加载SVGAVideoEntity
+     * Load SVGAVideoEntity from input stream
      */
     private fun loadSvgaVideoEntityFromInputStream(inputStream: InputStream): SVGAVideoEntity? {
         val context = this.context ?: return null
@@ -306,7 +308,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
         val latch = CountDownLatch(1)
         var result: SVGAVideoEntity? = null
 
-        // 先读取输入流内容到字节数组，避免流关闭问题
+        // Read input stream content to byte array first, avoid stream closing issues
         val bytes = inputStream.readBytes()
         val cacheKey = "svga-from-file-${bytes.hashCode()}"
         parser.decodeFromInputStream(
@@ -338,7 +340,7 @@ class SVGAAnimationLoader : AnimationLoader<SVGADrawable> {
     }
 
     /**
-     * 创建SVGADrawable
+     * Create SVGADrawable
      */
     private fun createSvgaDrawable(videoEntity: SVGAVideoEntity): SVGADrawable {
         return SVGADrawable(videoEntity)

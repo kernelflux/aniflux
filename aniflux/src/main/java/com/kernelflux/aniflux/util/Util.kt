@@ -5,14 +5,14 @@ import android.os.Looper
 import com.kernelflux.aniflux.request.target.AnimationTarget
 
 /**
- * 工具类
+ * Utility class
  */
 object Util {
     @Volatile
     private var mainThreadHandler: Handler? = null
 
     /**
-     * 检查是否在主线程
+     * Checks if currently on the main thread
      */
     @JvmStatic
     fun isOnMainThread(): Boolean {
@@ -20,7 +20,7 @@ object Util {
     }
 
     /**
-     * 检查是否在后台线程
+     * Checks if currently on a background thread
      */
     @JvmStatic
     fun isOnBackgroundThread(): Boolean {
@@ -28,7 +28,7 @@ object Util {
     }
 
     /**
-     * 断言在主线程
+     * Asserts that the current thread is the main thread
      */
     @JvmStatic
     fun assertMainThread() {
@@ -38,7 +38,7 @@ object Util {
     }
 
     /**
-     * 断言在后台线程
+     * Asserts that the current thread is a background thread
      */
     @JvmStatic
     fun assertBackgroundThread() {

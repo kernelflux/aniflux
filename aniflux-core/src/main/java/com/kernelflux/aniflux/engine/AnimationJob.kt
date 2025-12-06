@@ -3,6 +3,8 @@ package com.kernelflux.aniflux.engine
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import com.kernelflux.aniflux.log.AniFluxLog
+import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.aniflux.load.AnimationDataSource
 import com.kernelflux.aniflux.load.AnimationDownloader
 import com.kernelflux.aniflux.load.AnimationExecutor
@@ -18,8 +20,8 @@ import androidx.core.net.toUri
 import com.kernelflux.aniflux.cache.AnimationDiskCache
 
 /**
- * 动画任务
- * 管理单个动画请求的完整生命周期
+ * Animation job
+ * Manages the complete lifecycle of a single animation request
  */
 class AnimationJob<T>(
     private val engine: AnimationEngine,
@@ -40,13 +42,13 @@ class AnimationJob<T>(
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    // 下载器
+    // Downloader
     private val downloader: AnimationDownloader = OkHttpAnimationDownloader()
     
-    // 下载和缓存辅助类
+    // Download and cache helper class
     private val downloadHelper = AnimationJobDownloadHelper(context, key, animationDiskCache, downloader)
 
-    // 状态管理
+    // State management
     @Volatile
     private var isCancelled = false
 
@@ -63,17 +65,17 @@ class AnimationJob<T>(
     private var exception: Throwable? = null
     private var dataSource: AnimationDataSource = AnimationDataSource.LOCAL
 
-    //添加 callback 列表管理
+    // Add callback list management
     private val callbacks = mutableListOf<AnimationResourceCallback>()
 
     init {
-        // 将第一个 callback 添加到列表
+        // Add first callback to list
         callback?.let { callbacks.add(it) }
     }
 
     /**
-     * 添加 callback（供等待的请求使用）
-     * 参考 Glide EngineJob.addCallback()
+     * Add callback (for waiting requests)
+     * References Glide EngineJob.addCallback()
      */
     @Synchronized
     fun addCallback(cb: AnimationResourceCallback) {
@@ -83,16 +85,16 @@ class AnimationJob<T>(
 
         callbacks.add(cb)
 
-        // 如果资源已经准备好，立即通知新添加的 callback
+        // If resource is ready, immediately notify newly added callback
         if (hasResource && resource != null) {
-            // 提前 acquire，避免资源被回收
+            // Acquire in advance to avoid resource being recycled
             resource!!.acquire()
             mainHandler.post {
                 try {
                     cb.onResourceReady(resource!!, dataSource, false)
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Error in callback onResourceReady", e)
-                    // 如果出错，释放资源
+                    AniFluxLog.e(AniFluxLogCategory.ENGINE, "Error in callback onResourceReady", e)
+                    // If error occurs, release resource
                     resource?.release()
                 }
             }
@@ -101,14 +103,14 @@ class AnimationJob<T>(
                 try {
                     cb.onLoadFailed(exception!!)
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Error in callback onLoadFailed", e)
+                    AniFluxLog.e(AniFluxLogCategory.ENGINE, "Error in callback onLoadFailed", e)
                 }
             }
         }
     }
 
     /**
-     * 启动任务
+     * Start task
      */
     fun start() {
         if (isCancelled || isComplete) return
@@ -124,14 +126,14 @@ class AnimationJob<T>(
     }
 
     /**
-     * 选择执行器
+     * Select executor
      */
     private fun selectExecutor(): ExecutorService {
         return AnimationExecutor.getSourceExecutor()
     }
 
     /**
-     * 执行任务
+     * Execute task
      */
     private fun executeTask() {
         if (isCancelled) return
@@ -141,38 +143,35 @@ class AnimationJob<T>(
     }
 
     /**
-     * 根据动画类型创建对应的加载器
-     */
-    /**
-     * 创建对应的加载器
-     * 从 LoaderRegistry 动态获取，而不是直接实例化
+     * Create corresponding loader
+     * Dynamically get from LoaderRegistry, instead of directly instantiating
      */
     private fun createLoader(animationType: AnimationTypeDetector.AnimationType): AnimationLoader<*>? {
         return com.kernelflux.aniflux.registry.LoaderRegistry.get(animationType)
     }
 
     /**
-     * 加载动画 - 集成具体的动画加载逻辑
-     * 参考各动画库的加载方式，支持GIF、Lottie、SVGA、PAG、VAP等动画类型
+     * Load animation - integrate specific animation loading logic
+     * References loading approaches of various animation libraries, supports GIF, Lottie, SVGA, PAG, VAP and other animation types
      * 
-     * 缓存流程：
-     * 1. 如果 diskCachedFile 存在，从磁盘缓存加载
-     * 2. 否则，根据 model 类型加载（网络/本地）
-     * 3. 如果是网络资源且需要磁盘缓存，保存到磁盘缓存
+     * Cache flow:
+     * 1. If diskCachedFile exists, load from disk cache
+     * 2. Otherwise, load based on model type (network/local)
+     * 3. If network resource and disk cache is needed, save to disk cache
      */
     @Suppress("UNCHECKED_CAST")
     private fun loadAnimation(): AnimationResource<T> {
         try {
-            // 1. 检测动画类型
+            // 1. Detect animation type
             val animationType = detectAnimationType()
 
-            // 2. 创建对应的加载器
+            // 2. Create corresponding loader
             val loader = createLoader(animationType)
                 ?: throw IllegalArgumentException("Unsupported animation type: $animationType")
 
-            // 3. 根据 diskCachedFile 或 model 类型加载动画
+            // 3. Load animation based on diskCachedFile or model type
             val animation = when {
-                // 优先使用磁盘缓存文件
+                // Prefer disk cache file
                 diskCachedFile != null -> {
                     dataSource = AnimationDataSource.DISK_CACHE
                     loadFromFile(loader, diskCachedFile)
@@ -181,10 +180,10 @@ class AnimationJob<T>(
                     val pathType = AnimationTypeDetector.detectPathType(model)
                     when (pathType) {
                         AnimationTypeDetector.PathType.NETWORK_URL -> {
-                            // 网络URL：下载并保存到磁盘缓存
+                            // Network URL: download and save to disk cache
                             val (downloadedFile, isFromCache) = downloadHelper.downloadAndCache(model)
                             if (downloadedFile != null) {
-                                // 判断数据来源：如果是从缓存获取，则是 DISK_CACHE，否则是 REMOTE
+                                // Determine data source: if from cache, then DISK_CACHE, otherwise REMOTE
                                 dataSource = if (isFromCache) {
                                     AnimationDataSource.DISK_CACHE
                                 } else {
@@ -197,13 +196,13 @@ class AnimationJob<T>(
                         }
 
                         AnimationTypeDetector.PathType.LOCAL_FILE -> {
-                            // 本地文件路径
+                            // Local file path
                             dataSource = AnimationDataSource.LOCAL
                             loadFromPath(loader, model)
                         }
 
                         AnimationTypeDetector.PathType.ASSET_PATH -> {
-                            // Asset路径
+                            // Asset path
                             dataSource = AnimationDataSource.LOCAL
                             val assetPath = model.replace("file:///android_asset/", "")
                                 .replace("asset://", "")
@@ -223,14 +222,14 @@ class AnimationJob<T>(
                         }
 
                         else -> {
-                            // 默认按文件路径处理
+                            // Default handle as file path
                             dataSource = AnimationDataSource.LOCAL
                             loadFromPath(loader, model)
                         }
                     }
                 }
                 model is java.io.File -> {
-                    // 文件
+                    // File
                     dataSource = AnimationDataSource.LOCAL
                     loadFromFile(loader, model)
                 }
@@ -240,12 +239,12 @@ class AnimationJob<T>(
                     loadFromUri(loader, model)
                 }
                 model is Int -> {
-                    // 资源ID
+                    // Resource ID
                     dataSource = AnimationDataSource.LOCAL
                     loadFromResource(loader, model)
                 }
                 model is ByteArray -> {
-                    // 字节数组
+                    // Byte array
                     dataSource = AnimationDataSource.LOCAL
                     loadFromBytes(loader, model)
                 }
@@ -253,10 +252,10 @@ class AnimationJob<T>(
                     throw IllegalArgumentException("Unsupported model type: ${model?.javaClass}")
                 }
             }
-            // 4. 创建AnimationResource
+            // 4. Create AnimationResource
             val animationResult = animation as? T
             if (animationResult != null) {
-                // 创建ResourceListener，当资源释放时通知Engine
+                // Create ResourceListener to notify Engine when resource is released
                 val resourceListener = object : AnimationResource.ResourceListener {
                     override fun onResourceReleased(key: String, resource: AnimationResource<*>) {
                         engine.onResourceReleased(this@AnimationJob.key, resource)
@@ -268,13 +267,13 @@ class AnimationJob<T>(
             }
 
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Failed to load animation", e)
+            AniFluxLog.e(AniFluxLogCategory.ENGINE, "Failed to load animation", e)
             throw e
         }
     }
 
     /**
-     * 检测动画类型
+     * Detect animation type
      */
     private fun detectAnimationType(): AnimationTypeDetector.AnimationType {
         return when (model) {
@@ -305,73 +304,73 @@ class AnimationJob<T>(
     }
 
     /**
-     * 判断是否为网络URL
+     * Determine if network URL
      */
     private fun isNetworkUrl(url: String): Boolean {
         return url.startsWith("http://") || url.startsWith("https://")
     }
 
     /**
-     * 从URL加载动画
+     * Load animation from URL
      */
     private fun loadFromUrl(loader: AnimationLoader<*>, url: String): Any? {
         return loader.loadFromUrl(context, url, downloader)
     }
 
     /**
-     * 从文件路径加载动画
+     * Load animation from file path
      */
     private fun loadFromPath(loader: AnimationLoader<*>, path: String): Any? {
         return loader.loadFromPath(context, path)
     }
 
     /**
-     * 从文件加载动画
+     * Load animation from file
      */
     private fun loadFromFile(loader: AnimationLoader<*>, file: java.io.File): Any? {
         return loader.loadFromFile(context, file)
     }
 
     /**
-     * 从URI加载动画
+     * Load animation from URI
      */
     private fun loadFromUri(loader: AnimationLoader<*>, uri: android.net.Uri): Any? {
         return loader.loadFromPath(context, uri.toString())
     }
 
     /**
-     * 从资源ID加载动画
+     * Load animation from resource ID
      */
     private fun loadFromResource(loader: AnimationLoader<*>, resourceId: Int): Any? {
         return loader.loadFromResource(context, resourceId)
     }
 
     /**
-     * 从字节数组加载动画
+     * Load animation from byte array
      */
     private fun loadFromBytes(loader: AnimationLoader<*>, bytes: ByteArray): Any? {
         return loader.loadFromBytes(context, bytes)
     }
 
     /**
-     * 从Asset路径加载动画
+     * Load animation from Asset path
      */
     private fun loadFromAssetPath(loader: AnimationLoader<*>, assetPath: String): Any? {
         return loader.loadFromAssetPath(context, assetPath)
     }
 
     /**
-     * 从Asset URI加载动画
+     * Load animation from Asset URI
      */
     private fun loadFromAssetUri(loader: AnimationLoader<*>, assetUri: String): Any? {
-        // 将 file:///android_asset/animations/loading.gif 转换为 animations/loading.gif
+        // Convert file:///android_asset/animations/loading.gif to animations/loading.gif
         val assetPath = assetUri.replace("file:///android_asset/", "")
             .replace("asset://","")
         return loadFromAssetPath(loader, assetPath)
     }
 
     /**
-     * 从Content URI加载动画
+     * Load animation from Content URI
      */
     private fun loadFromContentUri(loader: AnimationLoader<*>, contentUri: String): Any? {
         return try {
@@ -385,13 +384,13 @@ class AnimationJob<T>(
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Failed to load from content URI: $contentUri", e)
+            AniFluxLog.e(AniFluxLogCategory.ENGINE, "Failed to load from content URI: $contentUri", e)
             null
         }
     }
 
     /**
-     * 处理成功
+     * Handle success
      */
     private fun handleSuccess(result: AnimationResource<T>) {
         if (isCancelled) return
@@ -404,15 +403,15 @@ class AnimationJob<T>(
             isComplete = true
         }
 
-        // ✅ 通知引擎任务完成（Engine 会在 onJobComplete 中调用 acquire）
+        // ✅ Notify engine task completion (Engine will call acquire in onJobComplete)
         engine.onJobComplete(key, result)
 
-        // 通知回调
+        // Notify callbacks
         notifyCallbacksOfResult()
     }
 
     /**
-     * 处理错误
+     * Handle error
      */
     private fun handleError(error: Throwable) {
         if (isCancelled) return
@@ -425,26 +424,26 @@ class AnimationJob<T>(
             isComplete = true
         }
 
-        // 通知引擎任务完成（失败）
+        // Notify engine task completion (failed)
         engine.onJobComplete<T>(key, null)
 
-        // 通知回调
+        // Notify callbacks
         notifyCallbacksOfException()
     }
 
     /**
-     * 通知成功回调
+     * Notify success callbacks
      */
     private fun notifyCallbacksOfResult() {
         val resource = this.resource ?: return
 
-        // 复制列表，避免并发修改
+        // Copy list to avoid concurrent modification
         val callbacksCopy = synchronized(this) {
             if (isCancelled) {
                 resource.recycle()
                 return
             } else if (callbacks.isEmpty()) {
-                // 如果没有 callback，通知 target 和 listener（保持向后兼容）
+                // If no callback, notify target and listener (maintain backward compatibility)
                 mainHandler.post {
                     try {
                         target.onResourceReady(resource.get())
@@ -456,25 +455,25 @@ class AnimationJob<T>(
                             false
                         )
                     } catch (e: Exception) {
-                        android.util.Log.e(TAG, "Error in success callback", e)
+                        AniFluxLog.e(AniFluxLogCategory.ENGINE, "Error in success callback", e)
                     }
                 }
                 return
             }
-            // 注意：hasResource 已经在 handleSuccess() 中设置为 true，这里不需要再次设置
-            callbacks.toList()  // 复制列表
+            // Note: hasResource has already been set to true in handleSuccess(), no need to set again here
+            callbacks.toList()  // Copy list
         }
 
-        // 通知所有 callback
+        // Notify all callbacks
         mainHandler.post {
             callbacksCopy.forEach { cb ->
                 try {
-                    // 每个 callback 都需要 acquire
+                    // Each callback needs to acquire
                     resource.acquire()
                     cb.onResourceReady(resource, dataSource, false)
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Error in callback onResourceReady", e)
-                    // 如果出错，释放资源
+                    AniFluxLog.e(AniFluxLogCategory.ENGINE, "Error in callback onResourceReady", e)
+                    // If error occurs, release resource
                     resource.release()
                 }
             }
@@ -482,45 +481,45 @@ class AnimationJob<T>(
     }
 
     /**
-     * 通知失败回调
+     * Notify failure callbacks
      */
     private fun notifyCallbacksOfException() {
         val exception = this.exception ?: return
 
-        // 复制列表，避免并发修改
+        // Copy list to avoid concurrent modification
         val callbacksCopy = synchronized(this) {
             if (isCancelled) {
                 return
             } else if (callbacks.isEmpty()) {
-                // 如果没有 callback，通知 target 和 listener（保持向后兼容）
+                // If no callback, notify target and listener (maintain backward compatibility)
                 mainHandler.post {
                     try {
                         target.onLoadFailed(null)
                         listener?.onLoadFailed(exception, model, target, false)
                     } catch (e: Exception) {
-                        android.util.Log.e(TAG, "Error in failure callback", e)
+                        AniFluxLog.e(AniFluxLogCategory.ENGINE, "Error in failure callback", e)
                     }
                 }
                 return
             }
-            // 注意：hasLoadFailed 已经在 handleError() 中设置为 true，这里不需要再次设置
-            callbacks.toList()  // 复制列表
+            // Note: hasLoadFailed has already been set to true in handleError(), no need to set again here
+            callbacks.toList()  // Copy list
         }
 
-        // 通知所有 callback
+        // Notify all callbacks
         mainHandler.post {
             callbacksCopy.forEach { cb ->
                 try {
                     cb.onLoadFailed(exception)
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Error in callback onLoadFailed", e)
+                    AniFluxLog.e(AniFluxLogCategory.ENGINE, "Error in callback onLoadFailed", e)
                 }
             }
         }
     }
 
     /**
-     * 移除回调
+     * Remove callback
      */
     @Synchronized
     fun removeCallback(cb: AnimationResourceCallback?) {
@@ -530,14 +529,14 @@ class AnimationJob<T>(
     }
 
     /**
-     * 取消任务
+     * Cancel task
      */
     fun cancel() {
         if (isCancelled || isComplete) return
 
         isCancelled = true
 
-        // ✅ 取消任务时，如果有资源则 release（Job 释放资源）
+        // ✅ When canceling task, if resource exists then release (Job releases resource)
         val currentResource = resource
         resource = null
         currentResource?.release()

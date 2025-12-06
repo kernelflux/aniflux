@@ -1,8 +1,8 @@
 package com.kernelflux.aniflux.request.listener
 
 /**
- * 统一的动画播放监听接口
- * 提供动画播放过程中的各种事件回调
+ * Unified animation play listener interface
+ * Provides various event callbacks during animation playback
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -10,52 +10,52 @@ package com.kernelflux.aniflux.request.listener
 interface AnimationPlayListener {
 
     /**
-     * 动画开始播放
-     * 在动画首次开始播放时调用
+     * Animation starts playing
+     * Called when animation first starts playing
      */
     fun onAnimationStart() {
-        // 默认空实现，子类可以选择性重写
+        // Default empty implementation, subclasses can optionally override
     }
 
     /**
-     * 动画播放结束
-     * 在动画正常播放完成时调用（不包括取消的情况）
+     * Animation playback ends
+     * Called when animation completes normally (excluding cancellation)
      */
     fun onAnimationEnd() {
-        // 默认空实现，子类可以选择性重写
+        // Default empty implementation, subclasses can optionally override
     }
 
     /**
-     * 动画播放被取消
-     * 在动画播放被取消时调用（如调用stop()方法）
+     * Animation playback is cancelled
+     * Called when animation playback is cancelled (e.g., calling stop() method)
      */
     fun onAnimationCancel() {
-        // 默认空实现，子类可以选择性重写
+        // Default empty implementation, subclasses can optionally override
     }
 
     /**
-     * 动画播放重复
-     * 在动画循环播放重新开始时调用
+     * Animation playback repeats
+     * Called when animation loop restarts
      */
     fun onAnimationRepeat() {
-        // 默认空实现，子类可以选择性重写
+        // Default empty implementation, subclasses can optionally override
     }
 
     /**
-     * 动画播放每帧
-     * 在动画循环播放刷新每帧时调用
+     * Animation playback per frame
+     * Called when animation loop refreshes each frame
      */
     fun onAnimationUpdate(currentFrame: Int, totalFrames: Int) {
     }
 
     /**
-     * 动画播放失败
-     * 在动画播放过程中发生错误时调用
+     * Animation playback fails
+     * Called when an error occurs during animation playback
      *
-     * @param error 错误信息
+     * @param error Error information
      */
     fun onAnimationFailed(error: Throwable?) {
-        // 默认空实现，子类可以选择性重写
+        // Default empty implementation, subclasses can optionally override
     }
 }
 

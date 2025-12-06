@@ -4,10 +4,10 @@ import android.content.Context
 import android.graphics.Bitmap
 
 /**
- * 占位图加载器接口
- * 业务方需要实现此接口，可以使用任何图片加载框架（Glide、Coil、Picasso等）
+ * Placeholder image loader interface
+ * Business code needs to implement this interface, can use any image loading framework (Glide, Coil, Picasso, etc.)
  * 
- * 框架只负责调用此接口，不关心具体实现
+ * Framework only calls this interface, doesn't care about specific implementation
  * 
  * @author: kerneflux
  * @date: 2025/11/27
@@ -15,14 +15,14 @@ import android.graphics.Bitmap
 interface PlaceholderImageLoader {
     
     /**
-     * 加载图片
+     * Load image
      * 
-     * @param context 上下文
-     * @param source 图片源（可以是URL、File、Uri、ResourceId等，由业务方定义）
-     * @param width 目标宽度（0表示不限制，使用原始尺寸）
-     * @param height 目标高度（0表示不限制，使用原始尺寸）
-     * @param callback 加载回调（在主线程调用）
-     * @return 加载请求（用于取消）
+     * @param context Context
+     * @param source Image source (can be URL, File, Uri, ResourceId, etc., defined by business code)
+     * @param width Target width (0 means no limit, use original size)
+     * @param height Target height (0 means no limit, use original size)
+     * @param callback Load callback (called on main thread)
+     * @return Load request (for cancellation)
      */
     fun load(
         context: Context,
@@ -33,47 +33,47 @@ interface PlaceholderImageLoader {
     ): PlaceholderImageLoadRequest
     
     /**
-     * 取消加载请求
+     * Cancel load request
      * 
-     * @param request 要取消的请求
+     * @param request Request to cancel
      */
     fun cancel(request: PlaceholderImageLoadRequest)
 }
 
 /**
- * 图片加载回调
- * 所有回调都在主线程执行
+ * Image load callback
+ * All callbacks are executed on main thread
  */
 interface PlaceholderImageLoadCallback {
     /**
-     * 加载成功
+     * Load success
      * 
-     * @param bitmap 加载的Bitmap
-     * 注意：框架会负责管理Bitmap的生命周期，业务方不需要调用recycle()
-     * 但如果业务方需要长期持有Bitmap，应该创建副本
+     * @param bitmap Loaded Bitmap
+     * Note: Framework will manage Bitmap lifecycle, business code doesn't need to call recycle()
+     * But if business code needs to hold Bitmap long-term, should create a copy
      */
     fun onSuccess(bitmap: Bitmap)
     
     /**
-     * 加载失败
+     * Load failure
      * 
-     * @param error 错误信息
+     * @param error Error information
      */
     fun onError(error: Throwable)
 }
 
 /**
- * 图片加载请求（用于取消）
+ * Image load request (for cancellation)
  */
 interface PlaceholderImageLoadRequest {
     /**
-     * 是否已取消
+     * Whether cancelled
      */
     fun isCancelled(): Boolean
     
     /**
-     * 取消请求
-     * 取消后，回调不会被调用
+     * Cancel request
+     * After cancellation, callbacks won't be called
      */
     fun cancel()
 }

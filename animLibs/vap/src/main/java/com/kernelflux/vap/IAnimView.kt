@@ -60,6 +60,8 @@ interface IAnimView {
 
     fun stopPlay()
 
+    fun resumePlay()
+
     fun isRunning(): Boolean
 
     fun getRealSize(): Pair<Int, Int>

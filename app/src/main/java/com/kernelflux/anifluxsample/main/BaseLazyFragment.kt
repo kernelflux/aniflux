@@ -1,4 +1,4 @@
-package com.kernelflux.anifluxsample
+package com.kernelflux.anifluxsample.main
 
 import android.os.Bundle
 import android.view.View

@@ -3,8 +3,8 @@ package com.kernelflux.aniflux.request.listener
 import com.kernelflux.pag.PAGImageView
 
 /**
- * PAG动画播放监听器适配器
- * 将PAG的监听接口适配到统一的AnimationPlayListener
+ * PAG animation play listener adapter
+ * Adapts PAG's listener interface to unified AnimationPlayListener
  *
  * @author: kerneflux
  * @date: 2025/11/02
@@ -25,18 +25,18 @@ class PAGImageViewPlayListenerAdapter(
                 val view = p0 ?: pagImageView
                 if (view != null) {
                     if (retainLastFrame) {
-                        // ✅ 保留当前停止位置的帧：不做任何操作，PAG 已经自动停留在当前帧
-                        // 动画结束时，PAG 会自动停留在当前播放位置（最后一帧或暂停位置）
+                        // ✅ Retain frame at current stop position: do nothing, PAG already automatically stays at current frame
+                        // When animation ends, PAG automatically stays at current playback position (last frame or pause position)
                     } else {
-                        // ✅ 清空显示：
-                        // 1. 先暂停动画（如果还在播放）
+                        // ✅ Clear display:
+                        // 1. Pause animation first (if still playing)
                         if (view.isPlaying) {
                             view.pause()
                         }
-                        // 2. 设置 composition 为 null 以清空显示（这会调用 refreshResource，内部会 releaseBitmap）
+                        // 2. Set composition to null to clear display (this calls refreshResource, internally releases bitmap)
                         execute({
                             view.composition = null
-                            // 确保刷新
+                            // Ensure refresh
                             view.postInvalidate()
                         })
                     }

@@ -12,11 +12,11 @@ import com.kernelflux.aniflux.util.AnimationOptions
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 
 /**
- * 动画请求构建器
- * 提供链式API来构建动画加载请求
+ * Animation request builder
+ * Provides chain API to build animation loading requests
  * 
- * 这是核心版本，不包含格式特定的代码
- * 格式特定的扩展函数应该在各自的格式模块中提供
+ * This is the core version, doesn't contain format-specific code
+ * Format-specific extension functions should be provided in their respective format modules
  *
  * @author: kerneflux
  * @date: 2025/10/13
@@ -39,7 +39,7 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 设置要加载的模型对象
+     * Set the model object to load
      */
     private fun loadWithModel(model: Any?): AnimationRequestBuilder<T> {
         this.model = model
@@ -48,44 +48,44 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 从URL字符串加载
+     * Load from URL string
      */
     fun load(url: String?): AnimationRequestBuilder<T> {
         return loadWithModel(url)
     }
 
     /**
-     * 从Uri加载
+     * Load from Uri
      */
     fun load(uri: android.net.Uri?): AnimationRequestBuilder<T> {
         return loadWithModel(uri)
     }
 
     /**
-     * 从文件加载
+     * Load from file
      */
     fun load(file: java.io.File?): AnimationRequestBuilder<T> {
         return loadWithModel(file)
     }
 
     /**
-     * 从资源ID加载
+     * Load from resource ID
      */
     fun load(@androidx.annotation.DrawableRes @androidx.annotation.RawRes resourceId: Int?): AnimationRequestBuilder<T> {
         return loadWithModel(resourceId)
     }
 
     /**
-     * 从字节数组加载
+     * Load from byte array
      */
     fun load(byteArray: ByteArray?): AnimationRequestBuilder<T> {
         return loadWithModel(byteArray)
     }
 
-    // ========== 配置方法 ==========
+    // ========== Configuration methods ==========
 
     /**
-     * 设置动画尺寸
+     * Set animation size
      */
     fun size(width: Int, height: Int): AnimationRequestBuilder<T> {
         options.size(width, height)
@@ -93,7 +93,7 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 设置缓存策略
+     * Set cache strategy
      */
     fun cacheStrategy(strategy: AnimationCacheStrategy): AnimationRequestBuilder<T> {
         options.cacheStrategy(strategy)
@@ -101,8 +101,8 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 设置动画循环次数
-     * @param count -1表示无限循环，0表示不循环，>0表示循环次数
+     * Set animation repeat count
+     * @param count -1 means infinite loop, 0 means no loop, >0 means loop count
      */
     fun repeatCount(count: Int): AnimationRequestBuilder<T> {
         options.repeatCount(count)
@@ -110,7 +110,7 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 设置是否自动播放
+     * Set whether to auto play
      */
     fun autoPlay(auto: Boolean): AnimationRequestBuilder<T> {
         options.autoPlay(auto)
@@ -118,8 +118,8 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 设置是否保留动画停止时的帧（动画结束时）
-     * @param retain true 表示保留当前停止位置的帧（停在当前帧），false 表示清空显示（默认 true）
+     * Set whether to retain the frame when animation stops (at end)
+     * @param retain true means retain current stopped frame (stay at current frame), false means clear display (default true)
      */
     fun retainLastFrame(retain: Boolean): AnimationRequestBuilder<T> {
         options.retainLastFrame(retain)
@@ -127,12 +127,12 @@ class AnimationRequestBuilder<T>(
     }
     
     /**
-     * 设置占位图替换配置（使用DSL）
+     * Set placeholder replacement configuration (using DSL)
      * 
-     * 支持的格式：SVGA、PAG、Lottie
+     * Supported formats: SVGA, PAG, Lottie
      * 
-     * @param builder 占位图替换配置的构建器
-     * @return this，支持链式调用
+     * @param builder Placeholder replacement configuration builder
+     * @return this, supports chain calls
      */
     fun placeholderReplacements(builder: com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap.() -> Unit): AnimationRequestBuilder<T> {
         options.placeholderReplacements(builder)
@@ -140,12 +140,12 @@ class AnimationRequestBuilder<T>(
     }
     
     /**
-     * 设置占位图替换配置（直接传入）
+     * Set placeholder replacement configuration (direct pass)
      * 
-     * 支持的格式：SVGA、PAG、Lottie
+     * Supported formats: SVGA, PAG, Lottie
      * 
-     * @param map 占位图替换映射表
-     * @return this，支持链式调用
+     * @param map Placeholder replacement map
+     * @return this, supports chain calls
      */
     fun placeholderReplacements(map: com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap): AnimationRequestBuilder<T> {
         options.placeholderReplacements(map)
@@ -153,10 +153,10 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 应用自定义配置选项
+     * Apply custom configuration options
      */
     fun apply(customOptions: AnimationOptions): AnimationRequestBuilder<T> {
-        // 合并配置选项
+        // Merge configuration options
         options = customOptions
         return this
     }
@@ -181,37 +181,37 @@ class AnimationRequestBuilder<T>(
         requestListener: AnimationRequestListener<T>? = null,
         playListener: AnimationPlayListener? = null
     ): Y {
-        // 检查是否已经设置了model
+        // Check if model is set
         if (!isModelSet) {
             throw IllegalArgumentException("You must call #load() before calling #into()")
         }
 
-        // 构建AnimationRequest
+        // Build AnimationRequest
         val request = buildRequest(target, requestListener)
 
-        // 检查是否有之前的请求
+        // Check if there's a previous request
         val previousRequest = target.getRequest()
         if (request.isEquivalentTo(previousRequest) &&
             previousRequest != null &&
             !isSkipMemoryCacheWithCompletePreviousRequest(previousRequest)
         ) {
-            // 如果请求相同且之前的请求没有完成，重用之前的请求
+            // If request is the same and previous request is not complete, reuse previous request
             if (!previousRequest.isRunning()) {
                 previousRequest.begin()
             }
             return target
         }
 
-        // 清理之前的请求并设置新请求
-        // 关键：针对同一个target的新请求，应该清除之前的监听器，避免重复回调
+        // Clear previous request and set new request
+        // Key: For new request on the same target, should clear previous listeners to avoid duplicate callbacks
         requestManager.clear(target)
 
-        // 清除target上之前的播放监听器（避免多次回调）
-        // CustomAnimationTarget 和 CustomViewAnimationTarget 都支持播放监听器管理
+        // Clear previous play listeners on target (avoid multiple callbacks)
+        // Both CustomAnimationTarget and CustomViewAnimationTarget support play listener management
         when (target) {
             is CustomAnimationTarget<*> -> {
                 target.clearPlayListener()
-                // 添加新的监听器（如果有）
+                // Add new listener (if any)
                 playListener?.let { listener ->
                     target.setPlayListener(listener)
                 }
@@ -219,7 +219,7 @@ class AnimationRequestBuilder<T>(
 
             is CustomViewAnimationTarget<*, *> -> {
                 target.clearPlayListener()
-                // 添加新的监听器（如果有）
+                // Add new listener (if any)
                 playListener?.let { listener ->
                     target.addPlayListener(listener)
                 }
@@ -252,15 +252,15 @@ class AnimationRequestBuilder<T>(
     }
 
     /**
-     * 获取转换后的类型Class
+     * Get transcode class
      */
     private fun getTranscodeClass(): Class<T> {
         return transcodeClass
     }
 
     /**
-     * 获取 transcodeClass（用于类型推断）
-     * 暴露给扩展函数使用
+     * Get transcodeClass (for type inference)
+     * Exposed for use by extension functions
      */
     fun getResourceClass(): Class<*> {
         return transcodeClass

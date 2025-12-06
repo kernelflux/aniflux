@@ -5,23 +5,23 @@ import com.kernelflux.aniflux.cache.AnimationCacheStrategy
 import com.kernelflux.aniflux.placeholder.PlaceholderReplacementMap
 
 /**
- * 动画选项
- * 配置动画加载的各种参数
+ * Animation options
+ * Configures various parameters for animation loading
  */
 class AnimationOptions {
     
-    // 尺寸配置（保留用于特殊情况，如 GIF 的尺寸缩放，但不影响缓存键）
+    // Size configuration (reserved for special cases, such as GIF size scaling, but does not affect cache key)
     var width: Int = 0
     var height: Int = 0
     var scaleType: ImageView.ScaleType? = null
     var cacheStrategy: AnimationCacheStrategy = AnimationCacheStrategy.BOTH
     
-    // 动画播放配置
-    var repeatCount: Int = -1 // -1表示无限循环，0表示不循环，>0表示循环次数
-    var autoPlay: Boolean = true // 是否自动播放
-    var retainLastFrame: Boolean = true // 是否保留最后一帧（动画结束时），默认 true
+    // Animation playback configuration
+    var repeatCount: Int = -1 // -1 for infinite loop, 0 for no loop, >0 for number of loops
+    var autoPlay: Boolean = true // Whether to autoplay
+    var retainLastFrame: Boolean = true // Whether to retain last frame (when animation ends), default true
     
-    // 占位图替换配置
+    // Placeholder replacement configuration
     var placeholderReplacements: PlaceholderReplacementMap? = null
     
     companion object {
@@ -46,8 +46,8 @@ class AnimationOptions {
     }
 
     /**
-     * 设置动画循环次数
-     * @param count -1表示无限循环，0表示不循环，>0表示循环次数
+     * Sets animation repeat count
+     * @param count -1 for infinite loop, 0 for no loop, >0 for number of loops
      */
     fun repeatCount(count: Int): AnimationOptions {
         this.repeatCount = count
@@ -55,7 +55,7 @@ class AnimationOptions {
     }
     
     /**
-     * 设置是否自动播放
+     * Sets whether to autoplay
      */
     fun autoPlay(auto: Boolean): AnimationOptions {
         this.autoPlay = auto
@@ -63,8 +63,8 @@ class AnimationOptions {
     }
     
     /**
-     * 设置是否保留最后一帧（动画结束时）
-     * @param retain true 表示保留最后一帧，false 表示清空（默认 true）
+     * Sets whether to retain last frame (when animation ends)
+     * @param retain true to retain last frame, false to clear (default true)
      */
     fun retainLastFrame(retain: Boolean): AnimationOptions {
         this.retainLastFrame = retain
@@ -72,10 +72,10 @@ class AnimationOptions {
     }
     
     /**
-     * 设置占位图替换配置（使用DSL）
+     * Sets placeholder replacement configuration (using DSL)
      * 
-     * @param builder 占位图替换配置的构建器
-     * @return this，支持链式调用
+     * @param builder Builder for placeholder replacement configuration
+     * @return this, supports fluent calls
      */
     fun placeholderReplacements(builder: PlaceholderReplacementMap.() -> Unit): AnimationOptions {
         val map = PlaceholderReplacementMap().apply(builder)
@@ -84,10 +84,10 @@ class AnimationOptions {
     }
     
     /**
-     * 设置占位图替换配置（直接传入）
+     * Sets placeholder replacement configuration (direct pass-in)
      * 
-     * @param map 占位图替换映射表
-     * @return this，支持链式调用
+     * @param map Placeholder replacement map
+     * @return this, supports fluent calls
      */
     fun placeholderReplacements(map: PlaceholderReplacementMap): AnimationOptions {
         this.placeholderReplacements = map

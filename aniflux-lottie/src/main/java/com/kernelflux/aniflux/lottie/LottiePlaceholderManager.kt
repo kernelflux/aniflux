@@ -11,8 +11,8 @@ import com.kernelflux.lottie.LottieAnimationView
 import com.kernelflux.lottie.LottieDrawable
 
 /**
- * Lottie 占位图管理器
- * 使用 Lottie 的 ImageAssetDelegate 机制来替换图片
+ * Lottie placeholder manager
+ * Uses Lottie's ImageAssetDelegate mechanism to replace images
  * 
  * @author: kerneflux
  * @date: 2025/11/27
@@ -30,28 +30,28 @@ class LottiePlaceholderManager(
     private val loadedBitmaps = mutableMapOf<String, Bitmap>()
     
     override fun applyReplacements() {
-        // 安全检查：如果View类型不匹配，直接返回，不抛出异常
+        // Safety check: if View type doesn't match, return directly without throwing exception
         val lottieView = this.lottieView ?: return
         val composition = drawable.composition ?: return
         
         try {
-            // 设置 ImageAssetDelegate，用于动态提供图片
+            // Set ImageAssetDelegate for dynamically providing images
             lottieView.setImageAssetDelegate { asset ->
                 try {
                     val key = asset.id
-                    // 如果已加载，直接返回
+                    // If already loaded, return directly
                     loadedBitmaps[key]
                 } catch (e: Exception) {
-                    // 忽略异常，返回null
+                    // Ignore exception, return null
                     null
                 }
             }
         } catch (e: Exception) {
-            // 如果设置失败，直接返回，不处理占位图
+            // If setup fails, return directly without processing placeholders
             return
         }
         
-        // 异步加载所有占位图
+        // Asynchronously load all placeholder images
         replacements.getAll().forEach { (key, replacement) ->
             try {
                 val imageAsset = composition.images[key] ?: return@forEach
@@ -65,17 +65,17 @@ class LottiePlaceholderManager(
                         override fun onSuccess(bitmap: Bitmap) {
                             if (isCleared) return
                             
-                            // 在主线程更新
+                            // Update on main thread
                             mainHandler.post {
                                 if (isCleared) return@post
                                 
                                 try {
-                                    // 再次检查view是否有效
+                                    // Check again if view is valid
                                     val currentView = this@LottiePlaceholderManager.lottieView
-                                    // 保存到缓存
+                                    // Save to cache
                                     loadedBitmaps[key] = bitmap
                                     
-                                    // 更新 ImageAssetDelegate（重新设置以触发刷新）
+                                    // Update ImageAssetDelegate (reset to trigger refresh)
                                     currentView.setImageAssetDelegate { asset ->
                                         try {
                                             loadedBitmaps[asset.id]
@@ -84,22 +84,22 @@ class LottiePlaceholderManager(
                                         }
                                     }
                                     
-                                    // 刷新视图
+                                    // Refresh view
                                     currentView.invalidate()
                                 } catch (e: Exception) {
-                                    // 忽略设置失败的错误，不影响主流程
+                                    // Ignore setup failure errors, don't affect main flow
                                 }
                             }
                         }
                         
                         override fun onError(error: Throwable) {
-                            // 错误处理：静默失败，不影响动画播放
+                            // Error handling: fail silently, don't affect animation playback
                         }
                     }
                 )
                 activeRequests.add(request)
             } catch (e: Exception) {
-                // 单个占位图加载失败不影响其他占位图
+                // Single placeholder load failure doesn't affect other placeholders
             }
         }
     }
@@ -107,11 +107,11 @@ class LottiePlaceholderManager(
     override fun onCleared() {
         super.onCleared()
         loadedBitmaps.clear()
-        // 清除 ImageAssetDelegate
+        // Clear ImageAssetDelegate
         try {
             lottieView?.setImageAssetDelegate(null)
         } catch (e: Exception) {
-            // 忽略清理时的异常
+            // Ignore exceptions during cleanup
         }
     }
 }

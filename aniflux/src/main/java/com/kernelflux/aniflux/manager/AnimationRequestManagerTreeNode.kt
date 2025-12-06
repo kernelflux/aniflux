@@ -8,7 +8,7 @@ import com.kernelflux.aniflux.AnimationRequestManager
  */
 interface AnimationRequestManagerTreeNode {
     /**
-     * 获取所有子RequestManager
+     * Get all child RequestManagers
      */
     fun getDescendants(): Set<AnimationRequestManager>
 

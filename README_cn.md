@@ -11,7 +11,7 @@
 
 ## 简介
 
-AniFlux 是一个强大的 Android 动画加载框架，灵感来源于 [Glide](https://github.com/bumptech/glide) 的设计理念。它提供统一的 API 来加载和管理多种动画格式（GIF、Lottie、SVGA、PAG、VAP），具备自动生命周期管理、智能缓存，以及自动 Loader 注册。
+AniFlux 是一个强大的 Android 动画加载框架，灵感来源于 [Glide](https://github.com/bumptech/glide) 的设计理念。它提供统一的 API 来加载和管理多种动画格式（GIF、Lottie、SVGA、PAG、VAP），具备自动生命周期管理、智能缓存、内存泄漏保护，以及自动 Loader 注册。
 
 ### 核心特性
 
@@ -22,6 +22,10 @@ AniFlux 是一个强大的 Android 动画加载框架，灵感来源于 [Glide](
 - 💾 **智能缓存**：内存 + 磁盘缓存
 - 🏗️ **模块化架构**：核心模块 + 格式模块
 - ⚡ **自动注册**：通过 Gradle 插件自动注册 Loader
+- 🛡️ **内存泄漏保护**：自动资源清理，支持 RecyclerView
+- 🔧 **动画兼容性**：系统动画关闭时仍能正常工作
+- 📊 **统一日志系统**：可配置的日志系统，便于调试和分析
+- 🔍 **自动类型检测**：从 URL/路径自动识别动画格式
 
 ## 快速开始
 
@@ -31,7 +35,7 @@ AniFlux 是一个强大的 Android 动画加载框架，灵感来源于 [Glide](
 
 ```kotlin
 dependencies {
-    implementation("com.kernelflux.mobile:aniflux:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux:1.1.2")
 }
 ```
 
@@ -40,7 +44,7 @@ dependencies {
 ```kotlin
 // 在项目根目录的 build.gradle.kts
 plugins {
-    id("com.kernelflux.aniflux.register") version "1.1.1" apply false
+    id("com.kernelflux.aniflux.register") version "1.1.2" apply false
 }
 
 // 在 app 模块的 build.gradle.kts
@@ -50,14 +54,14 @@ plugins {
 
 dependencies {
     // 核心模块（必需）
-    implementation("com.kernelflux.mobile:aniflux-core:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-core:1.1.2")
     
     // 格式模块（按需添加）
-    implementation("com.kernelflux.mobile:aniflux-gif:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-svga:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-pag:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-vap:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-svga:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-pag:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-vap:1.1.2")
 }
 ```
 
@@ -96,6 +100,23 @@ AniFlux.with(context)
     .asSVGA()
     .load("https://example.com/animation.svga")
     .into(svgaImageView)
+
+// 加载 PAG
+AniFlux.with(context)
+    .asPAG()
+    .load("https://example.com/animation.pag")
+    .into(pagImageView)
+
+// 加载 VAP
+AniFlux.with(context)
+    .asVAP()
+    .load("https://example.com/animation.mp4")
+    .into(vapImageView)
+
+// 自动检测格式（从 URL）
+AniFlux.with(context)
+    .load("https://example.com/animation.gif")  // 自动识别为 GIF
+    .into(imageView)
 ```
 
 ## 架构设计
@@ -185,6 +206,76 @@ class MyFragment : Fragment() {
 }
 ```
 
+### RecyclerView 支持
+
+AniFlux 自动处理 RecyclerView 的视图回收：
+
+- **暂停动画**：视图被回收时自动暂停
+- **恢复动画**：视图重新附加时自动恢复
+- **保留资源**：回收期间保留资源，避免重新加载
+- **释放资源**：仅在真正销毁时释放
+
+```kotlin
+// 在 RecyclerView 中无缝使用
+class MyAdapter : RecyclerView.Adapter<MyViewHolder>() {
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        AniFlux.with(context)
+            .asGif()
+            .load(items[position].animationUrl)
+            .into(holder.imageView)
+        // 自动处理视图回收
+    }
+}
+```
+
+### 动画兼容性
+
+AniFlux 自动处理系统动画设置：
+
+- **正常工作**：即使开发者选项中关闭了系统动画，动画仍能正常播放
+- **运行时监控**：检测系统动画设置的运行时变化
+- **自动恢复**：设置变化时自动重启动画
+- **格式特定修复**：针对基于 ValueAnimator 的动画（SVGA、PAG、VAP）和 Lottie 的特殊处理
+
+```kotlin
+// 默认自动启用
+AniFlux.init(this)
+
+// 或显式配置
+AniFlux.init(this) {
+    enableAnimationCompatibility = true  // 默认：true
+}
+```
+
+### 统一日志系统
+
+可配置的日志系统，便于调试和分析：
+
+```kotlin
+// 配置日志级别
+AniFlux.init(this) {
+    logLevel = AniFluxLogLevel.DEBUG
+}
+
+// 分类：GENERAL, ENGINE, CACHE, REQUEST, TARGET, LOADER
+// 级别：VERBOSE, DEBUG, INFO, WARN, ERROR
+```
+
+### 自动类型检测
+
+从 URL 或文件路径自动识别动画格式：
+
+```kotlin
+// 无需指定格式
+AniFlux.with(context)
+    .load("https://example.com/animation.gif")  // 自动识别为 GIF
+    .into(imageView)
+
+AniFlux.with(context)
+    .load("https://example.com/animation.json")  // 自动识别为 Lottie
+    .into(lottieView)
+```
+
 ## 支持的格式
 
 | 格式 | 模块 | 特性 |
@@ -207,6 +298,51 @@ requestManager.resumeRequests()
 requestManager.clearRequests()
 ```
 
+### 自定义配置
+
+```kotlin
+AniFlux.init(this) {
+    // 设置占位图加载器
+    setPlaceholderImageLoader(customLoader)
+    
+    // 启用/禁用动画兼容性
+    setEnableAnimationCompatibility(true)
+    
+    // 设置日志级别
+    logLevel = AniFluxLogLevel.DEBUG
+}
+```
+
+### 播放监听器
+
+```kotlin
+AniFlux.with(context)
+    .asGif()
+    .load(url)
+    .playListener(object : AnimationPlayListener {
+        override fun onAnimationStart() {
+            // 动画开始
+        }
+        
+        override fun onAnimationEnd() {
+            // 动画结束
+        }
+        
+        override fun onAnimationCancel() {
+            // 动画取消
+        }
+        
+        override fun onAnimationRepeat() {
+            // 动画重复
+        }
+        
+        override fun onAnimationFailed(error: Throwable?) {
+            // 动画失败
+        }
+    })
+    .into(imageView)
+```
+
 ## 最佳实践
 
 1. **选择合适的依赖方式**：大多数场景使用一体化包，需要体积优化时使用模块化依赖
@@ -214,6 +350,8 @@ requestManager.clearRequests()
 3. **生命周期感知**：使用 Fragment/Activity context 实现自动清理
 4. **缓存策略**：根据使用场景选择合适的策略
 5. **占位图替换**：在 SVGA/PAG/Lottie 中使用动态内容
+6. **RecyclerView**：自动处理，无需特殊处理
+7. **动画兼容性**：默认启用，确保即使系统动画关闭也能正常工作
 
 ## 许可证
 

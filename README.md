@@ -11,7 +11,7 @@
 
 ## Overview
 
-AniFlux is a powerful Android animation loading framework inspired by [Glide](https://github.com/bumptech/glide)'s design philosophy. It provides a unified API for loading and managing multiple animation formats (GIF, Lottie, SVGA, PAG, VAP) with automatic lifecycle management, smart caching, and automatic loader registration.
+AniFlux is a powerful Android animation loading framework inspired by [Glide](https://github.com/bumptech/glide)'s design philosophy. It provides a unified API for loading and managing multiple animation formats (GIF, Lottie, SVGA, PAG, VAP) with automatic lifecycle management, smart caching, memory leak protection, and automatic loader registration.
 
 ### Key Features
 
@@ -22,6 +22,10 @@ AniFlux is a powerful Android animation loading framework inspired by [Glide](ht
 - 💾 **Intelligent Caching**: Memory + disk cache
 - 🏗️ **Modular Architecture**: Core + format-specific modules
 - ⚡ **Auto-registration**: Automatic loader registration via Gradle plugin
+- 🛡️ **Memory Leak Protection**: Automatic resource cleanup with RecyclerView support
+- 🔧 **Animation Compatibility**: Works correctly even when system animations are disabled
+- 📊 **Unified Logging**: Configurable logging system for debugging and analysis
+- 🔍 **Auto Type Detection**: Automatically detects animation format from URL/path
 
 ## Quick Start
 
@@ -31,7 +35,7 @@ AniFlux is a powerful Android animation loading framework inspired by [Glide](ht
 
 ```kotlin
 dependencies {
-    implementation("com.kernelflux.mobile:aniflux:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux:1.1.2")
 }
 ```
 
@@ -40,7 +44,7 @@ dependencies {
 ```kotlin
 // In your project's build.gradle.kts (project level)
 plugins {
-    id("com.kernelflux.aniflux.register") version "1.1.1" apply false
+    id("com.kernelflux.aniflux.register") version "1.1.2" apply false
 }
 
 // In your app's build.gradle.kts (module level)
@@ -50,14 +54,14 @@ plugins {
 
 dependencies {
     // Core module (required)
-    implementation("com.kernelflux.mobile:aniflux-core:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-core:1.1.2")
     
     // Format modules (add as needed)
-    implementation("com.kernelflux.mobile:aniflux-gif:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-svga:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-pag:1.1.1")
-    implementation("com.kernelflux.mobile:aniflux-vap:1.1.1")
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-svga:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-pag:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-vap:1.1.2")
 }
 ```
 
@@ -96,6 +100,23 @@ AniFlux.with(context)
     .asSVGA()
     .load("https://example.com/animation.svga")
     .into(svgaImageView)
+
+// Load PAG
+AniFlux.with(context)
+    .asPAG()
+    .load("https://example.com/animation.pag")
+    .into(pagImageView)
+
+// Load VAP
+AniFlux.with(context)
+    .asVAP()
+    .load("https://example.com/animation.mp4")
+    .into(vapImageView)
+
+// Auto-detect format from URL
+AniFlux.with(context)
+    .load("https://example.com/animation.gif")  // Automatically detects GIF
+    .into(imageView)
 ```
 
 ## Architecture
@@ -185,6 +206,76 @@ class MyFragment : Fragment() {
 }
 ```
 
+### RecyclerView Support
+
+AniFlux automatically handles RecyclerView view recycling:
+
+- **Pauses animations** when views are detached (recycling scenario)
+- **Resumes animations** when views are re-attached
+- **Preserves resources** during recycling to avoid reloading
+- **Releases resources** only when truly destroyed
+
+```kotlin
+// Works seamlessly in RecyclerView
+class MyAdapter : RecyclerView.Adapter<MyViewHolder>() {
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        AniFlux.with(context)
+            .asGif()
+            .load(items[position].animationUrl)
+            .into(holder.imageView)
+        // Automatically handles view recycling
+    }
+}
+```
+
+### Animation Compatibility
+
+AniFlux automatically handles system animation settings:
+
+- **Works correctly** even when system animations are disabled in Developer Options
+- **Runtime monitoring** detects changes in system animation settings
+- **Auto-recovery** restarts animations when settings change during app usage
+- **Format-specific fixes** for ValueAnimator-based animations (SVGA, PAG, VAP) and Lottie
+
+```kotlin
+// Automatically enabled by default
+AniFlux.init(this)
+
+// Or configure explicitly
+AniFlux.init(this) {
+    enableAnimationCompatibility = true  // Default: true
+}
+```
+
+### Unified Logging System
+
+Configurable logging for debugging and analysis:
+
+```kotlin
+// Configure log level
+AniFlux.init(this) {
+    logLevel = AniFluxLogLevel.DEBUG
+}
+
+// Categories: GENERAL, ENGINE, CACHE, REQUEST, TARGET, LOADER
+// Levels: VERBOSE, DEBUG, INFO, WARN, ERROR
+```
+
+### Auto Type Detection
+
+Automatically detects animation format from URL or file path:
+
+```kotlin
+// No need to specify format
+AniFlux.with(context)
+    .load("https://example.com/animation.gif")  // Auto-detects GIF
+    .into(imageView)
+
+AniFlux.with(context)
+    .load("https://example.com/animation.json")  // Auto-detects Lottie
+    .into(lottieView)
+```
+
 ## Supported Formats
 
 | Format | Module | Features |
@@ -207,6 +298,51 @@ requestManager.resumeRequests()
 requestManager.clearRequests()
 ```
 
+### Custom Configuration
+
+```kotlin
+AniFlux.init(this) {
+    // Set placeholder image loader
+    setPlaceholderImageLoader(customLoader)
+    
+    // Enable/disable animation compatibility
+    setEnableAnimationCompatibility(true)
+    
+    // Set log level
+    logLevel = AniFluxLogLevel.DEBUG
+}
+```
+
+### Play Listener
+
+```kotlin
+AniFlux.with(context)
+    .asGif()
+    .load(url)
+    .playListener(object : AnimationPlayListener {
+        override fun onAnimationStart() {
+            // Animation started
+        }
+        
+        override fun onAnimationEnd() {
+            // Animation ended
+        }
+        
+        override fun onAnimationCancel() {
+            // Animation cancelled
+        }
+        
+        override fun onAnimationRepeat() {
+            // Animation repeated
+        }
+        
+        override fun onAnimationFailed(error: Throwable?) {
+            // Animation failed
+        }
+    })
+    .into(imageView)
+```
+
 ## Best Practices
 
 1. **Choose the right dependency**: Use all-in-one bundle for simplicity, or modular dependencies for size optimization
@@ -214,6 +350,8 @@ requestManager.clearRequests()
 3. **Lifecycle-aware**: Use Fragment/Activity context for automatic cleanup
 4. **Cache strategy**: Choose appropriate strategy based on usage patterns
 5. **Placeholder replacement**: Use for dynamic content in SVGA/PAG/Lottie
+6. **RecyclerView**: Works automatically, no special handling needed
+7. **Animation compatibility**: Enabled by default, ensures animations work even when system animations are disabled
 
 ## License
 

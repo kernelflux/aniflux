@@ -20,6 +20,15 @@ class VAPViewTarget(view: AnimView) : CustomViewAnimationTarget<AnimView, File>(
         // Ensure reusable container cache is set when resource is ready
         onResourceReadyInternal()
         
+        // Ensure animation compatibility fix is applied before playing
+        // VAP uses ValueAnimator internally, so we need to ensure ValueAnimator.durationScale is fixed
+        val context = view.context
+        if (context != null) {
+            com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                context.contentResolver
+            )
+        }
+        
         val repeatCount = animationOptions?.repeatCount ?: -1
         val retainLastFrame = animationOptions?.retainLastFrame ?: true
         

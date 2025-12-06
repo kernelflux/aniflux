@@ -26,6 +26,15 @@ class SVGAViewTarget(view: SVGAImageView) :
         // Ensure reusable container cache is set when resource is ready
         onResourceReadyInternal()
         
+        // Ensure animation compatibility fix is applied before playing
+        // SVGA uses ValueAnimator internally, so we need to ensure ValueAnimator.durationScale is fixed
+        val context = view.context
+        if (context != null) {
+            com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                context.contentResolver
+            )
+        }
+        
         // Set listener first (avoid missing onAnimationStart)
         setupPlayListeners(resource, view)
 
@@ -110,6 +119,14 @@ class SVGAViewTarget(view: SVGAImageView) :
     override fun resumeAnimation() {
         // Resume playback
         try {
+            // Ensure animation compatibility fix is applied before playing
+            // SVGA uses ValueAnimator internally, so we need to ensure ValueAnimator.durationScale is fixed
+            val context = view.context
+            if (context != null) {
+                com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                    context.contentResolver
+                )
+            }
             // Check if drawable exists by checking if the view has a SVGADrawable
             val drawable = view.drawable as? SVGADrawable
             if (drawable != null && drawable.videoItem != null) {

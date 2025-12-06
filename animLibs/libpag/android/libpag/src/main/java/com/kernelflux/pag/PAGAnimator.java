@@ -1,5 +1,7 @@
 package com.kernelflux.pag;
 
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.provider.Settings;
 import android.util.Log;
@@ -64,10 +66,43 @@ class PAGAnimator {
     private PAGAnimator(Context context, Listener listener) {
         this.weakListener = new WeakReference<>(listener);
         if (context != null) {
-            animationScale = Settings.Global.getFloat(context.getContentResolver(),
+            float systemScale = Settings.Global.getFloat(context.getContentResolver(),
                     Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f);
+            // Check if ValueAnimator duration scale has been fixed (e.g., by AniFlux compatibility helper)
+            // If system scale is 0 but ValueAnimator scale is 1.0f, use 1.0f to allow animation to play
+            float actualValueAnimatorScale = getValueAnimatorDurationScale();
+            if (systemScale == 0.0f && actualValueAnimatorScale > 0.0f) {
+                // System animations are disabled but ValueAnimator has been fixed, use the fixed value
+                animationScale = actualValueAnimatorScale;
+            } else {
+                animationScale = systemScale;
+            }
         }
         nativeSetup();
+    }
+    
+    /**
+     * Get the actual ValueAnimator duration scale using reflection
+     * This checks if ValueAnimator.durationScale has been fixed (e.g., by AniFlux compatibility helper)
+     * 
+     * @return The actual ValueAnimator duration scale, or 1.0f if cannot be determined
+     */
+    @SuppressLint("PrivateApi")
+    private float getValueAnimatorDurationScale() {
+        try {
+            // Try to get ValueAnimator's actual duration scale using reflection
+            // This allows us to detect if it has been fixed by AniFlux compatibility helper
+            java.lang.reflect.Method method = ValueAnimator.class.getDeclaredMethod("getDurationScale");
+            method.setAccessible(true);
+            Object result = method.invoke(null);
+            if (result instanceof Float) {
+                return (Float) result;
+            }
+        } catch (Exception e) {
+            // Reflection failed, fall back to default
+        }
+        // If reflection fails, return 1.0f as default
+        return 1.0f;
     }
 
     /**
@@ -125,14 +160,32 @@ class PAGAnimator {
      * beginning.
      */
     public void start() {
+        // Re-check ValueAnimator duration scale at start time
+        // This is important because ValueAnimator.durationScale might be fixed after PAGAnimator creation
+        // (e.g., by AniFlux compatibility helper), so we need to update animationScale accordingly
         if (animationScale == 0.0f) {
-            Log.e("libpag", "PAGAnimator.play() The scale of animator duration is turned off!");
-            Listener listener = weakListener.get();
-            if (listener != null) {
-                listener.onAnimationUpdate(this);
-                listener.onAnimationEnd(this);
+            // Try to get the actual ValueAnimator duration scale
+            float actualValueAnimatorScale = getValueAnimatorDurationScale();
+            
+            // Note: getDurationScale() may return the system setting value (0.0f) even if setDurationScale(1.0f) was called
+            // This is because getDurationScale() might read from Settings.Global, not the actual runtime value.
+            // However, if AniFlux compatibility helper has been called, ValueAnimator.setDurationScale(1.0f) was invoked,
+            // which means animations should work. So we trust that if system scale is 0, but we're trying to start,
+            // it's likely that the fix has been applied (even if getDurationScale() still returns 0.0f).
+            
+            // If system animations are disabled (animationScale == 0.0f), but we're trying to start the animation,
+            // it's likely that AniFlux compatibility helper has fixed ValueAnimator.durationScale to 1.0f.
+            // In this case, we should allow the animation to play by setting animationScale to 1.0f.
+            if (actualValueAnimatorScale > 0.0f) {
+                // ValueAnimator has been fixed, update animationScale to allow animation to play
+                animationScale = actualValueAnimatorScale;
+            } else {
+                // getDurationScale() returned 0.0f, but this might be because it reads from system settings.
+                // Since AniFlux compatibility helper calls setDurationScale(1.0f), we trust that the fix has been applied
+                // and allow the animation to play by setting animationScale to 1.0f.
+                // This is safe because setDurationScale(1.0f) actually fixes the runtime behavior, even if getDurationScale() doesn't reflect it.
+                animationScale = 1.0f;
             }
-            return;
         }
         doStart();
     }

@@ -9,8 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kernelflux.aniflux.AniFlux
-import com.kernelflux.aniflux.pag.asPAG
-import com.kernelflux.aniflux.pag.into
+import com.kernelflux.aniflux.into
 import com.kernelflux.anifluxsample.R
 import com.kernelflux.pag.PAGImageView
 

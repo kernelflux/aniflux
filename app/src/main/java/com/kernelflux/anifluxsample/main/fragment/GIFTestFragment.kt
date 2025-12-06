@@ -11,8 +11,7 @@ import com.kernelflux.aniflux.AniFlux
 import com.kernelflux.anifluxsample.util.AniFluxLogger
 import com.kernelflux.anifluxsample.main.BaseLazyFragment
 import com.kernelflux.aniflux.cache.AnimationCacheStrategy
-import com.kernelflux.aniflux.gif.asGif
-import com.kernelflux.aniflux.gif.into
+import com.kernelflux.aniflux.into
 import com.kernelflux.aniflux.request.listener.AnimationPlayListener
 import com.kernelflux.anifluxsample.R
 import com.kernelflux.gif.GifImageView

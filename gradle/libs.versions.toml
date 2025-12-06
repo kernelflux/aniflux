@@ -1,13 +1,13 @@
 [versions]
 # Upper layer module version (aniflux-core, aniflux-pag, aniflux-gif, etc.)
-aniflux = "1.1.1"
+aniflux = "1.1.2"
 # Bottom layer library version (libraries under animLibs)
-anifluxLib = "0.0.3"
+anifluxLib = "0.0.4"
 
 
 asm = "9.9"
 compileSdk = "36"
-exifinterface = "1.4.1"
+exifinterface = "1.4.2"
 fragmentVersion = "1.8.9"
 glide = "5.0.5"
 gradle = "8.13.1"
@@ -44,7 +44,7 @@ relinker = "1.4.5"
 #noinspection NewerVersionAvailable
 wireRuntime = "2.3.0-RC1"
 
-mavencentraluploader = "1.0.7"
+mavencentraluploader = "1.0.10"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

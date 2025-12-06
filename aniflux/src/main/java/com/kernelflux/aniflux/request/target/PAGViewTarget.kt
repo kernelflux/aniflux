@@ -18,6 +18,17 @@ class PAGViewTarget(view: PAGView) : CustomViewAnimationTarget<PAGView, PAGFile>
         // Ensure reusable container cache is set when resource is ready
         onResourceReadyInternal()
         
+        // Ensure animation compatibility fix is applied before playing
+        // This is critical for PAG animations when system animations are disabled
+        // Note: PAG source code has been modified to automatically detect if ValueAnimator.durationScale
+        // has been fixed, so we only need to ensure the fix is applied here
+        val context = view.context
+        if (context != null) {
+            com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                context.contentResolver
+            )
+        }
+        
         // Set listener first (avoid missing onAnimationStart)
         setupPlayListeners(resource, view)
 
@@ -56,6 +67,16 @@ class PAGViewTarget(view: PAGView) : CustomViewAnimationTarget<PAGView, PAGFile>
         // Resume playback
         try {
             if (view.composition != null) {
+                // Ensure animation compatibility fix is applied before playing
+                // This is critical for PAG animations when system animations are disabled
+                // Note: PAG source code has been modified to automatically detect if ValueAnimator.durationScale
+                // has been fixed, so we only need to ensure the fix is applied here
+                val context = view.context
+                if (context != null) {
+                    com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                        context.contentResolver
+                    )
+                }
                 view.play()
             }
         } catch (e: Exception) {

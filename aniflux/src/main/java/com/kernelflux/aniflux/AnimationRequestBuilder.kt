@@ -453,9 +453,7 @@ fun AnimationRequestBuilder<*>.into(view: LottieAnimationView): LottieViewTarget
  * Load to SVGAImageView (type inference version)
  */
 fun AnimationRequestBuilder<*>.into(view: SVGAImageView): SVGAViewTarget {
-    val builderClass = getBuilderTranscodeClass(this)
-
-    return when (builderClass) {
+    return when (val builderClass = getBuilderTranscodeClass(this)) {
         SVGADrawable::class.java -> {
             @Suppress("UNCHECKED_CAST")
             (this as AnimationRequestBuilder<SVGADrawable>).into(view)

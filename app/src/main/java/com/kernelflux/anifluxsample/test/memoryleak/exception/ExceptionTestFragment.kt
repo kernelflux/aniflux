@@ -8,8 +8,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.kernelflux.aniflux.AniFlux
-import com.kernelflux.aniflux.pag.asPAG
-import com.kernelflux.aniflux.pag.into
+import com.kernelflux.aniflux.into
 import com.kernelflux.anifluxsample.R
 import com.kernelflux.pag.PAGImageView
 import com.kernelflux.anifluxsample.util.AniFluxLogger

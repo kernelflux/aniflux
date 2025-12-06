@@ -33,15 +33,9 @@ class LottieViewTarget(view: LottieAnimationView) :
         val autoPlay = animationOptions?.autoPlay ?: true
 
         view.apply {
-            resource.composition?.let { setComposition(it) }
-            this.repeatCount = when {
-                repeatCount < 0 -> LottieDrawable.INFINITE  // -1
-                repeatCount <= 1 -> 0  // Play once (no repeat)
-                else -> repeatCount - 1  // Total count N → repeat count N-1
-            }
-            
             // ✅ Compatibility: Ignore disabled system animations to ensure Lottie animations work
             // even when system animations are disabled in developer options
+            // IMPORTANT: Set this BEFORE setComposition() because setComposition() may trigger autoPlay
             try {
                 @Suppress("DEPRECATION")
                 setIgnoreDisabledSystemAnimations(true)
@@ -52,8 +46,17 @@ class LottieViewTarget(view: LottieAnimationView) :
                     e
                 )
             }
+            
+            resource.composition?.let { setComposition(it) }
+            this.repeatCount = when {
+                repeatCount < 0 -> LottieDrawable.INFINITE  // -1
+                repeatCount <= 1 -> 0  // Play once (no repeat)
+                else -> repeatCount - 1  // Total count N → repeat count N-1
+            }
 
             // If auto play is set, call playAnimation()
+            // Note: setComposition() may have already triggered playAnimation() if autoPlay is true
+            // But we call it again here to ensure it plays (in case autoPlay was false in setComposition)
             if (autoPlay) {
                 playAnimation()
             }
@@ -115,6 +118,18 @@ class LottieViewTarget(view: LottieAnimationView) :
         // Resume playback
         try {
             if (view.composition != null) {
+                // Ensure ignoreDisabledSystemAnimations is set before resuming
+                // This is critical for Lottie animations when system animations are disabled
+                try {
+                    @Suppress("DEPRECATION")
+                    view.setIgnoreDisabledSystemAnimations(true)
+                } catch (e: Exception) {
+                    AniFluxLog.w(
+                        AniFluxLogCategory.TARGET,
+                        "Failed to set ignoreDisabledSystemAnimations for Lottie (may not be available in this Lottie version)",
+                        e
+                    )
+                }
                 view.resumeAnimation()
             }
         } catch (e: Exception) {

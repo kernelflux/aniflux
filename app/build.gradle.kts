@@ -6,7 +6,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.aniflux.register)
+    //alias(libs.plugins.aniflux.register)
 }
 
 val keystorePropsFile = rootProject.file("keystore.properties")
@@ -90,12 +90,15 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    debugImplementation(project(":aniflux-core"))
-    debugImplementation(project(":aniflux-gif"))
-    debugImplementation(project(":aniflux-pag"))
-    debugImplementation(project(":aniflux-lottie"))
-    debugImplementation(project(":aniflux-svga"))
-    debugImplementation(project(":aniflux-vap"))
+
+    debugImplementation(project(":aniflux"))
+
+//    debugImplementation(project(":aniflux-core"))
+//    debugImplementation(project(":aniflux-gif"))
+//    debugImplementation(project(":aniflux-pag"))
+//    debugImplementation(project(":aniflux-lottie"))
+//    debugImplementation(project(":aniflux-svga"))
+//    debugImplementation(project(":aniflux-vap"))
 
 
     releaseImplementation(libs.aniflux.core)

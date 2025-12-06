@@ -1,6 +1,6 @@
 plugins {
     id 'com.android.library'
-    id 'com.kernelflux.maven.publish' version '1.0.6'
+    id 'com.kernelflux.maven.publish' version '1.0.8'
 }
 
 // 发布配置
@@ -39,9 +39,7 @@ android {
     }
 
     publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
+        singleVariant("release") {}
     }
 }
 

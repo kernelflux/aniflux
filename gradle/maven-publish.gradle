@@ -1,10 +1,10 @@
 /**
  * Common Maven Central publishing configuration script
- * 
+ *
  * Usage:
  * 1. Apply this script in build.gradle:
  *    apply from: rootProject.file('gradle/maven-publish.gradle')
- * 
+ *
  * 2. Define the following variables before applying:
  *    ext {
  *        publishArtifactId = "aniflux-xxx"  // Required: artifact ID
@@ -24,9 +24,9 @@ if (!project.hasProperty('publishVersion')) {
 def sGroupId = "com.kernelflux.mobile"
 def sArtifactId = project.ext.publishArtifactId
 def sVersion = project.ext.publishVersion
-def sBundleName = project.hasProperty('publishBundleName') 
-    ? project.ext.publishBundleName 
-    : "${sArtifactId.replace('-', '_')}_bundle_v${sVersion}"
+def sBundleName = project.hasProperty('publishBundleName')
+        ? project.ext.publishBundleName
+        : "${sArtifactId.replace('-', '_')}_bundle_v${sVersion}"
 
 // Configure mavenCentralUpload
 mavenCentralUpload {
@@ -45,19 +45,25 @@ mavenCentralUpload {
         privateProps.load(new FileInputStream(privatePropsFile))
         def signingKeyFileProp = privateProps.getProperty("signingKeyFile")
         def signingPassProp = privateProps.getProperty("signingPass")
-    
-    if (signingKeyFileProp) {
+
+        if (signingKeyFileProp) {
             def keyFile = new File(signingKeyFileProp)
-            def finalPath = keyFile.isAbsolute() 
-                ? signingKeyFileProp 
-                : new File(project.rootProject.projectDir, signingKeyFileProp).absolutePath
-            signingKeyFile.set(finalPath)
-            println("Maven Central Upload: signingKeyFile configured: ${finalPath} ✓")
-    }
-    
-    if (signingPassProp) {
+            def finalPath = keyFile.isAbsolute()
+                    ? signingKeyFileProp
+                    : new File(project.rootProject.projectDir, signingKeyFileProp).absolutePath
+            def signingKeyFileObj = new File(finalPath)
+            // Only set signingKeyFile if the file actually exists
+            if (signingKeyFileObj.exists()) {
+                signingKeyFile.set(finalPath)
+                println("Maven Central Upload: signingKeyFile configured: ${finalPath} ✓")
+            } else {
+                println("Maven Central Upload: signingKeyFile not found: ${finalPath}, signing will be disabled")
+            }
+        }
+
+        if (signingPassProp) {
             signingPass.set(signingPassProp)
-        println("Maven Central Upload: signingPass configured")
+            println("Maven Central Upload: signingPass configured")
         }
     }
 
@@ -88,5 +94,4 @@ mavenCentralUpload {
         }
     })
 }
-
 

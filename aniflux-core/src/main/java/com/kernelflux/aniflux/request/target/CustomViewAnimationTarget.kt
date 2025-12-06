@@ -819,6 +819,49 @@ abstract class CustomViewAnimationTarget<T : View, Z>(protected val view: T) : A
     }
     
     /**
+     * Restart animation if needed (called when system animation settings change)
+     * This method checks if animation should be restarted and calls resumeAnimation()
+     * 
+     * @return true if animation was restarted, false otherwise
+     */
+    @JvmName("restartAnimationIfNeeded")
+    fun restartAnimationIfNeeded(): Boolean {
+        // Check if view is attached and resource is not released
+        if (isResourceReleased || !view.isAttachedToWindow) {
+            return false
+        }
+        
+        // Check if request exists and is not cleared
+        val request = getRequest()
+        if (request == null || request.isCleared()) {
+            return false
+        }
+        
+        // Check if animation should auto-play (default: true)
+        val autoPlay = animationOptions?.autoPlay ?: true
+        if (!autoPlay) {
+            return false
+        }
+        
+        // Restart animation
+        try {
+            AniFluxLog.d(
+                AniFluxLogCategory.TARGET,
+                "Restarting animation after system animation settings change"
+            )
+            resumeAnimation()
+            return true
+        } catch (e: Exception) {
+            AniFluxLog.e(
+                AniFluxLogCategory.TARGET,
+                "Error restarting animation after system animation settings change",
+                e
+            )
+            return false
+        }
+    }
+    
+    /**
      * Clear animation resources from View (to be implemented by subclasses)
      * Note: This is the key method for releasing resources
      */

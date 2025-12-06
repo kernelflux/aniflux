@@ -1,6 +1,7 @@
 package com.kernelflux.aniflux.request
 
 import android.content.Context
+import android.util.Log
 import com.kernelflux.aniflux.log.AniFluxLog
 import com.kernelflux.aniflux.log.AniFluxLogCategory
 import com.kernelflux.aniflux.log.AniFluxLogLevel

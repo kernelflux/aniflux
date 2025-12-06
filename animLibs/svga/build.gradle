@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'com.kernelflux.maven.publish' version '1.0.6'
+    id 'com.kernelflux.maven.publish' version '1.0.8'
 }
 
 // 发布配置

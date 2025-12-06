@@ -65,7 +65,14 @@ class AniFlux : ComponentCallbacks2 {
         // Initialize animation compatibility (handle system animation settings)
         // This ensures animations work correctly even when system animations are disabled in developer options
         if (enableAnimationCompatibility) {
-            AnimationCompatibilityHelper.initialize(context.contentResolver)
+            AnimationCompatibilityHelper.initialize(
+                context.contentResolver,
+                enableRuntimeMonitoring = true,
+                onAnimationSettingsChanged = {
+                    // Restart all animations when system animation settings change
+                    restartAllAnimations()
+                }
+            )
         }
     }
 
@@ -272,6 +279,41 @@ class AniFlux : ComponentCallbacks2 {
         
         // Clear Engine cache
         engine.clear()
+    }
+    
+    /**
+     * Restart all animations that are currently playing
+     * Called when system animation settings change (e.g., user disables animations)
+     * This ensures animations continue to work even if system animations are disabled
+     */
+    fun restartAllAnimations() {
+        Util.assertMainThread()
+        synchronized(managers) {
+            var restartedCount = 0
+            for (manager in managers) {
+                // Get all targets from this manager
+                val targets = manager.getAllTargets()
+                for (target in targets) {
+                    // Check if target is CustomViewAnimationTarget
+                    // Use reflection to call restartAnimationIfNeeded() since CustomViewAnimationTarget is in aniflux module
+                    try {
+                        val method = target.javaClass.getMethod("restartAnimationIfNeeded")
+                        val result = method.invoke(target) as? Boolean
+                        if (result == true) {
+                            restartedCount++
+                        }
+                    } catch (e: Exception) {
+                        // Method doesn't exist or call failed, ignore
+                    }
+                }
+            }
+            if (restartedCount > 0) {
+                com.kernelflux.aniflux.log.AniFluxLog.i(
+                    com.kernelflux.aniflux.log.AniFluxLogCategory.GENERAL,
+                    "Restarted $restartedCount animations after system animation settings change"
+                )
+            }
+        }
     }
 
 

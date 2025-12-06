@@ -267,6 +267,14 @@ class AnimationRequestManager(
     }
 
 
+    /**
+     * Get all targets tracked by this manager
+     * Used for operations that need to iterate over all targets (e.g., restart animations)
+     */
+    fun getAllTargets(): List<AnimationTarget<*>> {
+        return targetTracker.getAll()
+    }
+
     private inner class AnimationRequestManagerConnectivityListener(
         private val requestTracker: AnimationRequestTracker
     ) : AnimationConnectivityMonitor.AnimationConnectivityListener {

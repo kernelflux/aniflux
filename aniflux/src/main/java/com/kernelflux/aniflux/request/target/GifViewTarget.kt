@@ -20,6 +20,15 @@ class GifViewTarget(view: GifImageView) : CustomViewAnimationTarget<GifImageView
         // Ensure reusable container cache is set when resource is ready
         onResourceReadyInternal()
         
+        // Ensure animation compatibility fix is applied before playing
+        // GIF uses ValueAnimator internally, so we need to ensure ValueAnimator.durationScale is fixed
+        val context = view.context
+        if (context != null) {
+            com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                context.contentResolver
+            )
+        }
+        
         // Get configuration options
         val repeatCount = animationOptions?.repeatCount ?: -1
         // ✅ GIF's loopCount semantics: 0=infinite loop, N=play N times (total play count)
@@ -59,6 +68,14 @@ class GifViewTarget(view: GifImageView) : CustomViewAnimationTarget<GifImageView
     override fun resumeAnimation() {
         // Resume playback
         try {
+            // Ensure animation compatibility fix is applied before playing
+            // GIF uses ValueAnimator internally, so we need to ensure ValueAnimator.durationScale is fixed
+            val context = view.context
+            if (context != null) {
+                com.kernelflux.aniflux.util.AnimationCompatibilityHelper.ensureValueAnimatorCompatibility(
+                    context.contentResolver
+                )
+            }
             val drawable = view.drawable
             if (drawable is com.kernelflux.gif.GifDrawable) {
                 drawable.start()

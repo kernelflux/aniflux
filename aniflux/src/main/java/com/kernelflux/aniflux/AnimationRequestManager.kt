@@ -164,13 +164,20 @@ class AnimationRequestManager(
 
 
     /**
-     * Specify loading PAG animation
+     * Specify loading File (for VAP animation)
      */
     @CheckResult
     fun asFile(): AnimationRequestBuilder<File> {
         return `as`(File::class.java)
     }
 
+    /**
+     * Specify loading VAP animation
+     */
+    @CheckResult
+    fun asVAP(): AnimationRequestBuilder<File> {
+        return `as`(File::class.java)
+    }
 
     /**
      * Specify loading PAG animation
@@ -204,6 +211,7 @@ class AnimationRequestManager(
         return `as`(GifDrawable::class.java)
     }
 
+    
     /**
      * Create corresponding Builder based on animation type and load model
      * Unified processing logic, eliminates duplicate code
@@ -226,7 +234,7 @@ class AnimationRequestManager(
             } else {
                 throw IllegalArgumentException(
                     errorMessage
-                        ?: "Cannot automatically detect animation type\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type"
+                        ?: "Cannot automatically detect animation type\nPlease use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type"
                 )
             }
         }
@@ -236,7 +244,7 @@ class AnimationRequestManager(
             AnimationTypeDetector.AnimationType.LOTTIE -> loadAction(asLottie())
             AnimationTypeDetector.AnimationType.PAG -> loadAction(asPAG())
             AnimationTypeDetector.AnimationType.SVGA -> loadAction(asSVGA())
-            AnimationTypeDetector.AnimationType.VAP -> loadAction(asFile())
+            AnimationTypeDetector.AnimationType.VAP -> loadAction(asVAP())
             AnimationTypeDetector.AnimationType.UNKNOWN -> throw IllegalArgumentException(
                 errorMessage ?: "Cannot automatically detect animation type"
             )
@@ -245,7 +253,7 @@ class AnimationRequestManager(
 
     /**
      * Load from URL string (auto-detect animation type)
-     * If detection fails, please use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type
+     * If detection fails, please use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type
      */
     @CheckResult
     fun load(path: String): AnimationRequestBuilder<*> {
@@ -256,7 +264,7 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(path) },
-            errorMessage = "Cannot automatically detect animation type, URL: $path\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
+            errorMessage = "Cannot automatically detect animation type, URL: $path\nPlease use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type",
             allowUnknown = true
         )
     }
@@ -270,7 +278,7 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(resourceId) },
-            errorMessage = "Cannot automatically detect animation type, ResourceId: $resourceId\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
+            errorMessage = "Cannot automatically detect animation type, ResourceId: $resourceId\nPlease use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type",
             allowUnknown = false
         )
     }
@@ -299,7 +307,7 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(file) },
-            errorMessage = "Cannot automatically detect animation type, File: ${file.absolutePath}\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
+            errorMessage = "Cannot automatically detect animation type, File: ${file.absolutePath}\nPlease use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type",
             allowUnknown = false
         )
     }
@@ -313,7 +321,7 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(uri) },
-            errorMessage = "Cannot automatically detect animation type, Uri: $uri\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
+            errorMessage = "Cannot automatically detect animation type, Uri: $uri\nPlease use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type",
             allowUnknown = true
         )
     }
@@ -330,7 +338,7 @@ class AnimationRequestManager(
         return createBuilderForType(
             animationType = animationType,
             loadAction = { it.load(byteArray) },
-            errorMessage = "Cannot automatically detect animation type (byte array header signature mismatch)\nPlease use asPAG()/asGif()/asLottie()/asSVGA() to explicitly specify type",
+            errorMessage = "Cannot automatically detect animation type (byte array header signature mismatch)\nPlease use asPAG()/asGif()/asLottie()/asSVGA()/asVAP() to explicitly specify type",
             allowUnknown = false
         )
     }
@@ -436,6 +444,14 @@ class AnimationRequestManager(
     }
 
 
+    /**
+     * Get all targets tracked by this manager
+     * Used for operations that need to iterate over all targets (e.g., restart animations)
+     */
+    fun getAllTargets(): List<AnimationTarget<*>> {
+        return targetTracker.getAll()
+    }
+
     private inner class AnimationRequestManagerConnectivityListener(
         private val requestTracker: AnimationRequestTracker
     ) : AnimationConnectivityMonitor.AnimationConnectivityListener {
@@ -453,20 +469,20 @@ class AnimationRequestManager(
             // Do nothing, we don't retain a reference to our resource.
         }
 
+        override fun stopAnimation() {
+            //
+        }
+
+        override fun clearAnimationFromView() {
+            //
+        }
+
         override fun onLoadFailed(errorDrawable: Drawable?) {
             // Do nothing.
         }
 
         override fun onResourceReady(resource: Any) {
             // Do nothing.
-        }
-        
-        override fun stopAnimation() {
-            // Do nothing, ClearTarget doesn't manage animation playback
-        }
-        
-        override fun clearAnimationFromView() {
-            // Do nothing, ClearTarget doesn't manage animation resources
         }
     }
 

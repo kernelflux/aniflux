@@ -26,6 +26,17 @@ class DisplayLink implements ValueAnimator.AnimatorUpdateListener {
         handler.post(new Runnable() {
             @Override
             public void run() {
+                // Ensure ValueAnimator compatibility fix is applied before starting
+                // This is critical when system animations are disabled
+                // Directly set ValueAnimator.durationScale to 1.0f to ensure animations work
+                try {
+                    java.lang.reflect.Method setDurationScaleMethod = ValueAnimator.class.getDeclaredMethod("setDurationScale", float.class);
+                    setDurationScaleMethod.setAccessible(true);
+                    setDurationScaleMethod.invoke(null, 1.0f);
+                } catch (Exception e) {
+                    // Reflection failed, but continue anyway - AnimationCompatibilityHelper should have fixed it
+                }
+                
                 animator.start();
             }
         });

@@ -80,9 +80,14 @@ object AnimationCompatibilityHelper {
      * 
      * @param contentResolver ContentResolver to check system settings
      * @param enableRuntimeMonitoring Whether to monitor runtime changes (default: true)
+     * @param onAnimationSettingsChanged Callback when animation settings change (e.g., to restart animations)
      */
     @JvmStatic
-    fun initialize(contentResolver: ContentResolver, enableRuntimeMonitoring: Boolean = true) {
+    fun initialize(
+        contentResolver: ContentResolver,
+        enableRuntimeMonitoring: Boolean = true,
+        onAnimationSettingsChanged: (() -> Unit)? = null
+    ) {
         val animationsEnabled = AnimationSystemSettingsDetector.areAnimationsEnabled(contentResolver)
         
         if (!animationsEnabled) {
@@ -102,7 +107,7 @@ object AnimationCompatibilityHelper {
         
         // Register observer to monitor runtime changes
         if (enableRuntimeMonitoring) {
-            registerSettingsObserver(contentResolver)
+            registerSettingsObserver(contentResolver, onAnimationSettingsChanged)
         }
     }
     
@@ -111,9 +116,13 @@ object AnimationCompatibilityHelper {
      * This handles the case when user disables animations during app usage
      * 
      * @param contentResolver ContentResolver to register observer
+     * @param onAnimationSettingsChanged Callback when animation settings change (e.g., to restart animations)
      */
     @JvmStatic
-    fun registerSettingsObserver(contentResolver: ContentResolver) {
+    fun registerSettingsObserver(
+        contentResolver: ContentResolver,
+        onAnimationSettingsChanged: (() -> Unit)? = null
+    ) {
         // Unregister existing observer if any
         unregisterSettingsObserver()
         
@@ -123,6 +132,8 @@ object AnimationCompatibilityHelper {
                 AniFluxLogCategory.GENERAL,
                 "Animation settings changed, compatibility fixes applied"
             )
+            // Call the callback to restart animations
+            onAnimationSettingsChanged?.invoke()
         }
         
         settingsObserver?.register()

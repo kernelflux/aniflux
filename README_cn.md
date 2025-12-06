@@ -31,7 +31,19 @@ AniFlux 是一个强大的 Android 动画加载框架，灵感来源于 [Glide](
 
 ### 安装
 
-**方式一：一体化包（推荐，适用于大多数场景）**
+AniFlux 提供两种集成方式，满足不同需求：
+
+#### 方式一：一体化包（推荐，适用于大多数场景）
+
+`aniflux` 一体化包包含**所有动画格式**（GIF、Lottie、SVGA、PAG、VAP），所有 Loader 已预注册。
+
+**优势：**
+- ✅ 集成简单 - 只需一个依赖
+- ✅ 所有格式开箱即用
+- ✅ 无需注册插件
+- ✅ 适合使用多种动画格式的应用
+
+**依赖配置：**
 
 ```kotlin
 dependencies {
@@ -39,15 +51,36 @@ dependencies {
 }
 ```
 
-**方式二：模块化依赖（用于体积优化）**
+**包含内容：**
+- `aniflux-core` - 核心引擎、缓存、生命周期管理
+- `aniflux-gif` - GIF 格式支持
+- `aniflux-lottie` - Lottie 格式支持
+- `aniflux-svga` - SVGA 格式支持
+- `aniflux-pag` - PAG 格式支持
+- `aniflux-vap` - VAP 格式支持
+
+#### 方式二：模块化依赖（用于体积优化）
+
+使用模块化依赖可以**按需选择格式**，只引入需要的格式，减少应用体积。
+
+**优势：**
+- ✅ 应用体积更小 - 只包含使用的格式
+- ✅ 更好的依赖控制
+- ✅ 适合只使用 1-2 种动画格式的应用
+
+**配置步骤：**
+
+1. 在项目根目录的 `build.gradle.kts` 中添加注册插件：
 
 ```kotlin
-// 在项目根目录的 build.gradle.kts
 plugins {
     id("com.kernelflux.aniflux.register") version "1.1.2" apply false
 }
+```
 
-// 在 app 模块的 build.gradle.kts
+2. 在 app 模块的 `build.gradle.kts` 中应用插件并添加依赖：
+
+```kotlin
 plugins {
     id("com.kernelflux.aniflux.register")
 }
@@ -57,17 +90,33 @@ dependencies {
     implementation("com.kernelflux.mobile:aniflux-core:1.1.2")
     
     // 格式模块（按需添加）
-    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-svga:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-pag:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-vap:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")        // GIF 格式
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")     // Lottie 格式
+    implementation("com.kernelflux.mobile:aniflux-svga:1.1.2")       // SVGA 格式
+    implementation("com.kernelflux.mobile:aniflux-pag:1.1.2")       // PAG 格式
+    implementation("com.kernelflux.mobile:aniflux-vap:1.1.2")       // VAP 格式
 }
 ```
 
-**注意**：
+**示例：仅使用 GIF 和 Lottie**
+
+```kotlin
+plugins {
+    id("com.kernelflux.aniflux.register")
+}
+
+dependencies {
+    implementation("com.kernelflux.mobile:aniflux-core:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")
+    // 不包含 SVGA、PAG、VAP
+}
+```
+
+**重要提示：**
+- 使用模块化依赖时，`com.kernelflux.aniflux.register` 插件是**必需的**，用于在编译时自动注册 Loader
 - 一体化包（`aniflux`）已包含所有预注册的 Loader，**不需要注册插件**
-- 使用模块化依赖时，`com.kernelflux.aniflux.register` 插件是**必需的**，用于自动注册依赖中的 Loader
+- 每个格式模块都是独立的，只需添加需要的格式
 
 ### 初始化
 

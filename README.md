@@ -31,7 +31,19 @@ AniFlux is a powerful Android animation loading framework inspired by [Glide](ht
 
 ### Installation
 
-**Option 1: All-in-one bundle (Recommended for most cases)**
+AniFlux provides two integration methods to suit different needs:
+
+#### Option 1: All-in-one Bundle (Recommended for most cases)
+
+The `aniflux` bundle includes **all animation formats** (GIF, Lottie, SVGA, PAG, VAP) with all loaders pre-registered.
+
+**Advantages:**
+- ✅ Simple integration - just one dependency
+- ✅ All formats available out of the box
+- ✅ No registration plugin needed
+- ✅ Best for apps that use multiple animation formats
+
+**Dependencies:**
 
 ```kotlin
 dependencies {
@@ -39,15 +51,36 @@ dependencies {
 }
 ```
 
-**Option 2: Modular dependencies (For size optimization)**
+**What's included:**
+- `aniflux-core` - Core engine, caching, lifecycle management
+- `aniflux-gif` - GIF format support
+- `aniflux-lottie` - Lottie format support
+- `aniflux-svga` - SVGA format support
+- `aniflux-pag` - PAG format support
+- `aniflux-vap` - VAP format support
+
+#### Option 2: Modular Dependencies (For size optimization)
+
+Use modular dependencies to **selectively include only the formats you need**, reducing app size.
+
+**Advantages:**
+- ✅ Smaller app size - only include formats you use
+- ✅ More control over dependencies
+- ✅ Better for apps that use only 1-2 animation formats
+
+**Setup:**
+
+1. Add the registration plugin in your project's `build.gradle.kts` (project level):
 
 ```kotlin
-// In your project's build.gradle.kts (project level)
 plugins {
     id("com.kernelflux.aniflux.register") version "1.1.2" apply false
 }
+```
 
-// In your app's build.gradle.kts (module level)
+2. Apply the plugin and add dependencies in your app's `build.gradle.kts` (module level):
+
+```kotlin
 plugins {
     id("com.kernelflux.aniflux.register")
 }
@@ -56,18 +89,34 @@ dependencies {
     // Core module (required)
     implementation("com.kernelflux.mobile:aniflux-core:1.1.2")
     
-    // Format modules (add as needed)
-    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-svga:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-pag:1.1.2")
-    implementation("com.kernelflux.mobile:aniflux-vap:1.1.2")
+    // Format modules (add only the formats you need)
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")        // For GIF
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")     // For Lottie
+    implementation("com.kernelflux.mobile:aniflux-svga:1.1.2")      // For SVGA
+    implementation("com.kernelflux.mobile:aniflux-pag:1.1.2")       // For PAG
+    implementation("com.kernelflux.mobile:aniflux-vap:1.1.2")       // For VAP
 }
 ```
 
-**Note**: 
-- The all-in-one bundle (`aniflux`) includes all loaders pre-registered, so the register plugin is **not required**
-- For modular dependencies, the `com.kernelflux.aniflux.register` plugin is **required** to automatically register loaders from dependencies
+**Example: Only using GIF and Lottie**
+
+```kotlin
+plugins {
+    id("com.kernelflux.aniflux.register")
+}
+
+dependencies {
+    implementation("com.kernelflux.mobile:aniflux-core:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-gif:1.1.2")
+    implementation("com.kernelflux.mobile:aniflux-lottie:1.1.2")
+    // SVGA, PAG, VAP are not included
+}
+```
+
+**Important Notes:**
+- The `com.kernelflux.aniflux.register` plugin is **required** for modular dependencies to automatically register loaders at compile time
+- The all-in-one bundle (`aniflux`) has all loaders pre-registered, so the plugin is **not needed**
+- Each format module is independent - only add the ones you need
 
 ### Initialize
 
